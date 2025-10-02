@@ -119,7 +119,8 @@ public class UserMasterApplication {
                     .username("worker")
                     .password(passwordEncoder.encode("worker"))
                     .roles(workerRoles)
-                    .user(karina) // Use karina as the owner
+                    .user(karina) // Use karina as the user
+                    .owner(karina) // Set karina as the owner for multi-tenancy
                     .accountStatus(createDefaultAccountStatus())
                     .build();
             worker.setCreatedBy(1);

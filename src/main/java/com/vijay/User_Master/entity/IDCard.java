@@ -94,6 +94,11 @@ public class IDCard extends BaseModel {
     @JoinColumn(name = "issued_by_user_id")
     private User issuedBy;
     
+    // Business Owner (Multi-tenancy)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+    
     @Column(length = 500)
     private String remarks;
     

@@ -103,6 +103,11 @@ public class TransferCertificate extends BaseModel {
     @JoinColumn(name = "approved_by_user_id")
     private User approvedBy;
     
+    // Business Owner (Multi-tenancy)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+    
     @Enumerated(EnumType.STRING)
     private TCStatus status; // DRAFT, PENDING_APPROVAL, APPROVED, ISSUED, CANCELLED
     
