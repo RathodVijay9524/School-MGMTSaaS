@@ -10,6 +10,8 @@ import java.util.List;
 
 public interface FeeService {
 
+    Page<FeeResponse> getAllFees(Pageable pageable);
+    
     FeeResponse createFee(FeeRequest request);
     
     FeeResponse updateFee(Long id, FeeRequest request);

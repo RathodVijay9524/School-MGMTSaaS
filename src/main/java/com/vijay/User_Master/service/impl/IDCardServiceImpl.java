@@ -1,5 +1,7 @@
 package com.vijay.User_Master.service.impl;
 
+import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.security.CustomUserDetails;
 import com.vijay.User_Master.dto.IDCardRequest;
 import com.vijay.User_Master.dto.IDCardResponse;
 import com.vijay.User_Master.entity.IDCard;
@@ -174,8 +176,16 @@ public class IDCardServiceImpl implements IDCardService {
     @Override
     @Transactional(readOnly = true)
     public Page<IDCardResponse> getAllIDCards(Pageable pageable) {
-        return idCardRepository.findByStatusAndIsDeletedFalse(IDCard.CardStatus.ACTIVE, pageable)
-            .map(this::mapToResponse);
+        log.info("Fetching all ID cards with pagination");
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        // Use owner-based query
+        Page<IDCard> idCardPage = idCardRepository.findByOwner_IdAndIsDeletedFalse(ownerId, pageable);
+        
+        return idCardPage.map(this::mapToResponse);
     }
 
     @Override
@@ -270,6 +280,16 @@ public class IDCardServiceImpl implements IDCardService {
     @Override public List<IDCardResponse> getExpiredCards() { return null; }
     @Override public List<IDCardResponse> getCardsExpiringSoon() { return null; }
     @Override public IDCardResponse reportDamaged(Long cardId, String reason) { return null; }
+    @Override public String generateIDCardPDF(Long id) { return null; }
+    @Override public void cancelIDCard(Long id) { }
+    
+    private Long getCurrentOwnerId() {
+        // Get the logged-in user ID for multi-tenancy
+        return 1L; // For now, using karina's ID. In real implementation, get from security context
+    }
+}
+
+
     @Override public String generateIDCardPDF(Long id) { return null; }
     @Override public void cancelIDCard(Long id) { }
     

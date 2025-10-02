@@ -29,6 +29,17 @@ public class FeeController {
 
     private final FeeService feeService;
 
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    public ResponseEntity<?> getAllFees(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        log.info("Fetching all fees - page: {}, size: {}", page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+        Page<FeeResponse> response = feeService.getAllFees(pageable);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> createFee(@Valid @RequestBody FeeRequest request) {

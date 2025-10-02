@@ -29,6 +29,17 @@ public class GradeController {
 
     private final GradeService gradeService;
 
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> getAllGrades(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        log.info("Fetching all grades - page: {}, size: {}", page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("gradeDate").descending());
+        Page<GradeResponse> response = gradeService.getAllGrades(pageable);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> createGrade(@Valid @RequestBody GradeRequest request) {

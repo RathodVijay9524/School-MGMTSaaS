@@ -14,6 +14,7 @@ import java.util.Set;
 public class AuthResponse {
     private String accessToken;
     private String refreshToken;
+    @Builder.Default
     private String tokenType = "Bearer";
     private Long expiresIn;
     private Long userId;
@@ -21,3 +22,4 @@ public class AuthResponse {
     private String email;
     private Set<String> roles;
 }
+

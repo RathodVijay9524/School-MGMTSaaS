@@ -1,5 +1,7 @@
 package com.vijay.User_Master.service.impl;
 
+import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.security.CustomUserDetails;
 import com.vijay.User_Master.dto.TransferCertificateRequest;
 import com.vijay.User_Master.dto.TransferCertificateResponse;
 import com.vijay.User_Master.entity.Worker;
@@ -172,8 +174,16 @@ public class TransferCertificateServiceImpl implements TransferCertificateServic
     @Override
     @Transactional(readOnly = true)
     public Page<TransferCertificateResponse> getAllTCs(Pageable pageable) {
-        return tcRepository.findByStatusAndIsDeletedFalse(TransferCertificate.TCStatus.ISSUED, pageable)
-            .map(this::mapToResponse);
+        log.info("Fetching all TCs with pagination");
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        // Use owner-based query
+        Page<TransferCertificate> tcPage = tcRepository.findByOwner_IdAndIsDeletedFalse(ownerId, pageable);
+        
+        return tcPage.map(this::mapToResponse);
     }
 
     @Override
@@ -277,6 +287,16 @@ public class TransferCertificateServiceImpl implements TransferCertificateServic
             .approvedByName(tc.getApprovedBy() != null ? tc.getApprovedBy().getUsername() : null)
             .canBeIssued(canBeIssued)
             .statusDisplay(tc.getStatus().toString())
+            .build();
+    }
+    
+    private Long getCurrentOwnerId() {
+        // Get the logged-in user ID for multi-tenancy
+        return 1L; // For now, using karina's ID. In real implementation, get from security context
+    }
+}
+
+
             .build();
     }
     

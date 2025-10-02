@@ -68,10 +68,6 @@ public class UserMasterApplication {
                     .password(passwordEncoder.encode("admin"))
                     .roles(adminRoles)
                     .build();
-            admin.setCreatedBy(1);
-            admin.setUpdatedBy(1);
-            admin.setCreatedOn(new Date());
-            admin.setUpdatedOn(new Date());
 
             User user = User.builder()
                     .name("Ajay Rawat")
@@ -80,10 +76,6 @@ public class UserMasterApplication {
                     .password(passwordEncoder.encode("user"))
                     .roles(userRoles)
                     .build();
-            user.setCreatedBy(1);
-            user.setUpdatedBy(1);
-            user.setCreatedOn(new Date());
-            user.setUpdatedOn(new Date());
 
             User normalUser = User.builder()
                     .name("Vijay Rathod")
@@ -92,10 +84,6 @@ public class UserMasterApplication {
                     .password(passwordEncoder.encode("normal"))
                     .roles(normalRoles)
                     .build();
-            normalUser.setCreatedBy(1);
-            normalUser.setUpdatedBy(1);
-            normalUser.setCreatedOn(new Date());
-            normalUser.setUpdatedOn(new Date());
 
             User karina = User.builder()
                     .name("Karina Admin")
@@ -104,10 +92,6 @@ public class UserMasterApplication {
                     .password(passwordEncoder.encode("karina"))
                     .roles(adminRoles)
                     .build();
-            karina.setCreatedBy(1);
-            karina.setUpdatedBy(1);
-            karina.setCreatedOn(new Date());
-            karina.setUpdatedOn(new Date());
 
             // Save users first
             userRepository.saveAll(Arrays.asList(admin, user, normalUser, karina));
@@ -121,37 +105,18 @@ public class UserMasterApplication {
                     .roles(workerRoles)
                     .user(karina) // Use karina as the user
                     .owner(karina) // Set karina as the owner for multi-tenancy
-                    .accountStatus(createDefaultAccountStatus())
                     .build();
-            worker.setCreatedBy(1);
-            worker.setUpdatedBy(1);
-            worker.setCreatedOn(new Date());
-            worker.setUpdatedOn(new Date());
             workerRepository.save(worker);
         }
 
     }
 
-    private AccountStatus createDefaultAccountStatus() {
-        AccountStatus accountStatus = new AccountStatus();
-        accountStatus.setIsActive(true);
-        accountStatus.setCreatedBy(1);
-        accountStatus.setUpdatedBy(1);
-        accountStatus.setCreatedOn(new Date());
-        accountStatus.setUpdatedOn(new Date());
-        return accountStatus;
-    }
 
     private Role createAndSaveRole(String roleName) {
         Role role = new Role();
         role.setName(roleName);
         role.setActive(true);
         role.setDeleted(false);
-        // Set manual audit fields to bypass authentication requirement
-        role.setCreatedBy(1); // Default system user
-        role.setUpdatedBy(1); // Default system user
-        role.setCreatedOn(new Date());
-        role.setUpdatedOn(new Date());
         return roleRepository.save(role);
     }
 }

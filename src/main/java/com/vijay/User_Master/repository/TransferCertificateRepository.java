@@ -42,5 +42,15 @@ public interface TransferCertificateRepository extends JpaRepository<TransferCer
     
     // Find by academic year
     List<TransferCertificate> findByAcademicYearOfLeavingAndIsDeletedFalse(String academicYear);
+    
+    // Multi-tenant queries (owner-based) - Basic CRUD operations
+    Page<TransferCertificate> findByOwner_IdAndIsDeletedFalse(Long ownerId, Pageable pageable);
+    List<TransferCertificate> findByOwner_IdAndIsDeletedFalse(Long ownerId);
+    Optional<TransferCertificate> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
+}
+
+
+    List<TransferCertificate> findByOwner_IdAndIsDeletedFalse(Long ownerId);
+    Optional<TransferCertificate> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
 }
 

@@ -38,6 +38,21 @@ public class FeeServiceImpl implements FeeService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<FeeResponse> getAllFees(Pageable pageable) {
+        log.info("Fetching all fees with pagination");
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        // Use owner-based query
+        Page<Fee> feePage = feeRepository.findByOwner_IdAndIsDeletedFalse(ownerId, pageable);
+        
+        return feePage.map(this::mapToResponse);
+    }
+
+    @Override
     public FeeResponse createFee(FeeRequest request) {
         log.info("Creating fee for student ID: {}", request.getStudentId());
         

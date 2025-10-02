@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FeeRepository extends JpaRepository<Fee, Long> {
@@ -69,5 +70,14 @@ public interface FeeRepository extends JpaRepository<Fee, Long> {
     @Query("SELECT SUM(f.balanceAmount) FROM Fee f WHERE f.owner.id = :ownerId AND " +
            "f.paymentStatus IN ('PENDING', 'PARTIAL') AND f.isDeleted = false")
     Double calculateTotalPendingFeesByOwner(@Param("ownerId") Long ownerId);
+    
+    // Multi-tenant queries (owner-based) - Basic CRUD operations
+    List<Fee> findByOwner_IdAndIsDeletedFalse(Long ownerId);
+    Optional<Fee> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
+    
+    // Owner-based queries for student fees
+    Page<Fee> findByOwner_IdAndStudent_IdAndIsDeletedFalse(Long ownerId, Long studentId, Pageable pageable);
+    List<Fee> findByOwner_IdAndStudent_IdAndIsDeletedFalse(Long ownerId, Long studentId);
 }
+
 

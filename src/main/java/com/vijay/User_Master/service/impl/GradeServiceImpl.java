@@ -35,6 +35,21 @@ public class GradeServiceImpl implements GradeService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<GradeResponse> getAllGrades(Pageable pageable) {
+        log.info("Fetching all grades with pagination");
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        // Use owner-based query
+        Page<Grade> gradePage = gradeRepository.findByOwner_Id(ownerId, pageable);
+        
+        return gradePage.map(this::mapToResponse);
+    }
+
+    @Override
     public GradeResponse createGrade(GradeRequest request) {
         log.info("Creating grade for student ID: {}", request.getStudentId());
         

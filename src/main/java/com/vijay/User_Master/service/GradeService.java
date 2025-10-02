@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface GradeService {
 
+    Page<GradeResponse> getAllGrades(Pageable pageable);
+    
     GradeResponse createGrade(GradeRequest request);
     
     GradeResponse updateGrade(Long id, GradeRequest request);

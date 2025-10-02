@@ -59,7 +59,9 @@ public interface GradeRepository extends JpaRepository<Grade, Long> {
     @Query("SELECT g FROM Grade g WHERE g.owner.id = :ownerId AND g.academicYear = :academicYear")
     List<Grade> findByOwnerAndAcademicYear(@Param("ownerId") Long ownerId, @Param("academicYear") String academicYear);
     
-    // SECURITY: Find by ID and Owner (prevents cross-school access)
+    // Multi-tenant queries (owner-based) - Basic CRUD operations
+    Page<Grade> findByOwner_Id(Long ownerId, Pageable pageable);
+    List<Grade> findByOwner_Id(Long ownerId);
     Optional<Grade> findByIdAndOwner_Id(Long id, Long ownerId);
 }
 

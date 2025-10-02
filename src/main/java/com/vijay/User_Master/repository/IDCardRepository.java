@@ -48,5 +48,15 @@ public interface IDCardRepository extends JpaRepository<IDCard, Long> {
     // Find active teacher cards
     @Query("SELECT i FROM IDCard i WHERE i.teacher.id = :teacherId AND i.status = 'ACTIVE' AND i.isDeleted = false")
     Optional<IDCard> findActiveTeacherCard(@Param("teacherId") Long teacherId);
+    
+    // Multi-tenant queries (owner-based) - Basic CRUD operations
+    Page<IDCard> findByOwner_IdAndIsDeletedFalse(Long ownerId, Pageable pageable);
+    List<IDCard> findByOwner_IdAndIsDeletedFalse(Long ownerId);
+    Optional<IDCard> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
+}
+
+
+    List<IDCard> findByOwner_IdAndIsDeletedFalse(Long ownerId);
+    Optional<IDCard> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
 }
 
