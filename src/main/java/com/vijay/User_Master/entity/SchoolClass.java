@@ -54,10 +54,6 @@ public class SchoolClass extends BaseModel {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
     
-    // Alternative owner ID field for compatibility
-    @Column(name = "owner_id", insertable = false, updatable = false)
-    private Long ownerId;
-    
     // Soft Delete
     @lombok.Builder.Default
     private boolean isDeleted = false;

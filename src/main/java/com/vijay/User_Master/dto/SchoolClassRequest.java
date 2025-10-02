@@ -14,4 +14,5 @@ public class SchoolClassRequest {
     private String description;
     private Integer capacity;
     private String academicYear;
+    private String status; // Add status field
 }

@@ -31,6 +31,9 @@ public interface WorkerUserService extends AdvancedCrudService<WorkerResponse, L
 
     Page<WorkerResponse> getWorkersWithFilter(Long superUserId, Boolean isDeleted, Boolean isActive, String keyword, Pageable pageable);
     void updateAccountStatus(Long userId, Boolean isActive);
+    
+    // Update worker method
+    WorkerResponse update(Long id, WorkerRequest request) throws Exception;
 
 
 }

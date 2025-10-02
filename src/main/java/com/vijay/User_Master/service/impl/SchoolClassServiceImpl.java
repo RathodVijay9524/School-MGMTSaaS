@@ -43,7 +43,7 @@ public class SchoolClassServiceImpl implements SchoolClassService {
                 .academicYear(request.getAcademicYear())
                 .classLevel(1) // Set default class level
                 .owner(owner)
-                .status(SchoolClass.ClassStatus.ACTIVE)
+                .status(request.getStatus() != null ? SchoolClass.ClassStatus.valueOf(request.getStatus()) : SchoolClass.ClassStatus.ACTIVE)
                 .isActive(true)
                 .isDeleted(false)
                 .build();

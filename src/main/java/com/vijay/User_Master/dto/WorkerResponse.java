@@ -29,6 +29,10 @@ public class WorkerResponse {
     private LocalDateTime deletedOn;
     private Set<Role> roles; // Roles are strings like "ROLE_ADMIN"
     private AccountStatus accountStatus;
+    
+    // Class information
+    private Long currentClassId;
+    private String currentClassName;
 
     @AllArgsConstructor
     @NoArgsConstructor

@@ -125,7 +125,7 @@ public class WorkerUserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/{id:\\d+}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getWorkerUserById(@PathVariable Long id) throws Exception {
         return ExceptionUtil.createBuildResponse(workerUserService.findById(id), HttpStatus.OK);
     }
@@ -266,6 +266,21 @@ public class WorkerUserController {
         } catch (Exception ex) {
             log.error("Error updating account status for worker ID: {}", id, ex);
             return ExceptionUtil.createBuildResponse("Failed to update worker status", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Update worker information
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateWorker(@PathVariable Long id, @RequestBody WorkerRequest request) {
+        log.info("Updating worker with ID: {}", id);
+        try {
+            WorkerResponse response = workerUserService.update(id, request);
+            return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error updating worker: {}", e.getMessage(), e);
+            return ExceptionUtil.createBuildResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 

@@ -28,4 +28,7 @@ public class WorkerRequest {
     private Set<String> roles; // Roles are strings like "ROLE_ADMIN"
     private User user;
     private AccountStatus accountStatus;
+    
+    // Class assignment field
+    private Long currentClassId;
 }

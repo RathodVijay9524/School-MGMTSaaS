@@ -10,7 +10,9 @@ import com.vijay.User_Master.dto.WorkerRequest;
 import com.vijay.User_Master.dto.WorkerResponse;
 import com.vijay.User_Master.entity.AccountStatus;
 import com.vijay.User_Master.entity.Role;
+import com.vijay.User_Master.entity.SchoolClass;
 import com.vijay.User_Master.repository.WorkerRepository;
+import com.vijay.User_Master.repository.SchoolClassRepository;
 import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.exceptions.ResourceNotFoundException;
 import com.vijay.User_Master.repository.FavouriteEntryRepo;
@@ -46,6 +48,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SchoolClassRepository schoolClassRepository;
 
     @Override
     public WorkerResponse create(WorkerRequest request) {
@@ -343,6 +346,74 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
         workerRepository.save(worker); // cascade should handle persist/update
 
+    }
+
+    @Override
+    public WorkerResponse update(Long id, WorkerRequest request) throws Exception {
+        log.info("Updating worker with ID: {}", id);
+        
+        // Get the logged-in user (owner)
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        User owner = userRepository.findById(loggedInUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", loggedInUser.getId()));
+        
+        // Find existing worker
+        Worker existingWorker = workerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Worker", "ID", id));
+        
+        // Check if worker belongs to the current owner (multi-tenancy)
+        if (!existingWorker.getOwner().getId().equals(owner.getId())) {
+            throw new RuntimeException("Worker does not belong to current user");
+        }
+        
+        // Update basic fields
+        existingWorker.setName(request.getName());
+        existingWorker.setEmail(request.getEmail());
+        existingWorker.setPhoNo(request.getPhoNo());
+        existingWorker.setAbout(request.getAbout());
+        
+        // Update image name if provided
+        if (request.getImageName() != null) {
+            existingWorker.setImageName(request.getImageName());
+        }
+        
+        // Update current class if provided
+        if (request.getCurrentClassId() != null) {
+            SchoolClass schoolClass = schoolClassRepository.findById(request.getCurrentClassId())
+                    .orElseThrow(() -> new ResourceNotFoundException("SchoolClass", "ID", request.getCurrentClassId()));
+            existingWorker.setCurrentClass(schoolClass);
+        }
+        
+        // Update password if provided
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            existingWorker.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+        
+        // Update roles if provided
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            Set<Role> roles = request.getRoles().stream()
+                    .map(roleName -> roleRepository.findByName(roleName)
+                            .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName)))
+                    .collect(Collectors.toSet());
+            existingWorker.setRoles(roles);
+        }
+        
+        // Update audit fields
+        existingWorker.setUpdatedBy(loggedInUser.getId().intValue());
+        existingWorker.setUpdatedOn(new Date());
+        
+        Worker updatedWorker = workerRepository.save(existingWorker);
+        log.info("Worker updated successfully with ID: {}", updatedWorker.getId());
+        
+        WorkerResponse response = mapper.map(updatedWorker, WorkerResponse.class);
+        
+        // Set class information in response
+        if (updatedWorker.getCurrentClass() != null) {
+            response.setCurrentClassId(updatedWorker.getCurrentClass().getId());
+            response.setCurrentClassName(updatedWorker.getCurrentClass().getClassName());
+        }
+        
+        return response;
     }
 
 
