@@ -135,7 +135,12 @@ public class SubjectServiceImpl implements SubjectService {
         
         Page<Subject> subjects = subjectRepository.searchSubjects(keyword, pageable);
         
-        List<SubjectResponse> subjectResponses = subjects.getContent().stream()
+        // Filter by owner after search
+        List<Subject> ownerFilteredSubjects = subjects.getContent().stream()
+                .filter(subject -> subject.getOwner() != null && subject.getOwner().getId().equals(ownerId))
+                .collect(Collectors.toList());
+        
+        List<SubjectResponse> subjectResponses = ownerFilteredSubjects.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
         
@@ -143,9 +148,9 @@ public class SubjectServiceImpl implements SubjectService {
                 .content(subjectResponses)
                 .pageNumber(subjects.getNumber())
                 .pageSize(subjects.getSize())
-                .totalElements(subjects.getTotalElements())
-                .totalPages(subjects.getTotalPages())
-                .lastPage(subjects.isLast())
+                .totalElements((long) ownerFilteredSubjects.size())
+                .totalPages((int) Math.ceil((double) ownerFilteredSubjects.size() / subjects.getSize()))
+                .lastPage(true)
                 .build();
     }
 
@@ -156,7 +161,9 @@ public class SubjectServiceImpl implements SubjectService {
         
         List<Subject> subjects = subjectRepository.findByDepartmentAndIsDeletedFalse(department);
         
+        // Filter by owner
         return subjects.stream()
+                .filter(subject -> subject.getOwner() != null && subject.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -168,7 +175,9 @@ public class SubjectServiceImpl implements SubjectService {
         
         List<Subject> subjects = subjectRepository.findByTypeAndIsDeletedFalse(type);
         
+        // Filter by owner
         return subjects.stream()
+                .filter(subject -> subject.getOwner() != null && subject.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }

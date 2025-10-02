@@ -168,20 +168,37 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     // find all User from Worker user Entity
     @Override
     public PageableResponse<WorkerResponse> findAll(Pageable pageable) {
-        Page<Worker> pages = workerRepository.findAll(pageable);
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long loggedInUserId = loggedInUser.getId();
+        List<Worker> workers = workerRepository.findByUser_IdAndIsDeletedFalse(loggedInUserId, pageable);
+        
+        // Convert List to Page manually
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), workers.size());
+        List<Worker> pageContent = workers.subList(start, end);
+        
+        Page<Worker> pages = new PageImpl<>(pageContent, pageable, workers.size());
         return Helper.getPageableResponse(pages, WorkerResponse.class);
     }
 
     @Override
     public PageableResponse<WorkerResponse> searchItemsWithDynamicFields(String query, Pageable pageable) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long loggedInUserId = loggedInUser.getId();
+        
         Specification<Worker> spec = (root, criteriaQuery, criteriaBuilder) -> {
             String likePattern = "%" + query + "%";
-            return criteriaBuilder.or(
-                    criteriaBuilder.like(root.get("name"), likePattern),
-                    criteriaBuilder.like(root.get("username"), likePattern),
-                    criteriaBuilder.like(root.get("email"), likePattern),
-                    criteriaBuilder.like(root.get("phoNo"), likePattern),
-                    criteriaBuilder.like(root.get("accountStatus").get("isActive").as(String.class), likePattern));
+            return criteriaBuilder.and(
+                    criteriaBuilder.equal(root.get("user").get("id"), loggedInUserId),
+                    criteriaBuilder.equal(root.get("isDeleted"), false),
+                    criteriaBuilder.or(
+                            criteriaBuilder.like(root.get("name"), likePattern),
+                            criteriaBuilder.like(root.get("username"), likePattern),
+                            criteriaBuilder.like(root.get("email"), likePattern),
+                            criteriaBuilder.like(root.get("phoNo"), likePattern),
+                            criteriaBuilder.like(root.get("accountStatus").get("isActive").as(String.class), likePattern)
+                    )
+            );
         };
         Page<Worker> workerPage = workerRepository.findAll(spec, pageable);
         return Helper.getPageableResponse(workerPage, WorkerResponse.class);
@@ -214,8 +231,9 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     // find all only Active users by superuser id or loggedInUser userId
     @Override
     public List<WorkerResponse> findAllActiveUsers() {
-        //CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
-        List<Worker> userLists = workerRepository.findAll();
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long loggedInUserId = loggedInUser.getId();
+        List<Worker> userLists = workerRepository.findByUser_IdAndIsDeletedFalseAndAccountStatus_IsActiveTrue(loggedInUserId, Pageable.unpaged()).getContent();
         return userLists.stream()
                 .map((worker -> mapper.map(worker, WorkerResponse.class)))
                 .collect(Collectors.toList());
