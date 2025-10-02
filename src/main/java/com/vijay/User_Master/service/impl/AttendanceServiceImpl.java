@@ -39,6 +39,21 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<AttendanceResponse> getAllAttendance(Pageable pageable) {
+        log.info("Fetching all attendance records with pagination");
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        // Use owner-based query if available, otherwise fallback to all
+        Page<Attendance> attendancePage = attendanceRepository.findByOwner_Id(ownerId, pageable);
+        
+        return attendancePage.map(this::mapToResponse);
+    }
+
+    @Override
     public AttendanceResponse markAttendance(AttendanceRequest request) {
         log.info("Marking attendance for student ID: {} on date: {}", 
             request.getStudentId(), request.getAttendanceDate());

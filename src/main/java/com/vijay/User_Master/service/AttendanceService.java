@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface AttendanceService {
+    Page<AttendanceResponse> getAllAttendance(Pageable pageable);
     AttendanceResponse markAttendance(AttendanceRequest request);
     List<AttendanceResponse> markBulkAttendance(List<AttendanceRequest> requests);
     AttendanceResponse updateAttendance(Long id, AttendanceRequest request);

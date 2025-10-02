@@ -33,6 +33,20 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     /**
+     * Get all attendance records with pagination
+     */
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> getAllAttendance(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        log.info("Fetching all attendance records - page: {}, size: {}", page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<AttendanceResponse> response = attendanceService.getAllAttendance(pageable);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
+    /**
      * Mark attendance for a single student
      */
     @PostMapping
