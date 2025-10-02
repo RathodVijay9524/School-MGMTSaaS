@@ -72,7 +72,15 @@ public interface WorkerRepository extends JpaRepository<Worker, Long>, JpaSpecif
     List<Worker> findByUser_IdAndIsDeletedFalse(Long userId, Pageable pageable);
     Page<Worker> findByUser_IdAndAccountStatus_IsActive(Long userId, boolean isActive, Pageable pageable);
 
-
+    // Multi-tenant queries (owner-based)
+    Page<Worker> findByOwner_IdAndIsDeletedFalse(Long ownerId, Pageable pageable);
+    List<Worker> findByOwner_IdAndIsDeletedFalse(Long ownerId);
+    Optional<Worker> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
+    Page<Worker> findByOwner_IdAndIsDeletedFalseAndAccountStatus_IsActiveTrue(Long ownerId, Pageable pageable);
+    
+    // Simple owner-based queries for testing
+    List<Worker> findByOwner_Id(Long ownerId);
+    Page<Worker> findByOwner_Id(Long ownerId, Pageable pageable);
 
 }
 

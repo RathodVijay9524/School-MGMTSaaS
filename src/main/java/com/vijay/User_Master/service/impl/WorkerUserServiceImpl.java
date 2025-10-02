@@ -170,14 +170,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     public PageableResponse<WorkerResponse> findAll(Pageable pageable) {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Long loggedInUserId = loggedInUser.getId();
-        List<Worker> workers = workerRepository.findByUser_IdAndIsDeletedFalse(loggedInUserId, pageable);
-        
-        // Convert List to Page manually
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), workers.size());
-        List<Worker> pageContent = workers.subList(start, end);
-        
-        Page<Worker> pages = new PageImpl<>(pageContent, pageable, workers.size());
+        Page<Worker> pages = workerRepository.findByOwner_Id(loggedInUserId, pageable);
         return Helper.getPageableResponse(pages, WorkerResponse.class);
     }
 
@@ -233,7 +226,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     public List<WorkerResponse> findAllActiveUsers() {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Long loggedInUserId = loggedInUser.getId();
-        List<Worker> userLists = workerRepository.findByUser_IdAndIsDeletedFalseAndAccountStatus_IsActiveTrue(loggedInUserId, Pageable.unpaged()).getContent();
+        List<Worker> userLists = workerRepository.findByOwner_IdAndIsDeletedFalseAndAccountStatus_IsActiveTrue(loggedInUserId, Pageable.unpaged()).getContent();
         return userLists.stream()
                 .map((worker -> mapper.map(worker, WorkerResponse.class)))
                 .collect(Collectors.toList());

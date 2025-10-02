@@ -57,7 +57,7 @@ public class SchoolClassServiceImpl implements SchoolClassService {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        Page<SchoolClass> classPage = schoolClassRepository.findByOwnerIdAndIsDeletedFalse(ownerId, pageable);
+        Page<SchoolClass> classPage = schoolClassRepository.findByOwner_IdAndIsDeletedFalse(ownerId, pageable);
         
         List<SchoolClassResponse> content = classPage.getContent().stream()
                 .map(this::convertToResponse)
@@ -76,14 +76,14 @@ public class SchoolClassServiceImpl implements SchoolClassService {
     
     @Override
     public SchoolClassResponse getClassById(Long id, Long ownerId) {
-        SchoolClass schoolClass = schoolClassRepository.findByIdAndOwnerIdAndIsDeletedFalse(id, ownerId)
+        SchoolClass schoolClass = schoolClassRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Class not found"));
         return convertToResponse(schoolClass);
     }
     
     @Override
     public SchoolClassResponse updateClass(Long id, SchoolClassRequest request, Long ownerId) {
-        SchoolClass schoolClass = schoolClassRepository.findByIdAndOwnerIdAndIsDeletedFalse(id, ownerId)
+        SchoolClass schoolClass = schoolClassRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Class not found"));
         
         schoolClass.setClassName(request.getClassName());
@@ -97,7 +97,7 @@ public class SchoolClassServiceImpl implements SchoolClassService {
     
     @Override
     public void deleteClass(Long id, Long ownerId) {
-        SchoolClass schoolClass = schoolClassRepository.findByIdAndOwnerIdAndIsDeletedFalse(id, ownerId)
+        SchoolClass schoolClass = schoolClassRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Class not found"));
         
         schoolClass.setDeleted(true);
@@ -106,7 +106,7 @@ public class SchoolClassServiceImpl implements SchoolClassService {
     
     @Override
     public List<SchoolClassResponse> getActiveClasses(Long ownerId) {
-        List<SchoolClass> classes = schoolClassRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
+        List<SchoolClass> classes = schoolClassRepository.findByOwner_IdAndIsDeletedFalse(ownerId);
         return classes.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
