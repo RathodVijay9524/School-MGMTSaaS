@@ -20,6 +20,9 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     
     boolean existsBySubjectCode(String subjectCode);
     
+    // Multi-tenant aware existence checks
+    boolean existsBySubjectCodeAndOwner_Id(String subjectCode, Long ownerId);
+    
     // Find by department
     List<Subject> findByDepartmentAndIsDeletedFalse(String department);
     

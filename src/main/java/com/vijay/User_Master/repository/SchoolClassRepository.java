@@ -18,6 +18,9 @@ public interface SchoolClassRepository extends JpaRepository<SchoolClass, Long> 
     
     boolean existsByClassName(String className);
     
+    // Multi-tenant aware existence checks
+    boolean existsByClassNameAndOwner_Id(String className, Long ownerId);
+    
     // Find by status
     Page<SchoolClass> findByStatusAndIsDeletedFalse(SchoolClass.ClassStatus status, Pageable pageable);
     

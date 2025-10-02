@@ -31,6 +31,11 @@ public class SchoolClassServiceImpl implements SchoolClassService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
         
+        // Check if class name already exists for this owner
+        if (schoolClassRepository.existsByClassNameAndOwner_Id(request.getClassName(), ownerId)) {
+            throw new RuntimeException("Class name already exists: " + request.getClassName());
+        }
+        
         SchoolClass schoolClass = SchoolClass.builder()
                 .className(request.getClassName())
                 .description(request.getDescription())

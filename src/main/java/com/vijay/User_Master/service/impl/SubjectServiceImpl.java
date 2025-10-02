@@ -37,7 +37,7 @@ public class SubjectServiceImpl implements SubjectService {
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
         
         // Check if subject code already exists
-        if (subjectRepository.existsBySubjectCode(request.getSubjectCode())) {
+        if (subjectRepository.existsBySubjectCodeAndOwner_Id(request.getSubjectCode(), ownerId)) {
             throw new RuntimeException("Subject code already exists: " + request.getSubjectCode());
         }
         
