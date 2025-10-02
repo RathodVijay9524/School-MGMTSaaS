@@ -82,6 +82,11 @@ public class Worker extends BaseModel {
     @JoinColumn(name="user_id",nullable = false)
     private User user;
 
+    // Business Owner (Multi-tenancy)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+
     // Additional fields for complete compatibility
     private String parentEmail;
     private String parentPhone;

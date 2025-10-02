@@ -88,6 +88,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
                 .about(request.getAbout())
                 .roles(roles)
                 .user(owner)
+                .owner(owner) // Set the owner for multi-tenancy
                 .accountStatus(accountStatus)
                 .build();
         
