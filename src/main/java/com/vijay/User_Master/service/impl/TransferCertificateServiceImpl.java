@@ -296,13 +296,3 @@ public class TransferCertificateServiceImpl implements TransferCertificateServic
     }
 }
 
-
-            .build();
-    }
-    
-    private Long getCurrentOwnerId() {
-        // Get the logged-in user ID for multi-tenancy
-        return 1L; // For now, using karina's ID. In real implementation, get from security context
-    }
-}
-

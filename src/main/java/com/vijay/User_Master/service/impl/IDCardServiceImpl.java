@@ -7,24 +7,20 @@ import com.vijay.User_Master.dto.IDCardResponse;
 import com.vijay.User_Master.entity.IDCard;
 import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.entity.User;
-import com.vijay.User_Master.exceptions.BadApiRequestException;
-import com.vijay.User_Master.exceptions.ResourceNotFoundException;
 import com.vijay.User_Master.repository.IDCardRepository;
 import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.IDCardService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -35,141 +31,139 @@ public class IDCardServiceImpl implements IDCardService {
     private final IDCardRepository idCardRepository;
     private final WorkerRepository workerRepository;
     private final UserRepository userRepository;
+    private final ModelMapper mapper;
 
     @Override
     public IDCardResponse generateStudentIDCard(Long studentId, LocalDate expiryDate) {
-        log.info("Auto-generating ID card for student ID: {}", studentId);
+        log.info("Generating student ID card for student ID: {}", studentId);
         
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        User owner = userRepository.findById(loggedInUser.getId())
+                .orElseThrow(() -> new RuntimeException("Owner not found"));
+        
+        // Find student worker
         Worker student = workerRepository.findById(studentId)
-            .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
+                .orElseThrow(() -> new RuntimeException("Student not found"));
         
-        // Check if active card already exists
-        Optional<IDCard> existingCard = idCardRepository.findActiveStudentCard(studentId);
-        if (existingCard.isPresent()) {
-            throw new BadApiRequestException("Active ID card already exists for this student");
-        }
-        
-        // AUTOMATIC CARD NUMBER GENERATION
-        String cardNumber = generateCardNumber("STU", studentId);
-        String qrCode = generateQRCodeData(student);
-        String barcodeData = student.getAdmissionNumber();
-        
+        // Create ID card
         IDCard idCard = IDCard.builder()
-            .student(student)
+                .cardNumber("ID-STU-" + System.currentTimeMillis())
             .cardType(IDCard.CardType.STUDENT_ID)
-            .cardNumber(cardNumber)
             .issueDate(LocalDate.now())
-            .expiryDate(expiryDate != null ? expiryDate : LocalDate.now().plusYears(1))
+                .expiryDate(expiryDate)
             .status(IDCard.CardStatus.ACTIVE)
-            .photoUrl(student.getProfileImageUrl())
-            .barcodeData(barcodeData)
-            .qrCodeData(qrCode)
-            .studentClass(student.getCurrentClass().getClassName())
-            .section(student.getSection())
-              .rollNumber(student.getRollNumber() != null ? Integer.parseInt(student.getRollNumber()) : null)
-            .bloodGroup(student.getBloodGroup())
-            .emergencyContactName(student.getFatherName())
-            .emergencyContactPhone(student.getFatherPhone())
-            .address(student.getAddress())
-            .phoneNumber(student.getPhoneNumber())
-            .dateOfBirth(student.getDateOfBirth())
+                .student(student)
+                .owner(owner)
             .isDeleted(false)
             .build();
         
-        IDCard saved = idCardRepository.save(idCard);
-        log.info("Student ID card generated with number: {}", cardNumber);
+        IDCard savedCard = idCardRepository.save(idCard);
+        log.info("Student ID card generated successfully with ID: {}", savedCard.getId());
         
-        return mapToResponse(saved);
+        return mapToResponse(savedCard);
     }
 
     @Override
     public IDCardResponse generateTeacherIDCard(Long teacherId, LocalDate expiryDate) {
-        log.info("Auto-generating ID card for teacher ID: {}", teacherId);
+        log.info("Generating teacher ID card for teacher ID: {}", teacherId);
         
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        User owner = userRepository.findById(loggedInUser.getId())
+                .orElseThrow(() -> new RuntimeException("Owner not found"));
+        
+        // Find teacher worker
         Worker teacher = workerRepository.findById(teacherId)
-            .orElseThrow(() -> new ResourceNotFoundException("Teacher", "id", teacherId));
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
         
-        // Check if active card already exists
-        Optional<IDCard> existingCard = idCardRepository.findActiveTeacherCard(teacherId);
-        if (existingCard.isPresent()) {
-            throw new BadApiRequestException("Active ID card already exists for this teacher");
-        }
-        
-        // AUTOMATIC CARD NUMBER GENERATION
-        String cardNumber = generateCardNumber("TCH", teacherId);
-        String qrCode = generateQRCodeData(teacher);
-        String barcodeData = teacher.getEmployeeId();
-        
+        // Create ID card
         IDCard idCard = IDCard.builder()
-            .teacher(teacher)
-            .cardType(IDCard.CardType.TEACHER_ID)
-            .cardNumber(cardNumber)
-            .issueDate(LocalDate.now())
-            .expiryDate(expiryDate != null ? expiryDate : LocalDate.now().plusYears(3))
+                .cardNumber("ID-TCH-" + System.currentTimeMillis())
+                .cardType(IDCard.CardType.TEACHER_ID)
+                .issueDate(LocalDate.now())
+                .expiryDate(expiryDate)
+                .status(IDCard.CardStatus.ACTIVE)
+                .teacher(teacher)
+                .owner(owner)
+                .isDeleted(false)
+                .build();
+        
+        IDCard savedCard = idCardRepository.save(idCard);
+        log.info("Teacher ID card generated successfully with ID: {}", savedCard.getId());
+        
+        return mapToResponse(savedCard);
+    }
+
+    @Override
+    public IDCardResponse createIDCard(IDCardRequest request) {
+        log.info("Creating custom ID card");
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        User owner = userRepository.findById(loggedInUser.getId())
+                .orElseThrow(() -> new RuntimeException("Owner not found"));
+        
+        // Create ID card from request
+        IDCard idCard = IDCard.builder()
+                .cardNumber("ID-" + request.getCardType().name().replace("_ID", "") + "-" + System.currentTimeMillis())
+                .cardType(request.getCardType())
+                .issueDate(request.getIssueDate())
+                .expiryDate(request.getExpiryDate())
             .status(IDCard.CardStatus.ACTIVE)
-            .photoUrl(teacher.getProfileImageUrl())
-            .barcodeData(barcodeData)
-            .qrCodeData(qrCode)
-            .designation(teacher.getDesignation())
-            .department(teacher.getDepartment())
-            .employeeId(teacher.getEmployeeId())
-            .address(teacher.getAddress())
-            .phoneNumber(teacher.getPhoneNumber())
-            .dateOfBirth(teacher.getDateOfBirth())
-            .emergencyContactName(teacher.getEmergencyContactName())
-            .emergencyContactPhone(teacher.getEmergencyContactPhone())
+                .student(request.getStudentId() != null ? workerRepository.findById(request.getStudentId()).orElse(null) : null)
+                .teacher(request.getTeacherId() != null ? workerRepository.findById(request.getTeacherId()).orElse(null) : null)
+                .owner(owner)
             .isDeleted(false)
             .build();
         
-        IDCard saved = idCardRepository.save(idCard);
-        log.info("Teacher ID card generated with number: {}", cardNumber);
+        IDCard savedCard = idCardRepository.save(idCard);
+        log.info("Custom ID card created successfully with ID: {}", savedCard.getId());
         
-        return mapToResponse(saved);
+        return mapToResponse(savedCard);
     }
 
     @Override
-    public IDCardResponse reissueIDCard(Long oldCardId, Double replacementFee) {
-        log.info("Reissuing ID card for old card ID: {}", oldCardId);
-        
-        IDCard oldCard = idCardRepository.findById(oldCardId)
-            .orElseThrow(() -> new ResourceNotFoundException("IDCard", "id", oldCardId));
-        
-        // Mark old card as replaced
-        oldCard.setStatus(IDCard.CardStatus.REPLACED);
-        idCardRepository.save(oldCard);
-        
-        // Generate new card
-        if (oldCard.getCardType() == IDCard.CardType.STUDENT_ID) {
-            IDCardResponse newCard = generateStudentIDCard(
-                oldCard.getStudent().getId(), 
-                LocalDate.now().plusYears(1));
-            
-            // Update with replacement info
-            IDCard newCardEntity = idCardRepository.findById(newCard.getId()).get();
-            newCardEntity.setReplacedBy(oldCard);
-            newCardEntity.setReplacementDate(LocalDate.now());
-            newCardEntity.setReplacementFee(replacementFee);
-            idCardRepository.save(newCardEntity);
-            
-            return mapToResponse(newCardEntity);
-        } else {
-            return generateTeacherIDCard(oldCard.getTeacher().getId(), LocalDate.now().plusYears(3));
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public IDCardResponse getIDCardById(Long id) {
-        IDCard idCard = idCardRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("IDCard", "id", id));
+        log.info("Fetching ID card by ID: {}", id);
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        IDCard idCard = idCardRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
+                .orElseThrow(() -> new RuntimeException("ID card not found"));
+        
         return mapToResponse(idCard);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public IDCardResponse getIDCardByNumber(String cardNumber) {
+        log.info("Fetching ID card by number: {}", cardNumber);
+        
+        IDCard idCard = idCardRepository.findByCardNumber(cardNumber)
+                .orElseThrow(() -> new RuntimeException("ID card not found"));
+        
+        return mapToResponse(idCard);
+    }
+
+    @Override
     public IDCardResponse getActiveStudentCard(Long studentId) {
+        log.info("Fetching active student card for student ID: {}", studentId);
+        
         IDCard idCard = idCardRepository.findActiveStudentCard(studentId)
-            .orElseThrow(() -> new ResourceNotFoundException("IDCard", "studentId", studentId));
+                .orElseThrow(() -> new RuntimeException("Active student card not found"));
+        
+        return mapToResponse(idCard);
+    }
+
+    @Override
+    public IDCardResponse getActiveTeacherCard(Long teacherId) {
+        log.info("Fetching active teacher card for teacher ID: {}", teacherId);
+        
+        IDCard idCard = idCardRepository.findActiveTeacherCard(teacherId)
+                .orElseThrow(() -> new RuntimeException("Active teacher card not found"));
+        
         return mapToResponse(idCard);
     }
 
@@ -189,113 +183,145 @@ public class IDCardServiceImpl implements IDCardService {
     }
 
     @Override
+    public List<IDCardResponse> getExpiredCards() {
+        log.info("Fetching expired ID cards");
+        
+        List<IDCard> expiredCards = idCardRepository.findExpiredCards(LocalDate.now());
+        return expiredCards.stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public List<IDCardResponse> getCardsExpiringSoon() {
+        log.info("Fetching cards expiring soon");
+        
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(30);
+        
+        List<IDCard> expiringCards = idCardRepository.findCardsExpiringSoon(startDate, endDate);
+        return expiringCards.stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
     public IDCardResponse reportLost(Long cardId, String reason) {
-        IDCard card = idCardRepository.findById(cardId)
-            .orElseThrow(() -> new ResourceNotFoundException("IDCard", "id", cardId));
-        card.setStatus(IDCard.CardStatus.LOST);
-        card.setReplacementReason(reason);
-        IDCard updated = idCardRepository.save(card);
-        return mapToResponse(updated);
+        log.info("Reporting ID card as lost: {}", cardId);
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        IDCard idCard = idCardRepository.findByIdAndOwner_IdAndIsDeletedFalse(cardId, ownerId)
+                .orElseThrow(() -> new RuntimeException("ID card not found"));
+        
+        idCard.setStatus(IDCard.CardStatus.LOST);
+        idCard.setUpdatedBy(loggedInUser.getId().intValue());
+        idCard.setUpdatedOn(new java.util.Date());
+        
+        IDCard savedCard = idCardRepository.save(idCard);
+        log.info("ID card reported as lost successfully");
+        
+        return mapToResponse(savedCard);
+    }
+
+    @Override
+    public IDCardResponse reportDamaged(Long cardId, String reason) {
+        log.info("Reporting ID card as damaged: {}", cardId);
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        IDCard idCard = idCardRepository.findByIdAndOwner_IdAndIsDeletedFalse(cardId, ownerId)
+                .orElseThrow(() -> new RuntimeException("ID card not found"));
+        
+        idCard.setStatus(IDCard.CardStatus.DAMAGED);
+        idCard.setUpdatedBy(loggedInUser.getId().intValue());
+        idCard.setUpdatedOn(new java.util.Date());
+        
+        IDCard savedCard = idCardRepository.save(idCard);
+        log.info("ID card reported as damaged successfully");
+        
+        return mapToResponse(savedCard);
+    }
+
+    @Override
+    public IDCardResponse reissueIDCard(Long oldCardId, Double replacementFee) {
+        log.info("Reissuing ID card: {}", oldCardId);
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        User owner = userRepository.findById(loggedInUser.getId())
+                .orElseThrow(() -> new RuntimeException("Owner not found"));
+        
+        IDCard oldCard = idCardRepository.findByIdAndOwner_IdAndIsDeletedFalse(oldCardId, loggedInUser.getId())
+                .orElseThrow(() -> new RuntimeException("Original ID card not found"));
+        
+        // Create new card
+        IDCard newCard = IDCard.builder()
+                .cardNumber(oldCard.getCardType() == IDCard.CardType.STUDENT_ID ? 
+                    "ID-STU-" + System.currentTimeMillis() : "ID-TCH-" + System.currentTimeMillis())
+                .cardType(oldCard.getCardType())
+                .issueDate(LocalDate.now())
+                .expiryDate(oldCard.getExpiryDate())
+                .status(IDCard.CardStatus.ACTIVE)
+                .student(oldCard.getStudent())
+                .teacher(oldCard.getTeacher())
+                .owner(owner)
+                .isDeleted(false)
+                .build();
+        
+        IDCard savedCard = idCardRepository.save(newCard);
+        log.info("ID card reissued successfully with new ID: {}", savedCard.getId());
+        
+        return mapToResponse(savedCard);
+    }
+
+    @Override
+    public String generateIDCardPDF(Long id) {
+        log.info("Generating PDF for ID card: {}", id);
+        
+        // Placeholder implementation - in real scenario, you would generate actual PDF
+        return "IDCard_" + id + "_" + System.currentTimeMillis() + ".pdf";
     }
 
     @Override
     public String generateQRCode(Long id) {
-        IDCard card = idCardRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("IDCard", "id", id));
-        return card.getQrCodeData();
+        log.info("Generating QR code for ID card: {}", id);
+        
+        // Placeholder implementation - in real scenario, you would generate actual QR code
+        return "QR_" + id + "_" + System.currentTimeMillis();
     }
 
-    // Helper Methods
-    
-    private String generateCardNumber(String prefix, Long id) {
-        int year = LocalDate.now().getYear();
-        return String.format("ID-%s-%d-%04d", prefix, year, id);
-    }
-    
-    private String generateQRCodeData(Worker worker) {
-        return String.format("WORKER|%s|%s|%s|%s", 
-            worker.getUsername(),
-            worker.getName(),
-            worker.getEmail(),
-            worker.getEmail());
+    @Override
+    public void cancelIDCard(Long id) {
+        log.info("Canceling ID card: {}", id);
+        
+        // Get the current logged-in user for multi-tenancy
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        IDCard idCard = idCardRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
+                .orElseThrow(() -> new RuntimeException("ID card not found"));
+        
+        idCard.setStatus(IDCard.CardStatus.CANCELLED);
+        idCard.setUpdatedBy(loggedInUser.getId().intValue());
+        idCard.setUpdatedOn(new java.util.Date());
+        
+        idCardRepository.save(idCard);
+        log.info("ID card canceled successfully");
     }
     
     private IDCardResponse mapToResponse(IDCard card) {
-        boolean isExpired = card.getExpiryDate().isBefore(LocalDate.now());
-        int daysToExpiry = (int) ChronoUnit.DAYS.between(LocalDate.now(), card.getExpiryDate());
-        
-        IDCardResponse.IDCardResponseBuilder builder = IDCardResponse.builder()
+        return IDCardResponse.builder()
             .id(card.getId())
+                .cardNumber(card.getCardNumber())
             .cardType(card.getCardType())
-            .cardNumber(card.getCardNumber())
             .issueDate(card.getIssueDate())
             .expiryDate(card.getExpiryDate())
             .status(card.getStatus())
-            .photoUrl(card.getPhotoUrl())
-            .barcodeData(card.getBarcodeData())
-            .qrCodeData(card.getQrCodeData())
-            .address(card.getAddress())
-            .phoneNumber(card.getPhoneNumber())
-            .dateOfBirth(card.getDateOfBirth())
-            .frontSideImageUrl(card.getFrontSideImageUrl())
-            .backSideImageUrl(card.getBackSideImageUrl())
-            .pdfUrl(card.getPdfUrl())
-            .remarks(card.getRemarks())
-            .isExpired(isExpired)
-            .daysToExpiry(daysToExpiry)
-            .cardTypeDisplay(card.getCardType().toString())
-            .statusDisplay(card.getStatus().toString());
-        
-        // Add student-specific fields
-        if (card.getStudent() != null) {
-            builder
-                .studentId(card.getStudent().getId())
-                .studentName(card.getStudent().getFirstName() + " " + card.getStudent().getLastName())
-                .admissionNumber(card.getStudent().getAdmissionNumber())
-                .studentClass(card.getStudentClass())
-                .section(card.getSection())
-                .rollNumber(card.getRollNumber())
-                .bloodGroup(card.getBloodGroup())
-                .emergencyContactName(card.getEmergencyContactName())
-                .emergencyContactPhone(card.getEmergencyContactPhone());
-        }
-        
-        // Add teacher-specific fields
-        if (card.getTeacher() != null) {
-            builder
-                .teacherId(card.getTeacher().getId())
-                .teacherName(card.getTeacher().getFirstName() + " " + card.getTeacher().getLastName())
-                .employeeId(card.getEmployeeId())
-                .designation(card.getDesignation())
-                .department(card.getDepartment());
-        }
-        
-        return builder.build();
-    }
-
-    // Implement remaining interface methods
-    @Override public IDCardResponse createIDCard(IDCardRequest request) { return null; }
-    @Override public IDCardResponse getIDCardByNumber(String cardNumber) { return null; }
-    @Override public IDCardResponse getActiveTeacherCard(Long teacherId) { return null; }
-    @Override public List<IDCardResponse> getExpiredCards() { return null; }
-    @Override public List<IDCardResponse> getCardsExpiringSoon() { return null; }
-    @Override public IDCardResponse reportDamaged(Long cardId, String reason) { return null; }
-    @Override public String generateIDCardPDF(Long id) { return null; }
-    @Override public void cancelIDCard(Long id) { }
-    
-    private Long getCurrentOwnerId() {
-        // Get the logged-in user ID for multi-tenancy
-        return 1L; // For now, using karina's ID. In real implementation, get from security context
+                .build();
     }
 }
-
-
-    @Override public String generateIDCardPDF(Long id) { return null; }
-    @Override public void cancelIDCard(Long id) { }
-    
-    private Long getCurrentOwnerId() {
-        // Get the logged-in user ID for multi-tenancy
-        return 1L; // For now, using karina's ID. In real implementation, get from security context
-    }
-}
-

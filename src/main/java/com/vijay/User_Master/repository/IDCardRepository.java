@@ -54,9 +54,3 @@ public interface IDCardRepository extends JpaRepository<IDCard, Long> {
     List<IDCard> findByOwner_IdAndIsDeletedFalse(Long ownerId);
     Optional<IDCard> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
 }
-
-
-    List<IDCard> findByOwner_IdAndIsDeletedFalse(Long ownerId);
-    Optional<IDCard> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
-}
-

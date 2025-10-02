@@ -49,8 +49,3 @@ public interface TransferCertificateRepository extends JpaRepository<TransferCer
     Optional<TransferCertificate> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
 }
 
-
-    List<TransferCertificate> findByOwner_IdAndIsDeletedFalse(Long ownerId);
-    Optional<TransferCertificate> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
-}
-
