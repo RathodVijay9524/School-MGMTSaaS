@@ -132,6 +132,21 @@ public class DashboardAnalytics {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    public static class QuickStats {
+        private Integer totalStudents;
+        private Integer totalTeachers;
+        private Integer totalClasses;
+        private Integer totalSubjects;
+        private Double averageAttendance;
+        private BigDecimal totalFeesCollected;
+        private Integer upcomingExams;
+        private Integer pendingAssignments;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class SchoolAnalyticsSummary {
         private String businessId;
         private String schoolName;
