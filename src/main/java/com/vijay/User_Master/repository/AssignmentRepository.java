@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
@@ -46,5 +47,24 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     @Query("SELECT a FROM Assignment a WHERE a.isDeleted = false AND " +
            "LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Assignment> searchAssignments(@Param("keyword") String keyword, Pageable pageable);
+
+    // Multi-tenant queries
+    Page<Assignment> findByOwner_IdAndIsDeletedFalse(Long ownerId, Pageable pageable);
+    
+    @Query("SELECT a FROM Assignment a WHERE a.owner.id = :ownerId AND a.isDeleted = false AND " +
+           "(LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(a.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(a.subject.subjectName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Assignment> searchByOwner(@Param("ownerId") Long ownerId, @Param("keyword") String keyword, Pageable pageable);
+    
+    long countByOwner_IdAndIsDeletedFalse(Long ownerId);
+    
+    @Query("SELECT a FROM Assignment a WHERE a.owner.id = :ownerId AND a.status = :status AND a.isDeleted = false")
+    Page<Assignment> findByOwner_IdAndStatusAndIsDeletedFalse(@Param("ownerId") Long ownerId, @Param("status") Assignment.AssignmentStatus status, Pageable pageable);
+    
+    // SECURITY: Find by ID and Owner (prevents cross-school access)
+    Optional<Assignment> findByIdAndOwner_Id(Long id, Long ownerId);
+    
+    Optional<Assignment> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
 }
 
