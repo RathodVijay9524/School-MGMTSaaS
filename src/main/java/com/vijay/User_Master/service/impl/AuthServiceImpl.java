@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -79,12 +80,32 @@ public class AuthServiceImpl implements AuthService {
         // Get user details
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         
-        // Create refresh token - we'll use the username from userDetails
+        // Determine if this is a User or Worker by checking which table has the record
+        Long userId = null;
+        Long workerId = null;
+        
+        // Check if user exists in User table
+        Optional<User> userOptional = userRepository.findByUsernameOrEmail(
+            request.getUsernameOrEmail(), request.getUsernameOrEmail());
+        if (userOptional.isPresent()) {
+            userId = userOptional.get().getId();
+            log.info("User login detected for user ID: {}", userId);
+        } else {
+            // Check if user exists in Worker table
+            Optional<Worker> workerOptional = workerRepository.findByUsernameOrEmail(
+                request.getUsernameOrEmail(), request.getUsernameOrEmail());
+            if (workerOptional.isPresent()) {
+                workerId = workerOptional.get().getId();
+                log.info("Worker login detected for worker ID: {}", workerId);
+            }
+        }
+        
+        // Create refresh token with correct parameters
         RefreshTokenDto refreshTokenCreated = refreshTokenService.createRefreshToken(
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                userDetails.getId(), // This could be user or worker ID
-                null // We'll set this to null for now
+                userId, // Pass userId if it's a User, null if Worker
+                workerId // Pass workerId if it's a Worker, null if User
         );
 
         if (refreshTokenCreated == null) {
