@@ -1,0 +1,993 @@
+{
+  "info": {
+    "name": "School Management System API",
+    "description": "Complete API collection for School Management System with dual authentication support",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:9091",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwtToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"school_owner\",\n  \"password\": \"password123\",\n  \"email\": \"owner@school.com\",\n  \"name\": \"School Owner Name\",\n  \"phoNo\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register", "admin"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Universal - User & Worker)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.jwtToken) {",
+                  "        pm.collectionVariables.set('jwtToken', response.data.jwtToken);",
+                  "        console.log('JWT Token saved:', response.data.jwtToken.substring(0, 50) + '...');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"admin\",\n  \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login as Teacher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.jwtToken) {",
+                  "        pm.collectionVariables.set('jwtToken', response.data.jwtToken);",
+                  "        console.log('Teacher JWT Token saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"teacher_sapna\",\n  \"password\": \"teacher_sapna\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login as Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.jwtToken) {",
+                  "        pm.collectionVariables.set('jwtToken', response.data.jwtToken);",
+                  "        console.log('Student JWT Token saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"student_sapna\",\n  \"password\": \"student_sapna\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"old_password\",\n  \"newPassword\": \"new_password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/current-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "current-user"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👥 User Management",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"new_user\",\n  \"password\": \"password123\",\n  \"email\": \"user@school.com\",\n  \"name\": \"User Name\",\n  \"phoNo\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/filter?page=0&size=10&sortBy=name&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "filter"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1", "status"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👨‍🏫 Worker Management",
+      "item": [
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"teacher_john\",\n  \"password\": \"password123\",\n  \"email\": \"john@school.com\",\n  \"name\": \"John Teacher\",\n  \"phoNo\": \"9876543210\",\n  \"roles\": [\"ROLE_TEACHER\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student_jane\",\n  \"password\": \"password123\",\n  \"email\": \"jane@school.com\",\n  \"name\": \"Jane Student\",\n  \"phoNo\": \"9876543211\",\n  \"roles\": [\"ROLE_STUDENT\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Workers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers?page=0&size=10&sortBy=name&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Worker by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Worker",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@school.com\",\n  \"phoNo\": \"9876543211\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Worker (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restore Worker",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers/1/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers", "1", "restore"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Workers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers", "active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Workers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/workers/search?keyword=john&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "workers", "search"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "john"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏫 School Class Management",
+      "item": [
+        {
+          "name": "Create Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Class 10A\",\n  \"description\": \"Class 10 Section A\",\n  \"capacity\": 40,\n  \"academicYear\": \"2024-2025\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/school-classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "school-classes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Classes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/school-classes?page=0&size=10&sortBy=className&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "school-classes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "className"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/school-classes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "school-classes", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Class",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Updated Class Name\",\n  \"description\": \"Updated Description\",\n  \"capacity\": 45\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/school-classes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "school-classes", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Class",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/school-classes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "school-classes", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📚 Subject Management",
+      "item": [
+        {
+          "name": "Create Subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectCode\": \"MATH101\",\n  \"subjectName\": \"Mathematics\",\n  \"description\": \"Basic Mathematics\",\n  \"type\": \"CORE\",\n  \"credits\": 4,\n  \"totalMarks\": 100,\n  \"passingMarks\": 33,\n  \"department\": \"Mathematics\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subjects",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subjects"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Subjects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subjects?page=0&size=10&sortBy=subjectName&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subjects"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "subjectName"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subject by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subjects/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subjects", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Subject",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectName\": \"Advanced Mathematics\",\n  \"credits\": 5,\n  \"totalMarks\": 120\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subjects/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subjects", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Subject",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subjects/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subjects", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard & Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "user"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📧 Communication",
+      "item": [
+        {
+          "name": "Send SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"9876543210\",\n  \"message\": \"Hello from school\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sms/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sms", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send WhatsApp Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"9876543210\",\n  \"message\": \"Hello from school\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/whatsapp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "whatsapp", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"student@school.com\",\n  \"subject\": \"Important Notice\",\n  \"body\": \"Please check the school notice board\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/email/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "email", "send"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎓 Student Management (Advanced)",
+      "item": [
+        {
+          "name": "Create Student (Detailed)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"admissionNumber\": \"STU20240001\",\n  \"dateOfBirth\": \"2010-05-15\",\n  \"gender\": \"MALE\",\n  \"email\": \"john.doe@student.com\",\n  \"phoneNumber\": \"9876543210\",\n  \"fatherName\": \"Robert Doe\",\n  \"fatherPhone\": \"9876543211\",\n  \"motherName\": \"Mary Doe\",\n  \"motherPhone\": \"9876543212\",\n  \"admissionDate\": \"2024-01-15\",\n  \"classId\": 1,\n  \"section\": \"A\",\n  \"rollNumber\": 15,\n  \"totalFees\": 50000,\n  \"feesPaid\": 10000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/students",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "students"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📝 Attendance Management",
+      "item": [
+        {
+          "name": "Mark Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"classId\": 1,\n  \"date\": \"2024-10-03\",\n  \"status\": \"PRESENT\",\n  \"remarks\": \"On time\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/mark",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "mark"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/report?studentId=1&startDate=2024-10-01&endDate=2024-10-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "report"],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "1"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-10-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-10-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💰 Fee Management",
+      "item": [
+        {
+          "name": "Create Fee Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"amount\": 5000,\n  \"dueDate\": \"2024-10-15\",\n  \"description\": \"Monthly Fee\",\n  \"feeType\": \"TUITION\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/fees/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fees", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Fee Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"amount\": 5000,\n  \"paymentDate\": \"2024-10-03\",\n  \"paymentMethod\": \"CASH\",\n  \"receiptNumber\": \"RCP001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/fees/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "fees", "payment"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Exam Management",
+      "item": [
+        {
+          "name": "Create Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"examName\": \"Mid Term Exam\",\n  \"classId\": 1,\n  \"subjectId\": 1,\n  \"examDate\": \"2024-10-15\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"12:00\",\n  \"totalMarks\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/exams/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exams", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Exam Results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"examId\": 1,\n  \"studentId\": 1,\n  \"obtainedMarks\": 85,\n  \"grade\": \"A\",\n  \"remarks\": \"Excellent performance\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/exams/results",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exams", "results"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔧 System & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
