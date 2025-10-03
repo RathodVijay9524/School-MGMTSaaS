@@ -5,6 +5,7 @@ import com.vijay.User_Master.dto.GradeResponse;
 import com.vijay.User_Master.entity.*;
 import com.vijay.User_Master.exceptions.BadApiRequestException;
 import com.vijay.User_Master.exceptions.ResourceNotFoundException;
+import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.*;
 import com.vijay.User_Master.service.GradeService;
 import com.vijay.User_Master.Helper.CommonUtils;
@@ -50,6 +51,7 @@ public class GradeServiceImpl implements GradeService {
     }
 
     @Override
+    @Tool(name = "createGrade", description = "Create a new grade for a student with marks, percentage, letter grade and academic details")
     public GradeResponse createGrade(GradeRequest request) {
         log.info("Creating grade for student ID: {}", request.getStudentId());
         
@@ -127,6 +129,7 @@ public class GradeServiceImpl implements GradeService {
     }
 
     @Override
+    @Tool(name = "updateGrade", description = "Update grade details")
     public GradeResponse updateGrade(Long id, GradeRequest request) {
         log.info("Updating grade with ID: {}", id);
         
@@ -195,6 +198,7 @@ public class GradeServiceImpl implements GradeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(description = "Calculate the overall GPA for a specific student")
     public Double calculateStudentGPA(Long studentId) {
         Double gpa = gradeRepository.calculateOverallGPA(studentId);
         return gpa != null ? gpa : 0.0;

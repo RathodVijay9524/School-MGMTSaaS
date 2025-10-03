@@ -7,6 +7,7 @@ import com.vijay.User_Master.entity.Event;
 import com.vijay.User_Master.entity.SchoolClass;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.entity.Worker;
+import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.EventRepository;
 import com.vijay.User_Master.repository.SchoolClassRepository;
 import com.vijay.User_Master.repository.UserRepository;
@@ -40,6 +41,7 @@ public class EventServiceImpl implements EventService {
     private final WorkerRepository workerRepository;
 
     @Override
+    @Tool(name = "createEvent", description = "Create a new event with name, description, date, time, venue and event details")
     public EventResponse createEvent(EventRequest request, Long ownerId) {
         log.info("Creating event: {} for owner: {}", request.getEventName(), ownerId);
         
@@ -93,6 +95,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Tool(name = "updateEvent", description = "Update event details")
     public EventResponse updateEvent(Long id, EventRequest request, Long ownerId) {
         log.info("Updating event: {} for owner: {}", id, ownerId);
         

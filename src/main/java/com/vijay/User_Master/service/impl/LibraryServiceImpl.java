@@ -8,6 +8,7 @@ import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.repository.LibraryRepository;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.LibraryService;
+import org.springframework.ai.tool.annotation.Tool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class LibraryServiceImpl implements LibraryService {
     private final UserRepository userRepository;
 
     @Override
+    @Tool(name = "createLibraryBook", description = "Create a new library book with title, author, ISBN, publisher and book details")
     public LibraryResponse createBook(LibraryRequest request, Long ownerId) {
         log.info("Creating library book: {} for owner: {}", request.getBookTitle(), ownerId);
         
@@ -89,6 +91,7 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
+    @Tool(name = "updateLibraryBook", description = "Update library book details")
     public LibraryResponse updateBook(Long id, LibraryRequest request, Long ownerId) {
         log.info("Updating library book: {} for owner: {}", id, ownerId);
         
@@ -447,6 +450,7 @@ public class LibraryServiceImpl implements LibraryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(description = "Get comprehensive library statistics including total books, available, issued, and category breakdown")
     public LibraryStatistics getLibraryStatistics(Long ownerId) {
         log.info("Getting library statistics for owner: {}", ownerId);
         

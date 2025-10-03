@@ -7,6 +7,7 @@ import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.exceptions.BadApiRequestException;
 import com.vijay.User_Master.exceptions.ResourceNotFoundException;
+import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.FeeRepository;
 import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.repository.UserRepository;
@@ -39,6 +40,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAllFees", description = "Get all fees with pagination")
     public Page<FeeResponse> getAllFees(Pageable pageable) {
         log.info("Fetching all fees with pagination");
         
@@ -53,6 +55,7 @@ public class FeeServiceImpl implements FeeService {
     }
 
     @Override
+    @Tool(name = "createFee", description = "Create a new fee record for a student")
     public FeeResponse createFee(FeeRequest request) {
         log.info("Creating fee for student ID: {}", request.getStudentId());
         
@@ -101,6 +104,7 @@ public class FeeServiceImpl implements FeeService {
     }
 
     @Override
+    @Tool(name = "recordFeePayment", description = "Record fee payment for a student")
     public FeeResponse recordPayment(Long feeId, Double amount, String paymentMethod, String transactionId) {
         log.info("Recording payment of ₹{} for fee ID: {}", amount, feeId);
         
@@ -137,6 +141,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getFeeById", description = "Get fee details by fee ID")
     public FeeResponse getFeeById(Long id) {
         Fee fee = feeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Fee", "id", id));
@@ -145,6 +150,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getFeesByStudent", description = "Get all fees for a specific student")
     public Page<FeeResponse> getFeesByStudent(Long studentId, Pageable pageable) {
         return feeRepository.findByStudent_IdAndIsDeletedFalse(studentId, pageable)
             .map(this::mapToResponse);
@@ -152,6 +158,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getFeesByPaymentStatus", description = "Get fees by payment status (PAID, PENDING, OVERDUE, PARTIAL)")
     public Page<FeeResponse> getFeesByPaymentStatus(String status, Pageable pageable) {
         Fee.PaymentStatus paymentStatus = Fee.PaymentStatus.valueOf(status.toUpperCase());
         return feeRepository.findByPaymentStatusAndIsDeletedFalse(paymentStatus, pageable)
@@ -160,6 +167,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getPendingFees", description = "Get all pending fees for a student")
     public List<FeeResponse> getPendingFees(Long studentId) {
         return feeRepository.findPendingFees(studentId).stream()
             .map(this::mapToResponse)
@@ -168,6 +176,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getOverdueFees", description = "Get all overdue fees across all students")
     public List<FeeResponse> getOverdueFees() {
         return feeRepository.findOverdueFees(LocalDate.now()).stream()
             .map(this::mapToResponse)
@@ -176,6 +185,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getStudentFeeSummary", description = "Get fee summary for a student in specific academic year")
     public List<FeeResponse> getStudentFeeSummary(Long studentId, String academicYear) {
         return feeRepository.getStudentFeeSummary(studentId, academicYear).stream()
             .map(this::mapToResponse)
@@ -184,6 +194,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(description = "Calculate total fees collected across all students")
     public Double calculateTotalFeesCollected() {
         Double total = feeRepository.calculateTotalFeesCollected();
         return total != null ? total : 0.0;
@@ -191,12 +202,14 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "calculateTotalPendingFees", description = "Calculate total pending fees across all students")
     public Double calculateTotalPendingFees() {
         Double total = feeRepository.calculateTotalPendingFees();
         return total != null ? total : 0.0;
     }
 
     @Override
+    @Tool(name = "updateFee", description = "Update fee details including total amount, due date and remarks")
     public FeeResponse updateFee(Long id, FeeRequest request) {
         Fee fee = feeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Fee", "id", id));
@@ -210,6 +223,7 @@ public class FeeServiceImpl implements FeeService {
     }
 
     @Override
+    @Tool(name = "deleteFee", description = "Delete fee record permanently")
     public void deleteFee(Long id) {
         Fee fee = feeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Fee", "id", id));

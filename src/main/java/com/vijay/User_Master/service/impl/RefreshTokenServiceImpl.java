@@ -17,6 +17,7 @@ import com.vijay.User_Master.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 
     @Override
+    // @Tool(name = "refreshAccessToken", description = "Refresh JWT access token using refresh token") // REMOVED: Not needed for MCP operations
     public JwtResponse refreshAccessToken(RefreshTokenRequest request) {
         RefreshTokenDto verifiedToken = verifyRefreshToken(
                 RefreshTokenDto.builder().refreshToken(request.getRefreshToken()).build());

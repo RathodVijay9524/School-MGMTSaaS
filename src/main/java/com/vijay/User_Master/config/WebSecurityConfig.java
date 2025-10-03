@@ -60,6 +60,7 @@ public class WebSecurityConfig {
                         // 3) Public endpoints
                         .requestMatchers(
                                 "/api/auth/login",
+                                "/sse/**","/mcp/message",
                                 "/login", "/signin",
                                 "/api/auth/register/**",
                                 "/api/v1/home/**",

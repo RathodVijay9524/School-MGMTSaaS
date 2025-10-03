@@ -14,6 +14,7 @@ import com.vijay.User_Master.service.RoleManagementService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "createRole", description = "Create new role with name, description and permissions")
     public RoleResponse createRole(RoleRequest roleRequest) {
         log.info("Creating new role with name: {}", roleRequest.getName());
         
@@ -59,6 +61,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    @Tool(name = "getRoleById", description = "Get role details by role ID")
     public RoleResponse getRoleById(Long roleId) {
         log.info("Fetching role with ID: {}", roleId);
         
@@ -73,6 +76,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    @Tool(name = "getAllRoles", description = "Get all available roles in the system")
     public List<RoleResponse> getAllRoles() {
         log.info("Fetching all roles");
         
@@ -87,6 +91,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "updateRole", description = "Update role details including name, description and permissions")
     public RoleResponse updateRole(Long roleId, RoleRequest roleRequest) {
         log.info("Updating role with ID: {}", roleId);
         
@@ -116,6 +121,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "deleteRole", description = "Soft delete role (mark as deleted but keep data)")
     public boolean deleteRole(Long roleId) {
         log.info("Deleting role with ID: {}", roleId);
         
@@ -137,6 +143,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     // ============= ROLE MANAGEMENT METHODS =============
 
     @Override
+    @Tool(name = "getAllActiveRoles", description = "Get all active roles in the system")
     public List<RoleResponse> getAllActiveRoles() {
         log.info("Fetching all active roles");
         
@@ -154,6 +161,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "updateRoleDetails", description = "Update specific role details like name and active status")
     public RoleResponse updateRoleDetails(Long roleId, RoleUpdateRequest updateRequest) {
         log.info("Updating role details for role ID: {}", roleId);
         
@@ -183,6 +191,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "activateRole", description = "Activate a deactivated role")
     public void activateRole(Long roleId) {
         log.info("Activating role with ID: {}", roleId);
         
@@ -197,6 +206,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "deactivateRole", description = "Deactivate an active role")
     public void deactivateRole(Long roleId) {
         log.info("Deactivating role with ID: {}", roleId);
         
@@ -213,6 +223,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "assignRolesToUser", description = "Assign multiple roles to a user")
     public UserResponse assignRolesToUser(UserRoleRequest userRoleRequest) {
         log.info("Assigning roles to user with ID: {}", userRoleRequest.getUserId());
         
@@ -243,6 +254,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "removeRolesFromUser", description = "Remove specific roles from a user")
     public UserResponse removeRolesFromUser(UserRoleRequest userRoleRequest) {
         log.info("Removing roles from user with ID: {}", userRoleRequest.getUserId());
         
@@ -267,6 +279,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     @Transactional
+    @Tool(name = "replaceUserRoles", description = "Replace all user roles with new roles")
     public UserResponse replaceUserRoles(UserRoleRequest userRoleRequest) {
         log.info("Replacing roles for user with ID: {}", userRoleRequest.getUserId());
         
@@ -293,6 +306,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    @Tool(name = "getUserRoles", description = "Get all roles assigned to a specific user")
     public Set<RoleResponse> getUserRoles(Long userId) {
         log.info("Fetching roles for user with ID: {}", userId);
         
@@ -314,6 +328,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     // ============= ROLE VALIDATION METHODS =============
 
     @Override
+    @Tool(name = "roleExists", description = "Check if a role exists by role ID")
     public boolean roleExists(Long roleId) {
         boolean exists = roleRepository.existsById(roleId);
         log.debug("Role existence check for ID '{}': {}", roleId, exists);
@@ -321,6 +336,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    @Tool(name = "roleExistsByName", description = "Check if a role exists by role name")
     public boolean roleExistsByName(String roleName) {
         boolean exists = roleRepository.findByName(roleName).isPresent();
         log.debug("Role existence check for name '{}': {}", roleName, exists);
@@ -328,6 +344,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    @Tool(name = "getActiveRolesByIds", description = "Get active roles by their IDs")
     public List<RoleResponse> getActiveRolesByIds(Set<Long> roleIds) {
         log.info("Fetching active roles by IDs: {}", roleIds);
         
@@ -341,6 +358,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    @Tool(name = "getRolesByName", description = "Get roles by role name")
     public List<RoleResponse> getRolesByName(String roleName) {
         log.info("Fetching roles by name: {}", roleName);
         

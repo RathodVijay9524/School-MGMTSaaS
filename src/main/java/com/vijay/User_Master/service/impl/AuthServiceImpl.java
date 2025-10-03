@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -61,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper mapper;
 
     @Override
+    // @Tool(name = "userLogin", description = "Authenticate user login with username/email and password") // REMOVED: Only logged-in users access MCP
     public LoginJWTResponse login(LoginRequest request) {
         log.info("Attempting login for username/email: {}", request.getUsernameOrEmail());
 
@@ -160,6 +162,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    // @Tool(name = "registerNormalUser", description = "Register new normal user with basic roles and account setup") // REMOVED: Only logged-in users access MCP
     public UserResponse registerForNormalUser(UserRequest request) {
         log.info("Registering normal user: {}", request.getUsername());
         

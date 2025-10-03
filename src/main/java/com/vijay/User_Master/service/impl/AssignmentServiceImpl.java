@@ -8,6 +8,7 @@ import com.vijay.User_Master.entity.SchoolClass;
 import com.vijay.User_Master.entity.Subject;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.entity.Worker;
+import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.AssignmentRepository;
 import com.vijay.User_Master.repository.SchoolClassRepository;
 import com.vijay.User_Master.repository.SubjectRepository;
@@ -42,6 +43,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final WorkerRepository workerRepository;
 
     @Override
+    @Tool(name = "createAssignment", description = "Create a new assignment with title, description, subject, class, due date and total marks")
     public AssignmentResponse createAssignment(AssignmentRequest request, Long ownerId) {
         log.info("Creating assignment: {} for owner: {}", request.getTitle(), ownerId);
         
@@ -91,6 +93,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     }
 
     @Override
+    @Tool(name = "updateAssignment", description = "Update assignment details")
     public AssignmentResponse updateAssignment(Long id, AssignmentRequest request, Long ownerId) {
         log.info("Updating assignment: {} for owner: {}", id, ownerId);
         

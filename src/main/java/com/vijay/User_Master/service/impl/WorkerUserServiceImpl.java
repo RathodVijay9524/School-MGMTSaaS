@@ -8,6 +8,7 @@ import com.vijay.User_Master.dto.PageableResponse;
 import com.vijay.User_Master.dto.UserResponse;
 import com.vijay.User_Master.dto.WorkerRequest;
 import com.vijay.User_Master.dto.WorkerResponse;
+import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.entity.AccountStatus;
 import com.vijay.User_Master.entity.Role;
 import com.vijay.User_Master.entity.SchoolClass;
@@ -51,6 +52,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     private final SchoolClassRepository schoolClassRepository;
 
     @Override
+    @Tool(name = "createWorker", description = "Create a new student or teacher with username, email, name and assigned roles (ROLE_STUDENT or ROLE_TEACHER)")
     public WorkerResponse create(WorkerRequest request) {
         log.info("Creating worker with username: {}", request.getUsername());
         
@@ -109,6 +111,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
     // find user by id ... for Worker Entity
     @Override
+    @Tool(name = "getWorkerById", description = "Get worker (student/teacher) details by ID")
     public WorkerResponse findById(Long id) throws Exception {
         Worker worker = workerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Worker", "ID", id));
@@ -117,6 +120,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
     // You can delete Item ... it saves at recycle bin.
     @Override
+    @Tool(name = "softDeleteWorker", description = "Soft delete worker (student/teacher) - move to recycle bin")
     public void softDelete(Long id) throws Exception {
         Worker worker = workerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Worker", "ID", id));
@@ -134,6 +138,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
     // You can restore Item form recycle bin
     @Override
+    @Tool(name = "restoreWorker", description = "Restore soft deleted worker from recycle bin")
     public void restore(Long id) throws Exception {
         Worker worker = workerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Worker", "ID", id));
@@ -153,6 +158,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
     // You can delete Item form recycle bin - deleting permanently
     @Override
+    @Tool(name = "hardDeleteWorker", description = "Permanently delete worker from database (from recycle bin)")
     public void hardDelete(Long id) throws Exception {
         Worker worker = workerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Worker", "ID", id));
@@ -170,6 +176,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
     // find all User from Worker user Entity
     @Override
+    @Tool(name = "getAllWorkers", description = "Get all workers (students/teachers) with pagination")
     public PageableResponse<WorkerResponse> findAll(Pageable pageable) {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Long loggedInUserId = loggedInUser.getId();
@@ -178,6 +185,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "searchWorkersWithDynamicFields", description = "Search workers with dynamic field matching")
     public PageableResponse<WorkerResponse> searchItemsWithDynamicFields(String query, Pageable pageable) {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Long loggedInUserId = loggedInUser.getId();
@@ -201,6 +209,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "getAllActiveWorkersWithSorting", description = "Get all active workers with sorting and pagination")
     public PageableResponse<WorkerResponse> getAllActiveUserWithSortingSearching(int pageNumber, int pageSize, String sortBy, String sortDir) {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Long loggedInUserId = loggedInUser.getId();
@@ -213,6 +222,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
 
     @Override
+    @Tool(name = "emptyWorkerRecycleBin", description = "Permanently delete all workers from recycle bin")
     public void emptyRecycleBin(Pageable pageable) {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Page<Worker> pages = workerRepository.findByCreatedByAndIsDeletedTrue(loggedInUser.getId(), pageable);
@@ -226,6 +236,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
     // find all only Active users by superuser id or loggedInUser userId
     @Override
+    @Tool(description = "Get all active students and teachers for the current school")
     public List<WorkerResponse> findAllActiveUsers() {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Long loggedInUserId = loggedInUser.getId();
@@ -238,6 +249,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
     // find all only Deleted users by superuser id or loggedInUser userId
     @Override
+    @Tool(name = "getWorkerRecycleBin", description = "Get all soft deleted workers from recycle bin")
     public PageableResponse<WorkerResponse> getRecycleBin(Pageable pageable) { // restore delete item from RecycleBin
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Page<Worker> users = workerRepository.findByCreatedByAndIsDeletedTrue(loggedInUser.getId(), pageable);
@@ -249,6 +261,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "favoriteWorkerUser", description = "Add worker to favorites list")
     public void favoriteWorkerUser(Long workerId) throws Exception {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Worker worker = workerRepository.findById(workerId)
@@ -261,6 +274,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "unFavoriteWorkerUser", description = "Remove worker from favorites list")
     public void unFavoriteWorkerUser(Long id) throws Exception {
         FavouriteEntry favouriteEntry = favouriteEntryRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Favorite", "ID", id));
@@ -268,6 +282,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "getUserFavoriteWorkers", description = "Get all favorite workers for current user")
     public List<FavouriteEntryResponse> getUserFavoriteWorkerUsers() throws Exception {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         List<FavouriteEntry> favouriteWorkers = favouriteEntryRepo.findByUserId(loggedInUser.getId());
@@ -277,6 +292,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(description = "Get workers (students/teachers) for a specific school owner with pagination")
     public PageableResponse<WorkerResponse> getWorkersBySuperUserId(Long superUserId, int pageNumber, int pageSize, String sortBy, String sortDir) {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
 
@@ -296,6 +312,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "getWorkersBySuperUserWithFilter", description = "Get workers by super user with status filter (active/deleted/expired)")
     public PageableResponse<WorkerResponse> getWorkersBySuperUserWithFilter(Long superUserId, String filter, Pageable pageable) {
         Page<Worker> page = switch (filter.toLowerCase()) {
             case "active" ->
@@ -310,6 +327,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "getWorkersWithAdvancedFilter", description = "Get workers with advanced filtering options")
     public Page<WorkerResponse> getWorkersWithFilter(Long superUserId, Boolean isDeleted, Boolean isActive, String keyword, Pageable pageable) {
         Page<Worker> workers;
 
@@ -331,6 +349,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "updateWorkerAccountStatus", description = "Update worker account status (activate/deactivate)")
     public void updateAccountStatus(Long userId, Boolean isActive) {
 
         Worker worker = workerRepository.findById(userId)
@@ -349,6 +368,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     }
 
     @Override
+    @Tool(name = "updateWorker", description = "Update worker (student/teacher) details")
     public WorkerResponse update(Long id, WorkerRequest request) throws Exception {
         log.info("Updating worker with ID: {}", id);
         

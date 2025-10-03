@@ -8,6 +8,7 @@ import com.vijay.User_Master.entity.SchoolClass;
 import com.vijay.User_Master.entity.Subject;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.entity.Worker;
+import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.ExamRepository;
 import com.vijay.User_Master.repository.SchoolClassRepository;
 import com.vijay.User_Master.repository.SubjectRepository;
@@ -42,6 +43,7 @@ public class ExamServiceImpl implements ExamService {
     private final WorkerRepository workerRepository;
 
     @Override
+    @Tool(name = "createExam", description = "Create a new exam with name, code, subject, class, date, time and total marks")
     public ExamResponse createExam(ExamRequest request, Long ownerId) {
         log.info("Creating exam: {} for owner: {}", request.getExamName(), ownerId);
         
@@ -103,6 +105,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Tool(name = "updateExam", description = "Update exam details")
     public ExamResponse updateExam(Long id, ExamRequest request, Long ownerId) {
         log.info("Updating exam: {} for owner: {}", id, ownerId);
         
@@ -137,6 +140,7 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getExamById", description = "Get exam details by exam ID")
     public ExamResponse getExamById(Long id, Long ownerId) {
         log.info("Getting exam: {} for owner: {}", id, ownerId);
         
@@ -148,6 +152,7 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAllExams", description = "Get all exams for owner with pagination")
     public Page<ExamResponse> getAllExams(Long ownerId, Pageable pageable) {
         log.info("Getting all exams for owner: {}", ownerId);
         
@@ -264,6 +269,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Tool(name = "deleteExam", description = "Soft delete an exam")
     public void deleteExam(Long id, Long ownerId) {
         log.info("Deleting exam: {} for owner: {}", id, ownerId);
         
@@ -290,6 +296,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Tool(name = "publishExamResults", description = "Publish exam results")
     public ExamResponse publishExamResults(Long id, Long ownerId) {
         log.info("Publishing results for exam: {} for owner: {}", id, ownerId);
         

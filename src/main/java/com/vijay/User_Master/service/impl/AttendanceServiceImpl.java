@@ -6,6 +6,7 @@ import com.vijay.User_Master.dto.AttendanceStatistics;
 import com.vijay.User_Master.entity.*;
 import com.vijay.User_Master.exceptions.BadApiRequestException;
 import com.vijay.User_Master.exceptions.ResourceNotFoundException;
+import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.AttendanceRepository;
 import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.repository.SchoolClassRepository;
@@ -40,6 +41,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAllAttendance", description = "Get all attendance records with pagination")
     public Page<AttendanceResponse> getAllAttendance(Pageable pageable) {
         log.info("Fetching all attendance records with pagination");
         
@@ -54,6 +56,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
+    @Tool(description = "Mark attendance for a student on a specific date and session")
     public AttendanceResponse markAttendance(AttendanceRequest request) {
         log.info("Marking attendance for student ID: {} on date: {}", 
             request.getStudentId(), request.getAttendanceDate());
@@ -116,6 +119,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
+    @Tool(name = "markBulkAttendance", description = "Mark attendance for multiple students at once")
     public List<AttendanceResponse> markBulkAttendance(List<AttendanceRequest> requests) {
         log.info("Marking bulk attendance for {} students", requests.size());
         
@@ -125,6 +129,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
+    @Tool(name = "updateAttendance", description = "Update attendance record")
     public AttendanceResponse updateAttendance(Long id, AttendanceRequest request) {
         log.info("Updating attendance with ID: {}", id);
         
@@ -144,6 +149,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAttendanceById", description = "Get attendance record by ID")
     public AttendanceResponse getAttendanceById(Long id) {
         Attendance attendance = attendanceRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Attendance", "id", id));
@@ -152,6 +158,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAttendanceByStudent", description = "Get attendance records for a specific student")
     public Page<AttendanceResponse> getAttendanceByStudent(Long studentId, Pageable pageable) {
         log.info("Fetching attendance for student ID: {}", studentId);
         return attendanceRepository.findByStudent_Id(studentId, pageable)
@@ -160,6 +167,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAttendanceByStudentAndDateRange", description = "Get attendance records for a student within date range")
     public List<AttendanceResponse> getAttendanceByStudentAndDateRange(
             Long studentId, LocalDate startDate, LocalDate endDate) {
         log.info("Fetching attendance for student ID: {} between {} and {}", 
@@ -172,6 +180,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAttendanceByClassAndDate", description = "Get attendance records for a class on specific date")
     public List<AttendanceResponse> getAttendanceByClassAndDate(Long classId, LocalDate date) {
         log.info("Fetching attendance for class ID: {} on date: {}", classId, date);
         return attendanceRepository.findBySchoolClass_IdAndAttendanceDate(classId, date).stream()
@@ -181,6 +190,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAttendanceByClassAndDateRange", description = "Get attendance records for a class within date range")
     public List<AttendanceResponse> getAttendanceByClassAndDateRange(
             Long classId, LocalDate startDate, LocalDate endDate) {
         log.info("Fetching attendance for class ID: {} between {} and {}", 
@@ -193,6 +203,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getAbsentStudents", description = "Get list of absent students for a class on specific date")
     public List<AttendanceResponse> getAbsentStudents(Long classId, LocalDate date) {
         log.info("Fetching absent students for class ID: {} on date: {}", classId, date);
         return attendanceRepository.findAbsentStudents(classId, date).stream()
@@ -202,6 +213,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(description = "Calculate overall attendance percentage for a student")
     public Double calculateAttendancePercentage(Long studentId) {
         log.info("Calculating attendance percentage for student ID: {}", studentId);
         Double percentage = attendanceRepository.calculateAttendancePercentage(studentId);
@@ -210,6 +222,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "calculateAttendancePercentageInRange", description = "Calculate attendance percentage for a student within date range")
     public Double calculateAttendancePercentageInRange(
             Long studentId, LocalDate startDate, LocalDate endDate) {
         log.info("Calculating attendance percentage for student ID: {} between {} and {}", 
@@ -229,6 +242,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getClassAttendanceStatistics", description = "Get attendance statistics for a class on specific date")
     public AttendanceStatistics getClassAttendanceStatistics(Long classId, LocalDate date) {
         log.info("Calculating attendance statistics for class ID: {} on date: {}", classId, date);
         
@@ -278,6 +292,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "isAttendanceMarked", description = "Check if attendance is already marked for a student on specific date and session")
     public boolean isAttendanceMarked(Long studentId, LocalDate date, String session) {
         Attendance.AttendanceSession attendanceSession = session != null 
             ? Attendance.AttendanceSession.valueOf(session.toUpperCase())
@@ -287,6 +302,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
+    @Tool(name = "deleteAttendance", description = "Delete attendance record permanently")
     public void deleteAttendance(Long id) {
         log.info("Deleting attendance with ID: {}", id);
         Attendance attendance = attendanceRepository.findById(id)
@@ -296,6 +312,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Tool(name = "getMonthlyAttendanceStatistics", description = "Get monthly attendance statistics for a class")
     public List<AttendanceStatistics> getMonthlyAttendanceStatistics(Long classId, int year, int month) {
         log.info("Fetching monthly attendance statistics for class ID: {} for {}/{}", classId, month, year);
         // This would require more complex date range queries

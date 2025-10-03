@@ -4,6 +4,7 @@ import com.vijay.User_Master.entity.*;
 import com.vijay.User_Master.repository.*;
 import com.vijay.User_Master.service.WhatsAppService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.twilio.Twilio;
@@ -75,6 +76,7 @@ public class WhatsAppServiceImpl implements WhatsAppService {
     }
 
     @Override
+    @Tool(description = "Send WhatsApp message notification to a phone number using Twilio WhatsApp Business API")
     public boolean sendWhatsAppMessage(String phoneNumber, String message) {
         log.info("Sending WhatsApp message to: {}", phoneNumber);
         

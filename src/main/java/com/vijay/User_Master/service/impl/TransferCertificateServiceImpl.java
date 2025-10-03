@@ -18,6 +18,7 @@ import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.TransferCertificateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ public class TransferCertificateServiceImpl implements TransferCertificateServic
     private final FeeRepository feeRepository;
 
     @Override
+    @Tool(name = "generateTransferCertificate", description = "Generate Transfer Certificate for a student with automatic data collection (attendance, GPA, fees)")
     public TransferCertificateResponse generateTC(TransferCertificateRequest request) {
         log.info("Generating TC for student ID: {}", request.getStudentId());
         
@@ -101,6 +103,7 @@ public class TransferCertificateServiceImpl implements TransferCertificateServic
     }
 
     @Override
+    @Tool(description = "Approve a Transfer Certificate by authorized user")
     public TransferCertificateResponse approveTC(Long id, Long approvedByUserId) {
         log.info("Approving TC with ID: {}", id);
         

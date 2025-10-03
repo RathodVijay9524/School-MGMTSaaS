@@ -12,6 +12,7 @@ import com.vijay.User_Master.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -56,6 +57,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "createUser", description = "Create new user with username, email, password and assigned roles")
     public UserResponse create(UserRequest request) {
         log.info("Creating user: {}", request.getUsername());
         
@@ -113,6 +115,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "getUsersWithFilter", description = "Get users with advanced filtering (deleted status, active status, keyword search)")
     public Page<UserResponse> getUsersWithFilter(Boolean isDeleted, Boolean isActive, String keyword, Pageable pageable) {
         log.info("Getting users with filter - isDeleted: {}, isActive: {}, keyword: {}", isDeleted, isActive, keyword);
         
@@ -145,6 +148,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "getUsersWithFilters", description = "Get users with pagination and sorting filters")
     public PageableResponse<UserResponse> getUsersWithFilters(int pageNumber, int pageSize, String sortBy, String sortDir, Boolean isDeleted, Boolean isActive) {
         log.info("Getting users with filters - page: {}, size: {}, sortBy: {}, sortDir: {}", pageNumber, pageSize, sortBy, sortDir);
         
@@ -165,6 +169,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "getAllActiveUsers", description = "Get all active users with pagination")
     public PageableResponse<UserResponse> getAllActiveUsers(Pageable pageable) {
         log.info("Getting all active users");
         
@@ -181,6 +186,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "getAllDeletedUsers", description = "Get all soft deleted users with pagination")
     public PageableResponse<UserResponse> getAllDeletedUsers(Pageable pageable) {
         log.info("Getting all deleted users");
         
@@ -197,6 +203,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "updateUser", description = "Update user details including name, email, phone, about and password")
     public UserResponse updateUser(Long userId, UserRequest request) {
         log.info("Updating user: {}", userId);
         
@@ -226,6 +233,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "getUserById", description = "Get user details by user ID")
     public UserResponse getByIdForUser(Long id) {
         log.info("Getting user by ID: {}", id);
         
@@ -236,6 +244,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "updateUserAccountStatus", description = "Update user account status (activate/deactivate user)")
     public void updateAccountStatus(Long userId, Boolean isActive) {
         log.info("Updating account status for user: {} to active: {}", userId, isActive);
         
@@ -256,6 +265,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "softDeleteUser", description = "Soft delete user (mark as deleted but keep data)")
     public void softDeleteUser(Long id) {
         log.info("Soft deleting user: {}", id);
         
@@ -272,6 +282,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "restoreUser", description = "Restore soft deleted user")
     public void restoreUser(Long id) {
         log.info("Restoring user: {}", id);
         
@@ -288,6 +299,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "permanentlyDeleteUser", description = "Permanently delete user from database")
     public void permanentlyDelete(Long id) {
         log.info("Permanently deleting user: {}", id);
         
@@ -299,6 +311,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Tool(name = "uploadUserImage", description = "Upload user profile image")
     public String uploadUserImage(MultipartFile image) {
         log.info("Uploading user image");
         

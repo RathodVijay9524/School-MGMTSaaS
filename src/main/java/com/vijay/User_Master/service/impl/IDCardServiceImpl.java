@@ -14,6 +14,7 @@ import com.vijay.User_Master.service.IDCardService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class IDCardServiceImpl implements IDCardService {
     private final ModelMapper mapper;
 
     @Override
+    @Tool(name = "generateStudentIDCard", description = "Generate ID card for a student")
     public IDCardResponse generateStudentIDCard(Long studentId, LocalDate expiryDate) {
         log.info("Generating student ID card for student ID: {}", studentId);
         
@@ -65,6 +67,7 @@ public class IDCardServiceImpl implements IDCardService {
     }
 
     @Override
+    @Tool(name = "generateTeacherIDCard", description = "Generate ID card for a teacher")
     public IDCardResponse generateTeacherIDCard(Long teacherId, LocalDate expiryDate) {
         log.info("Generating teacher ID card for teacher ID: {}", teacherId);
         
@@ -96,6 +99,7 @@ public class IDCardServiceImpl implements IDCardService {
     }
 
     @Override
+    @Tool(name = "createIDCard", description = "Create ID card for student or teacher with card number, type, issue and expiry dates")
     public IDCardResponse createIDCard(IDCardRequest request) {
         log.info("Creating custom ID card");
         
@@ -124,6 +128,7 @@ public class IDCardServiceImpl implements IDCardService {
     }
 
     @Override
+    @Tool(name = "getIDCardById", description = "Get ID card details by card ID")
     public IDCardResponse getIDCardById(Long id) {
         log.info("Fetching ID card by ID: {}", id);
         

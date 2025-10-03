@@ -9,6 +9,7 @@ import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.HomeService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 
 
@@ -21,6 +22,7 @@ public class HomeServiceImpl implements HomeService {
     private EmailService emailService;
 
     @Override
+    @Tool(name = "verifyUserAccount", description = "Verify user account with verification code")
     public Boolean verifyAccount(Long uid, String verificationCode) throws Exception {
         log.info("Verifying account for user ID: {}", uid);
         User user = userRepo.findById(uid)

@@ -1,6 +1,7 @@
 package com.vijay.User_Master.service.impl;
 
 import com.vijay.User_Master.service.FileService;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +19,7 @@ public class FileServiceImpl implements FileService {
     private static final String UPLOAD_DIR = "uploads/";
     
     @Override
+    @Tool(name = "uploadFile", description = "Upload file to server storage with folder organization")
     public String uploadFile(MultipartFile file, String folder) {
         try {
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();

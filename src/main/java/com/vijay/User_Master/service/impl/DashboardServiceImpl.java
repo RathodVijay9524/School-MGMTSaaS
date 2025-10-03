@@ -6,6 +6,7 @@ import com.vijay.User_Master.repository.*;
 import com.vijay.User_Master.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final LibraryRepository libraryRepository;
 
     @Override
+    @Tool(description = "Get comprehensive analytics for application owner to track all schools")
     public DashboardAnalytics getApplicationOwnerDashboard() {
         log.info("Getting Application Owner Dashboard - All Schools Analytics");
         
@@ -77,6 +79,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @Tool(description = "Get school owner dashboard analytics for a specific school")
     public DashboardAnalytics getSchoolOwnerDashboard(Long ownerId) {
         log.info("Getting School Owner Dashboard for owner: {}", ownerId);
         
@@ -124,6 +127,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @Tool(description = "Get quick statistics for application owner or specific school owner")
     public DashboardAnalytics.QuickStats getQuickStats(Long ownerId) {
         log.info("Getting Quick Stats for owner: {}", ownerId);
         

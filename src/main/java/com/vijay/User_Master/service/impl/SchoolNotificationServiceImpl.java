@@ -6,6 +6,7 @@ import com.vijay.User_Master.repository.*;
 import com.vijay.User_Master.service.SchoolNotificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ public class SchoolNotificationServiceImpl implements SchoolNotificationService 
     // ============= ATTENDANCE NOTIFICATIONS =============
 
     @Override
+    @Tool(description = "Send daily attendance notification email to student's parent")
     public void sendDailyAttendanceEmail(Long studentId, LocalDate date) {
         log.info("Sending daily attendance email for student ID: {} on date: {}", studentId, date);
         
@@ -110,6 +112,7 @@ public class SchoolNotificationServiceImpl implements SchoolNotificationService 
     // ============= FEE NOTIFICATIONS =============
 
     @Override
+    @Tool(description = "Send fee payment reminder email to student's parent")
     public void sendFeeReminder(Long studentId, Long feeId, Integer daysBeforeDue) {
         log.info("Sending fee reminder for student ID: {}, fee ID: {}", studentId, feeId);
         

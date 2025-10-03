@@ -16,6 +16,7 @@ import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.service.TimetableService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class TimetableServiceImpl implements TimetableService {
     private final WorkerRepository workerRepository;
 
     @Override
+    @Tool(name = "createTimetable", description = "Create timetable entry with class, subject, teacher, day, start time and end time")
     public TimetableResponse createTimetable(TimetableRequest request, Long ownerId) {
         log.info("Creating timetable entry for class: {} and teacher: {} on {}", 
                 request.getClassId(), request.getTeacherId(), request.getDayOfWeek());

@@ -8,6 +8,7 @@ import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.repository.SubjectRepository;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.SubjectService;
+import org.springframework.ai.tool.annotation.Tool;
 // import com.vijay.User_Master.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class SubjectServiceImpl implements SubjectService {
     private final UserRepository userRepository;
 
     @Override
+    @Tool(name = "createSubject", description = "Create a new subject with code, name, description, credits and department")
     public SubjectResponse createSubject(SubjectRequest request, Long ownerId) {
         log.info("Creating subject: {} for owner: {}", request.getSubjectName(), ownerId);
         

@@ -8,6 +8,7 @@ import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.repository.SchoolClassRepository;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.SchoolClassService;
+import org.springframework.ai.tool.annotation.Tool;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +27,7 @@ public class SchoolClassServiceImpl implements SchoolClassService {
     private final UserRepository userRepository;
     
     @Override
+    @Tool(name = "createSchoolClass", description = "Create a new school class with name, description, capacity and academic year")
     public SchoolClassResponse createClass(SchoolClassRequest request, Long ownerId) {
         // Get the owner user
         User owner = userRepository.findById(ownerId)

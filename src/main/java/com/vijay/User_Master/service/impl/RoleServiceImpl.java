@@ -14,6 +14,7 @@ import com.vijay.User_Master.service.RoleService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -33,6 +34,7 @@ public class RoleServiceImpl implements RoleService {
 
     // Create Role For Users
     @Override
+    @Tool(name = "createRoleAsync", description = "Create new role with name, description and permissions (async)")
     public CompletableFuture<RoleResponse> create(RoleRequest request) {
         return CompletableFuture.supplyAsync(()->{
             Role role = mapper.map(request, Role.class);

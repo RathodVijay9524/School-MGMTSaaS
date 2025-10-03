@@ -4,6 +4,7 @@ import com.vijay.User_Master.entity.*;
 import com.vijay.User_Master.repository.*;
 import com.vijay.User_Master.service.SMSService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.twilio.Twilio;
@@ -74,6 +75,7 @@ public class SMSServiceImpl implements SMSService {
     }
 
     @Override
+    @Tool(description = "Send SMS notification to a phone number using Twilio service")
     public boolean sendSMS(String phoneNumber, String message) {
         log.info("Sending SMS to: {}", phoneNumber);
         
