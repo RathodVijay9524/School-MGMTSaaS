@@ -1,6 +1,7 @@
 package com.vijay.User_Master.controller;
 
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.Helper.ExceptionUtil;
 import com.vijay.User_Master.dto.AssignmentRequest;
 import com.vijay.User_Master.dto.AssignmentResponse;
 import com.vijay.User_Master.dto.AssignmentStatistics;
@@ -39,11 +40,11 @@ public class AssignmentController {
     @PostMapping
     @Operation(summary = "Create a new assignment", description = "Create a new assignment for a class and subject")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
-    public ResponseEntity<AssignmentResponse> createAssignment(@Valid @RequestBody AssignmentRequest request) {
+    public ResponseEntity<?> createAssignment(@Valid @RequestBody AssignmentRequest request) {
         log.info("Creating assignment: {}", request.getTitle());
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         AssignmentResponse response = assignmentService.createAssignment(request, ownerId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")

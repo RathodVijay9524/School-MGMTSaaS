@@ -14,6 +14,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -129,6 +137,89 @@ public class GlobalExceptionHandler {
         return ExceptionUtil.createErrorResponseMessage(
                 ex.getMessage(),
                 HttpStatus.BAD_REQUEST
+        );
+    }
+
+    // ============= DATABASE EXCEPTIONS ============= //
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<?> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        logger.error("Data integrity violation: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "Data integrity violation. Please check your input data.",
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public ResponseEntity<?> handleEmptyResultDataAccess(EmptyResultDataAccessException ex) {
+        logger.warn("No data found: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "No data found for the requested resource",
+                HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<?> handleNoSuchElement(NoSuchElementException ex) {
+        logger.warn("Element not found: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "Requested resource not found",
+                HttpStatus.NOT_FOUND
+        );
+    }
+
+    // ============= VALIDATION EXCEPTIONS ============= //
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        logger.error("Invalid JSON format: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "Invalid JSON format. Please check your request body.",
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<?> handleBindException(BindException ex) {
+        logger.error("Binding error: {}", ex.getMessage());
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage()));
+        return ExceptionUtil.createErrorResponse(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<?> handleMissingParameter(MissingServletRequestParameterException ex) {
+        logger.error("Missing parameter: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "Missing required parameter: " + ex.getParameterName(),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        logger.error("Type mismatch: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "Invalid parameter type for: " + ex.getName(),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<?> handlePropertyReference(PropertyReferenceException ex) {
+        logger.error("Property reference error: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "Invalid property reference: " + ex.getPropertyName(),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<?> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        logger.error("Method not supported: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "HTTP method not supported: " + ex.getMethod(),
+                HttpStatus.METHOD_NOT_ALLOWED
         );
     }
 }

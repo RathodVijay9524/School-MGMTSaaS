@@ -2,6 +2,7 @@ package com.vijay.User_Master.controller;
 
 import com.vijay.User_Master.dto.DashboardAnalytics;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.Helper.ExceptionUtil;
 import com.vijay.User_Master.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,10 +36,10 @@ public class DashboardController {
     @Operation(summary = "Get Application Owner Dashboard", 
                description = "Get comprehensive analytics for all schools in the system")
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    public ResponseEntity<DashboardAnalytics> getApplicationOwnerDashboard() {
+    public ResponseEntity<?> getApplicationOwnerDashboard() {
         log.info("Getting Application Owner Dashboard Analytics");
         DashboardAnalytics analytics = dashboardService.getApplicationOwnerDashboard();
-        return ResponseEntity.ok(analytics);
+        return ExceptionUtil.createBuildResponse(analytics, HttpStatus.OK);
     }
 
     /**

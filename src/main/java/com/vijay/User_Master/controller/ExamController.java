@@ -1,6 +1,7 @@
 package com.vijay.User_Master.controller;
 
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.Helper.ExceptionUtil;
 import com.vijay.User_Master.dto.ExamRequest;
 import com.vijay.User_Master.dto.ExamResponse;
 import com.vijay.User_Master.dto.ExamStatistics;
@@ -39,38 +40,38 @@ public class ExamController {
     @PostMapping
     @Operation(summary = "Create a new exam", description = "Create a new examination with scheduling and details")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
-    public ResponseEntity<ExamResponse> createExam(@Valid @RequestBody ExamRequest request) {
+    public ResponseEntity<?> createExam(@Valid @RequestBody ExamRequest request) {
         log.info("Creating exam: {} for subject: {}", request.getExamName(), request.getSubjectId());
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         ExamResponse response = examService.createExam(request, ownerId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an exam", description = "Update an existing examination")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
-    public ResponseEntity<ExamResponse> updateExam(
+    public ResponseEntity<?> updateExam(
             @Parameter(description = "Exam ID") @PathVariable Long id,
             @Valid @RequestBody ExamRequest request) {
         log.info("Updating exam: {}", id);
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         ExamResponse response = examService.updateExam(id, request, ownerId);
-        return ResponseEntity.ok(response);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get exam by ID", description = "Retrieve a specific examination by its ID")
-    public ResponseEntity<ExamResponse> getExamById(
+    public ResponseEntity<?> getExamById(
             @Parameter(description = "Exam ID") @PathVariable Long id) {
         log.info("Getting exam: {}", id);
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         ExamResponse response = examService.getExamById(id, ownerId);
-        return ResponseEntity.ok(response);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
 
     @GetMapping
     @Operation(summary = "Get all exams", description = "Retrieve all examinations with pagination and sorting")
-    public ResponseEntity<Page<ExamResponse>> getAllExams(
+    public ResponseEntity<?> getAllExams(
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "examDate") String sortBy,
@@ -83,7 +84,7 @@ public class ExamController {
         Pageable pageable = PageRequest.of(page, size, sort);
         
         Page<ExamResponse> response = examService.getAllExams(ownerId, pageable);
-        return ResponseEntity.ok(response);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
 
     @GetMapping("/class/{classId}")
@@ -274,22 +275,22 @@ public class ExamController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete exam", description = "Soft delete an examination")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
-    public ResponseEntity<Void> deleteExam(
+    public ResponseEntity<?> deleteExam(
             @Parameter(description = "Exam ID") @PathVariable Long id) {
         log.info("Deleting exam: {}", id);
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         examService.deleteExam(id, ownerId);
-        return ResponseEntity.noContent().build();
+        return ExceptionUtil.createBuildResponse("Exam deleted successfully", HttpStatus.OK);
     }
 
     @PutMapping("/{id}/restore")
     @Operation(summary = "Restore exam", description = "Restore a soft-deleted examination")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
-    public ResponseEntity<Void> restoreExam(
+    public ResponseEntity<?> restoreExam(
             @Parameter(description = "Exam ID") @PathVariable Long id) {
         log.info("Restoring exam: {}", id);
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         examService.restoreExam(id, ownerId);
-        return ResponseEntity.ok().build();
+        return ExceptionUtil.createBuildResponse("Exam restored successfully", HttpStatus.OK);
     }
 }
