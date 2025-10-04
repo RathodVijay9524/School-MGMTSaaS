@@ -1,0 +1,25 @@
+﻿SCHOOL MANAGEMENT SYSTEM - TEST DOCUMENT #2
+
+This is another test document for the School Management System.
+It contains information about:
+
+1. Student Enrollment
+   - Registration process
+   - Student profiles
+   - Academic records
+   - Parent information
+
+2. Academic Management
+   - Course scheduling
+   - Subject assignments
+   - Grade management
+   - Report cards
+
+3. Financial Management
+   - Fee collection
+   - Payment tracking
+   - Financial reports
+   - Budget management
+
+This document tests the document upload and processing system.
+Keywords: enrollment, academic, financial, management, school

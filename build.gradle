@@ -55,6 +55,16 @@ dependencies {
 	
 	// Twilio for SMS & WhatsApp
 	implementation 'com.twilio.sdk:twilio:9.14.1'
+	
+	// Document processing libraries for RAG
+	implementation 'org.apache.poi:poi:5.2.4'                    // Excel (.xlsx, .xls)
+	implementation 'org.apache.poi:poi-ooxml:5.2.4'              // Excel OOXML
+	implementation 'org.apache.poi:poi-scratchpad:5.2.4'         // PowerPoint (.ppt)
+	implementation 'org.apache.poi:poi-ooxml-schemas:4.1.2'      // PowerPoint (.pptx)
+	implementation 'org.apache.tika:tika-core:2.9.1'             // General document parsing
+	implementation 'org.apache.tika:tika-parsers-standard-package:2.9.1' // PDF, Word, etc.
+	implementation 'org.apache.pdfbox:pdfbox:2.0.29'             // PDF processing
+	implementation 'org.apache.pdfbox:pdfbox-tools:2.0.29'       // PDF tools
 }
 
 dependencyManagement {

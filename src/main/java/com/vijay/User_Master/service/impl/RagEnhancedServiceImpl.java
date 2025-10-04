@@ -177,4 +177,58 @@ public class RagEnhancedServiceImpl {
             return "Sorry, I couldn't search your school data right now. Please try again later.";
         }
     }
+
+    /**
+     * RAG-Enhanced document search
+     * Search specifically within uploaded documents for relevant information
+     */
+    @Tool(name = "searchDocuments", description = "Search within uploaded documents using RAG for document-specific information")
+    public String searchDocuments(String documentQuery, Long ownerId) {
+        log.info("Searching documents for query: {} by owner: {}", documentQuery, ownerId);
+
+        try {
+            // Enhance the query with document context
+            String enhancedQuery = "Document search: " + documentQuery;
+            String ragResponse = ragService.generateIntelligentResponse(enhancedQuery, ownerId);
+
+            StringBuilder response = new StringBuilder();
+            response.append("📄 Document Search Results:\n\n");
+            response.append("Query: ").append(documentQuery).append("\n\n");
+            response.append("Results: ").append(ragResponse).append("\n\n");
+            response.append("This search specifically looks within uploaded documents and files.");
+
+            return response.toString();
+
+        } catch (Exception e) {
+            log.error("Error searching documents: {}", e.getMessage(), e);
+            return "Sorry, I encountered an error while searching documents. Please try again.";
+        }
+    }
+
+    /**
+     * RAG-Enhanced file management assistance
+     * Help with document organization and file management tasks
+     */
+    @Tool(name = "getFileManagementAssistance", description = "Get intelligent assistance with file management and document organization")
+    public String getFileManagementAssistance(String fileQuery, Long ownerId) {
+        log.info("Getting file management assistance for query: {} by owner: {}", fileQuery, ownerId);
+
+        try {
+            // Enhance the query with file management context
+            String enhancedQuery = "File management: " + fileQuery;
+            String ragResponse = ragService.generateIntelligentResponse(enhancedQuery, ownerId);
+
+            StringBuilder response = new StringBuilder();
+            response.append("📁 File Management Assistance:\n\n");
+            response.append("Query: ").append(fileQuery).append("\n\n");
+            response.append("Response: ").append(ragResponse).append("\n\n");
+            response.append("This assistance helps with document organization and file management tasks.");
+
+            return response.toString();
+
+        } catch (Exception e) {
+            log.error("Error getting file management assistance: {}", e.getMessage(), e);
+            return "Sorry, I encountered an error while providing file management assistance. Please try again.";
+        }
+    }
 }

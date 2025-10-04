@@ -3,9 +3,11 @@ package com.vijay.User_Master.rag;
 import com.vijay.User_Master.dto.ExamResponse;
 import com.vijay.User_Master.dto.WorkerResponse;
 import com.vijay.User_Master.dto.SubjectResponse;
+import com.vijay.User_Master.entity.Document;
 import com.vijay.User_Master.service.ExamService;
 import com.vijay.User_Master.service.WorkerUserService;
 import com.vijay.User_Master.service.SubjectService;
+import com.vijay.User_Master.service.DocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class SimpleRagService {
     private final ExamService examService;
     private final WorkerUserService workerUserService;
     private final SubjectService subjectService;
+    private final DocumentService documentService;
 
     /**
      * Generate intelligent response based on school data
@@ -55,6 +58,12 @@ public class SimpleRagService {
             // Check for general school information
             if (queryLower.contains("school") || queryLower.contains("policy") || queryLower.contains("rule")) {
                 response.append(getSchoolInformation(query, ownerId));
+            }
+            
+            // Check for document-related queries
+            if (queryLower.contains("document") || queryLower.contains("file") || queryLower.contains("report") || 
+                queryLower.contains("policy") || queryLower.contains("manual") || queryLower.contains("guide")) {
+                response.append(getDocumentInformation(query, ownerId));
             }
             
             // If no specific category matched, provide general assistance
@@ -238,6 +247,51 @@ public class SimpleRagService {
     }
 
     /**
+     * Get document-related information from uploaded documents
+     */
+    private String getDocumentInformation(String query, Long ownerId) {
+        try {
+            // Search for relevant documents
+            List<Document> relevantDocs = documentService.getDocumentsForRAGQuery(ownerId, query);
+            
+            if (relevantDocs.isEmpty()) {
+                return "📄 **Document Information:**\nNo relevant documents found for your query.\n\n";
+            }
+            
+            StringBuilder docInfo = new StringBuilder();
+            docInfo.append("📄 **Document Information:**\n\n");
+            docInfo.append("Found ").append(relevantDocs.size()).append(" relevant document(s):\n\n");
+            
+            for (Document doc : relevantDocs) {
+                docInfo.append("**").append(doc.getOriginalFileName()).append("**\n");
+                docInfo.append("• Type: ").append(doc.getFileType()).append("\n");
+                docInfo.append("• Category: ").append(doc.getCategory()).append("\n");
+                docInfo.append("• Uploaded: ").append(doc.getCreatedAt()).append("\n");
+                
+                if (doc.getDescription() != null && !doc.getDescription().isEmpty()) {
+                    docInfo.append("• Description: ").append(doc.getDescription()).append("\n");
+                }
+                
+                if (doc.getSummary() != null && !doc.getSummary().isEmpty()) {
+                    docInfo.append("• Summary: ").append(doc.getSummary().substring(0, Math.min(200, doc.getSummary().length()))).append("...\n");
+                }
+                
+                if (doc.getTags() != null && !doc.getTags().isEmpty()) {
+                    docInfo.append("• Tags: ").append(doc.getTags()).append("\n");
+                }
+                
+                docInfo.append("\n");
+            }
+            
+            return docInfo.toString();
+            
+        } catch (Exception e) {
+            log.error("Error getting document information: {}", e.getMessage());
+            return "📄 **Document Information:**\nUnable to retrieve document information at this time.\n\n";
+        }
+    }
+
+    /**
      * Get general assistance when query doesn't match specific categories
      */
     private String getGeneralAssistance(String query, Long ownerId) {
@@ -248,6 +302,7 @@ public class SimpleRagService {
         assistance.append("• **Students** - Student information, class details\n");
         assistance.append("• **Subjects** - Available subjects, curriculum\n");
         assistance.append("• **School Policies** - Rules, regulations, procedures\n");
+        assistance.append("• **Documents** - Uploaded files, reports, manuals\n");
         assistance.append("• **Academic Information** - General school information\n\n");
         assistance.append("Please ask me about any of these topics for detailed information!\n\n");
         assistance.append("**Your Query:** ").append(query).append("\n");

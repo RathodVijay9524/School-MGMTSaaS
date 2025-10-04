@@ -25,6 +25,7 @@ import com.vijay.User_Master.service.impl.UserServiceImpl;
 import com.vijay.User_Master.service.impl.WhatsAppServiceImpl;
 import com.vijay.User_Master.service.impl.WorkerUserServiceImpl;
 import com.vijay.User_Master.service.impl.RagEnhancedServiceImpl;
+// import com.vijay.User_Master.service.impl.DocumentServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
@@ -91,6 +92,7 @@ class ToolConfig {
         FileServiceImpl fileService,
         HomeServiceImpl homeService,
         RagEnhancedServiceImpl ragEnhancedService
+        // DocumentServiceImpl documentService - removed as it has no @Tool methods
     ) {
         return MethodToolCallbackProvider.builder()
                 .toolObjects(
@@ -117,6 +119,7 @@ class ToolConfig {
                     fileService,
                     homeService,
                     ragEnhancedService
+                    // documentService - removed as it has no @Tool methods
                 )
                 .build();
     }
