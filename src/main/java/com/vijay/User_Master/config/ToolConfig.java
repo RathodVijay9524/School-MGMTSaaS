@@ -24,6 +24,7 @@ import com.vijay.User_Master.service.impl.TransferCertificateServiceImpl;
 import com.vijay.User_Master.service.impl.UserServiceImpl;
 import com.vijay.User_Master.service.impl.WhatsAppServiceImpl;
 import com.vijay.User_Master.service.impl.WorkerUserServiceImpl;
+import com.vijay.User_Master.service.impl.RagEnhancedServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
@@ -88,7 +89,8 @@ class ToolConfig {
         IDCardServiceImpl idCardService,
         TimetableServiceImpl timetableService,
         FileServiceImpl fileService,
-        HomeServiceImpl homeService
+        HomeServiceImpl homeService,
+        RagEnhancedServiceImpl ragEnhancedService
     ) {
         return MethodToolCallbackProvider.builder()
                 .toolObjects(
@@ -113,10 +115,9 @@ class ToolConfig {
                     idCardService,
                     timetableService,
                     fileService,
-                    homeService
+                    homeService,
+                    ragEnhancedService
                 )
                 .build();
     }
-
-
 }
