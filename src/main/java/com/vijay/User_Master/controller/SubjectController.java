@@ -8,7 +8,7 @@ import com.vijay.User_Master.service.SubjectService;
 import com.vijay.User_Master.Helper.CommonUtils;
 import com.vijay.User_Master.Helper.ExceptionUtil;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/subjects")
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class SubjectController {
 

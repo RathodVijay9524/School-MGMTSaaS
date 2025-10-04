@@ -15,7 +15,7 @@ import com.vijay.User_Master.repository.SubjectRepository;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.service.ExamService;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * Service implementation for Exam management
  */
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 @Transactional
 public class ExamServiceImpl implements ExamService {

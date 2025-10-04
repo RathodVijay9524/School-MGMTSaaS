@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,7 +30,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v1/assignments")
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 @Tag(name = "Assignment Management", description = "APIs for managing assignments")
 public class AssignmentController {
