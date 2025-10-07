@@ -3,7 +3,6 @@ package com.vijay.User_Master.service.impl;
 import com.vijay.User_Master.dto.form.EmailForm;
 import com.vijay.User_Master.entity.AccountStatus;
 import com.vijay.User_Master.entity.User;
-import com.vijay.User_Master.exceptions.BadApiRequestException;
 import com.vijay.User_Master.exceptions.ResourceNotFoundException;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.HomeService;

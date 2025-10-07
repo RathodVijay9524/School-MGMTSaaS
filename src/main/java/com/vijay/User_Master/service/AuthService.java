@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 public interface AuthService {
     LoginJWTResponse login(LoginRequest request);
     CompletableFuture<Object> registerForAdminUser(UserRequest request, String url);
-    UserResponse registerForNormalUser(UserRequest request);
+    UserResponse registerForNormalUser(UserRequest request, String url);
     RefreshTokenDto refreshToken(String refreshToken);
     boolean changePassword(ChangePasswordForm form);
     boolean existsByUsernameOrEmail(String usernameOrEmail);

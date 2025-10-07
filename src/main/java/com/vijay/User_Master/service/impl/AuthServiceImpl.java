@@ -60,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
     private final EmailUtils emailUtils;
+    private final EmailService emailService;
     private final ModelMapper mapper;
 
     @Override
@@ -145,7 +146,8 @@ public class AuthServiceImpl implements AuthService {
                 
                 // Create AccountStatus
                 AccountStatus accountStatus = new AccountStatus();
-                accountStatus.setIsActive(true); // Set as active by default for admin
+                accountStatus.setIsActive(false); // Set as INACTIVE by default - requires email verification
+                accountStatus.setVerificationCode(generateVerificationCode()); // Generate verification code
                 accountStatus.setCreatedBy(1);
                 accountStatus.setUpdatedBy(1);
                 accountStatus.setCreatedOn(new java.util.Date());
@@ -174,6 +176,9 @@ public class AuthServiceImpl implements AuthService {
                 User savedUser = userRepository.save(user);
                 log.info("Admin user created successfully with ID: {}", savedUser.getId());
                 
+                // Send verification email
+                sendVerificationEmail(savedUser, url);
+                
                 return savedUser;
             } catch (Exception e) {
                 log.error("Error registering admin user: {}", e.getMessage());
@@ -184,7 +189,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     // @Tool(name = "registerNormalUser", description = "Register new normal user with basic roles and account setup") // REMOVED: Only logged-in users access MCP
-    public UserResponse registerForNormalUser(UserRequest request) {
+    public UserResponse registerForNormalUser(UserRequest request, String url) {
         log.info("Registering normal user: {}", request.getUsername());
         
         try {
@@ -202,7 +207,8 @@ public class AuthServiceImpl implements AuthService {
             
             // Create AccountStatus
             AccountStatus accountStatus = new AccountStatus();
-            accountStatus.setIsActive(true); // Set as active by default
+            accountStatus.setIsActive(false); // Set as INACTIVE by default - requires email verification
+            accountStatus.setVerificationCode(generateVerificationCode()); // Generate verification code
             accountStatus.setCreatedBy(1);
             accountStatus.setUpdatedBy(1);
             accountStatus.setCreatedOn(new java.util.Date());
@@ -230,6 +236,9 @@ public class AuthServiceImpl implements AuthService {
             // Save user
             User savedUser = userRepository.save(user);
             log.info("Normal user created successfully with ID: {}", savedUser.getId());
+            
+            // Send verification email
+            sendVerificationEmail(savedUser, url);
             
             return mapper.map(savedUser, UserResponse.class);
         } catch (Exception e) {
@@ -405,5 +414,67 @@ public class AuthServiceImpl implements AuthService {
                 return false;
             }
         });
+    }
+
+    /**
+     * Generate a random verification code for email verification
+     */
+    private String generateVerificationCode() {
+        // Generate a 6-digit random verification code
+        return String.format("%06d", new java.util.Random().nextInt(1000000));
+    }
+
+    /**
+     * Send verification email to user
+     */
+    private void sendVerificationEmail(User user, String url) {
+        try {
+            String verificationLink = url + "/api/v1/home/verify?uid=" + user.getId() + "&code=" + user.getAccountStatus().getVerificationCode();
+            
+            String emailBody = buildVerificationEmail(user.getName(), verificationLink);
+            
+            EmailForm emailRequest = EmailForm.builder()
+                    .to(user.getEmail())
+                    .subject("Verify Your Account - School Management System")
+                    .title("Welcome " + user.getName() + "!")
+                    .message(emailBody)
+                    .build();
+
+            emailService.sendEmail(emailRequest);
+            log.info("Verification email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Error sending verification email to {}: {}", user.getEmail(), e.getMessage());
+        }
+    }
+
+    /**
+     * Build verification email HTML content
+     */
+    private String buildVerificationEmail(String userName, String verificationLink) {
+        return "<html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>" +
+                "<div style='max-width: 600px; margin: 0 auto; padding: 20px;'>" +
+                "<div style='text-align: center; margin-bottom: 30px;'>" +
+                "<h1 style='color: #2563eb; margin-bottom: 10px;'>🎓 School Management System</h1>" +
+                "<h2 style='color: #1e40af; margin-bottom: 20px;'>Welcome " + userName + "!</h2>" +
+                "</div>" +
+                "<div style='background-color: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;'>" +
+                "<p style='font-size: 16px; margin-bottom: 15px;'>Thank you for registering with our School Management System!</p>" +
+                "<p style='font-size: 16px; margin-bottom: 20px;'>To complete your registration and activate your account, please click the verification button below:</p>" +
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<a href='" + verificationLink + "' style='background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Verify My Account</a>" +
+                "</div>" +
+                "<p style='font-size: 14px; color: #64748b; margin-bottom: 15px;'>Or copy and paste this link into your browser:</p>" +
+                "<p style='font-size: 12px; color: #64748b; word-break: break-all; background-color: #e2e8f0; padding: 10px; border-radius: 4px;'>" + verificationLink + "</p>" +
+                "</div>" +
+                "<div style='border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;'>" +
+                "<p style='font-size: 14px; color: #64748b; margin-bottom: 10px;'><strong>Important:</strong></p>" +
+                "<ul style='font-size: 14px; color: #64748b; margin-bottom: 15px;'>" +
+                "<li>This verification link will expire in 24 hours</li>" +
+                "<li>If you didn't create this account, please ignore this email</li>" +
+                "<li>For security reasons, please don't share this verification link</li>" +
+                "</ul>" +
+                "<p style='font-size: 14px; color: #64748b; margin-bottom: 0;'>Best regards,<br/>School Management System Team</p>" +
+                "</div>" +
+                "</div></body></html>";
     }
 }

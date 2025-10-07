@@ -73,11 +73,10 @@ public class AuthController {
      * @return A ResponseEntity containing the UserResponse or an error message.
      */
     @PostMapping(value = "/register/worker", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> registerWorker(@RequestBody UserRequest request) {
-        UserResponse response = authService.registerForNormalUser(request);
+    public ResponseEntity<?> registerWorker(@RequestBody UserRequest request, HttpServletRequest httpRequest) {
+        String url = httpRequest.getRequestURL().toString().replace(httpRequest.getRequestURI(), "");
+        UserResponse response = authService.registerForNormalUser(request, url);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
-
-
     }
 
     /**
