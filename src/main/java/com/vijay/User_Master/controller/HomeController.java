@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,18 +30,21 @@ public class HomeController {
     private AuthService authService;
 
     @GetMapping("/verify")
-    public ResponseEntity<Map<String, Object>> verifyUserAccount(@RequestParam Long uid, @RequestParam String code) throws Exception {
+    public RedirectView verifyUserAccount(@RequestParam Long uid, @RequestParam String code) throws Exception {
         boolean verified = homeService.verifyAccount(uid, code);
 
-        Map<String, Object> response = new HashMap<>();
         if (verified) {
-            response.put("status", "success");
-            response.put("message", "Account verified successfully!");
-            return ResponseEntity.ok(response);
+            // Redirect to verification page with success status
+            RedirectView redirectView = new RedirectView("/verify-account?status=success&message=" + 
+                java.net.URLEncoder.encode("Account verified successfully!", "UTF-8"));
+            redirectView.setStatusCode(HttpStatus.FOUND);
+            return redirectView;
         } else {
-            response.put("status", "error");
-            response.put("message", "Invalid or expired verification link.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            // Redirect to verification page with error status
+            RedirectView redirectView = new RedirectView("/verify-account?status=error&message=" + 
+                java.net.URLEncoder.encode("Invalid or expired verification link.", "UTF-8"));
+            redirectView.setStatusCode(HttpStatus.FOUND);
+            return redirectView;
         }
     }
 

@@ -50,6 +50,15 @@ public class WebController {
     }
 
     /**
+     * Account verification page - Shows verification status and redirects to login
+     */
+    @GetMapping("/verify-account")
+    public String verifyAccount(Model model) {
+        model.addAttribute("pageTitle", "Account Verification - School Management System");
+        return "auth/verify-account";
+    }
+
+    /**
      * About page
      */
     @GetMapping("/about")

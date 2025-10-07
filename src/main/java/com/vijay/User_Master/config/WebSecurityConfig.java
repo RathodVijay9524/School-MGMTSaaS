@@ -51,7 +51,7 @@ public class WebSecurityConfig {
                         // 2) Your explicit static & root fallbacks and frontend pages
                                 .requestMatchers(
                                         "/", "/index.html",
-                                        "/login", "/register", "/role-selection", "/about", "/contact", "/features",
+                                        "/login", "/register", "/role-selection", "/verify-account", "/about", "/contact", "/features",
                                         "/dashboard/**", "/dashboard/owner", "/dashboard/teacher", 
                                         "/dashboard/student", "/dashboard/parent", "/dashboard/librarian", "/dashboard/super-admin",
                                         "/assets/**", "/static/**", "/css/**", "/js/**",
