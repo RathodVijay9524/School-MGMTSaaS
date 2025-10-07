@@ -59,6 +59,24 @@ public class WebController {
     }
 
     /**
+     * Forgot password page - Email input form for password reset
+     */
+    @GetMapping("/forgot-password")
+    public String forgotPassword(Model model) {
+        model.addAttribute("pageTitle", "Forgot Password - School Management System");
+        return "auth/forgot-password";
+    }
+
+    /**
+     * Reset password page - New password form with validation
+     */
+    @GetMapping("/reset-password")
+    public String resetPassword(Model model) {
+        model.addAttribute("pageTitle", "Reset Password - School Management System");
+        return "auth/reset-password";
+    }
+
+    /**
      * About page
      */
     @GetMapping("/about")

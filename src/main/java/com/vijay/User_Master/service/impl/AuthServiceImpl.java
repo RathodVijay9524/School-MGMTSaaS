@@ -28,6 +28,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.util.ObjectUtils;
+import java.util.UUID;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -373,47 +375,89 @@ public class AuthServiceImpl implements AuthService {
         });
     }
 
-    public CompletableFuture<Object> sendEmailPasswordReset(String email, HttpServletRequest request) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                log.info("Sending password reset email to: {}", email);
-                
-                // In a real implementation, you would send an email with the reset token
-                // For now, just log the action
-                log.info("Password reset email would be sent to {} with request context", email);
-                
-                return Map.of("success", true, "message", "Password reset email sent successfully");
-            } catch (Exception e) {
-                log.error("Error sending password reset email: {}", e.getMessage());
-                return Map.of("success", false, "message", "Failed to send password reset email");
-            }
-        });
+    @Override
+    public void sendEmailPasswordReset(String email, HttpServletRequest request) throws Exception {
+        // Fetch user from the database using email
+        User user = userRepository.findByEmail(email);
+        if (ObjectUtils.isEmpty(user)) {
+            log.error("Invalid email...!!!: {}", email);
+            throw new BadApiRequestException("Invalid email");
+        }
+
+        // Generate unique password reset token
+        String passwordResetToken = UUID.randomUUID().toString();
+        user.getAccountStatus().setPasswordResetToken(passwordResetToken);
+        User updatedUser = userRepository.save(user);
+
+        // Get the base URL of your API (e.g., http://localhost:9091)
+        String url = CommonUtils.getUrl(request);
+
+        // Frontend Base URL - using localhost for Thymeleaf
+        String frontendBaseUrl = url; // Use the same base URL for Thymeleaf frontend
+
+        // Send the email with the reset link
+        sendEmailRequest(updatedUser, frontendBaseUrl);
+        log.info("Password reset email sent to: {}", email);
+    }
+
+    private void sendEmailRequest(User user, String url) throws Exception {
+        // Email message template with placeholders
+        String message = "Hi <b>[[username]]</b>, "
+                + "<br><p>You have requested to reset your password.</p>"
+                + "<p>Click the link below to reset your password:</p>"
+                + "<p><a href=[[url]]>Reset my password</a></p>"
+                + "<p>Ignore this email if you remember your password, "
+                + "or you did not make the request.</p><br>"
+                + "Thanks,<br>School Management System";
+
+        // Replace placeholders with actual user details and URL
+        message = message.replace("[[username]]", user.getName());
+        message = message.replace("[[url]]", url + "/reset-password?uid=" + user.getId() + "&token="
+                + user.getAccountStatus().getPasswordResetToken());
+
+        // Create an EmailForm object to represent the email
+        EmailForm emailRequest = EmailForm.builder()
+                .to(user.getEmail())
+                .title("Password Reset")
+                .subject("Password Reset Link")
+                .message(message)
+                .build();
+
+        // Send the password reset email
+        emailService.sendEmail(emailRequest);
+        log.info("Password reset email sent to user: {}", user.getEmail());
     }
 
     @Override
-    public CompletableFuture<Object> verifyPasswordResetLink(Long uid, String code) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Implementation logic here
-                return true;
-            } catch (Exception e) {
-                log.error("Error verifying password reset link: {}", e.getMessage());
-                return false;
-            }
-        });
+    public void verifyPasswordResetLink(Long uid, String code) throws Exception {
+        User user = userRepository.findById(uid).orElseThrow(() -> new BadApiRequestException("Invalid user"));
+        verifyPasswordResetToken(user.getAccountStatus().getPasswordResetToken(), code);
+    }
+
+    private void verifyPasswordResetToken(String existToken, String reqToken) {
+        if (ObjectUtils.isEmpty(existToken) || ObjectUtils.isEmpty(reqToken)) {
+            throw new BadApiRequestException("Invalid reset token");
+        }
+        if (!existToken.equals(reqToken)) {
+            throw new BadApiRequestException("Invalid reset token");
+        }
     }
 
     @Override
-    public CompletableFuture<Object> verifyAndResetPassword(Long uid, String token, String newPassword, String confirmPassword) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Implementation logic here
-                return true;
-            } catch (Exception e) {
-                log.error("Error verifying and resetting password: {}", e.getMessage());
-                return false;
-            }
-        });
+    public void verifyAndResetPassword(Long uid, String token, String newPassword, String confirmPassword) throws Exception {
+        if (!newPassword.equals(confirmPassword)) {
+            throw new BadApiRequestException("Password and confirm password do not match");
+        }
+        
+        User user = userRepository.findById(uid).orElseThrow(() -> new BadApiRequestException("Invalid user"));
+        verifyPasswordResetToken(user.getAccountStatus().getPasswordResetToken(), token);
+        
+        // Reset the password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.getAccountStatus().setPasswordResetToken(null);
+        userRepository.save(user);
+        
+        log.info("Password reset successfully for user ID: {}", uid);
     }
 
     /**

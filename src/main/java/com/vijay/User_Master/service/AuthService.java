@@ -8,6 +8,7 @@ import com.vijay.User_Master.dto.RefreshTokenDto;
 import com.vijay.User_Master.dto.form.ChangePasswordForm;
 import com.vijay.User_Master.dto.form.ForgotPasswordForm;
 import com.vijay.User_Master.dto.form.UnlockForm;
+import com.vijay.User_Master.dto.form.PasswordResetForm;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.concurrent.CompletableFuture;
@@ -21,7 +22,7 @@ public interface AuthService {
     boolean existsByUsernameOrEmail(String usernameOrEmail);
     CompletableFuture<Object> forgotPassword(ForgotPasswordForm form, String usernameOrEmail);
     boolean unlockAccount(UnlockForm form, String usernameOrEmail);
-    CompletableFuture<Object> sendEmailPasswordReset(String email, HttpServletRequest request);
-    CompletableFuture<Object> verifyPasswordResetLink(Long uid, String code);
-    CompletableFuture<Object> verifyAndResetPassword(Long uid, String token, String newPassword, String confirmPassword);
+    void sendEmailPasswordReset(String email, HttpServletRequest request) throws Exception;
+    void verifyPasswordResetLink(Long uid, String code) throws Exception;
+    void verifyAndResetPassword(Long uid, String token, String newPassword, String confirmPassword) throws Exception;
 }
