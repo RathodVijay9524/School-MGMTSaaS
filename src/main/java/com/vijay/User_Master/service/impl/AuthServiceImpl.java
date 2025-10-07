@@ -132,19 +132,19 @@ public class AuthServiceImpl implements AuthService {
     public CompletableFuture<Object> registerForAdminUser(UserRequest request, String url) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.info("Registering admin user: {}", request.getUsername());
+                log.info("Registering student user: {}", request.getUsername());
                 
                 // Check if user already exists
                 if (userRepository.findByUsernameOrEmail(request.getUsername(), request.getEmail()).isPresent()) {
                     throw new UserAlreadyExistsException("User with username or email already exists");
                 }
                 
-                // Get admin role
-                Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                    .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "ROLE_ADMIN"));
+                // Get student role (safer default than admin)
+                Role studentRole = roleRepository.findByName("ROLE_STUDENT")
+                    .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "ROLE_STUDENT"));
                 
                 Set<Role> roles = new HashSet<>();
-                roles.add(adminRole);
+                roles.add(studentRole);
                 
                 // Create AccountStatus
                 AccountStatus accountStatus = new AccountStatus();
@@ -183,8 +183,8 @@ public class AuthServiceImpl implements AuthService {
                 
                 return savedUser;
             } catch (Exception e) {
-                log.error("Error registering admin user: {}", e.getMessage());
-                throw new RuntimeException("Failed to register admin user: " + e.getMessage());
+                log.error("Error registering student user: {}", e.getMessage());
+                throw new RuntimeException("Failed to register student user: " + e.getMessage());
             }
         });
     }
