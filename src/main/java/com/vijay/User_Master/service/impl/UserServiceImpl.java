@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -244,6 +245,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     @Tool(name = "updateUserAccountStatus", description = "Update user account status (activate/deactivate user)")
     public void updateAccountStatus(Long userId, Boolean isActive) {
         log.info("Updating account status for user: {} to active: {}", userId, isActive);

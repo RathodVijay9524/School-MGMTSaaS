@@ -661,8 +661,26 @@
                 console.log('User status fields:', {
                     accountStatus: users[0].accountStatus,
                     isActive: users[0].isActive,
-                    accountStatusIsActive: users[0].accountStatus?.isActive
+                    accountStatusIsActive: users[0].accountStatus?.isActive,
+                    accountStatusType: typeof users[0].accountStatus?.isActive
                 });
+                
+                // Debug all users' status
+                users.forEach((user, index) => {
+                    console.log(`User ${index + 1} (ID: ${user.id}):`, {
+                        name: user.name,
+                        accountStatus: user.accountStatus,
+                        isActive: user.accountStatus?.isActive,
+                        type: typeof user.accountStatus?.isActive
+                    });
+                });
+                
+                // Find the user we just updated
+                const updatedUser = users.find(u => u.id === currentEditingUser?.id);
+                if (updatedUser) {
+                    console.log('Updated user found in refresh:', updatedUser);
+                    console.log('Updated user status:', updatedUser.accountStatus?.isActive);
+                }
             }
 
             usersTable.innerHTML = users.map((user, index) => `
@@ -686,8 +704,8 @@
                         <div class="text-sm text-gray-900">${user.email || 'N/A'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${(user.accountStatus?.isActive || user.isActive) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${(user.accountStatus?.isActive || user.isActive) ? 'Active' : 'Inactive'}
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.accountStatus?.isActive === true ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${user.accountStatus?.isActive === true ? 'Active' : 'Inactive'}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -738,10 +756,10 @@
                 // All Users tab
                 actions += `
                     <button
-                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive || user.isActive})"
-                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${(user.accountStatus?.isActive || user.isActive) ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500' : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'}"
+                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive === true})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${user.accountStatus?.isActive === true ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500' : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'}"
                     >
-                        ${(user.accountStatus?.isActive || user.isActive) ? '⏸️ Deactivate' : '▶️ Activate'}
+                        ${user.accountStatus?.isActive === true ? '⏸️ Deactivate' : '▶️ Activate'}
                     </button>
                     <button
                         onclick="handleSoftDelete(${user.id})"
@@ -786,7 +804,7 @@
                 // Expired tab
                 actions += `
                     <button
-                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive || user.isActive})"
+                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive === true})"
                         class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                     >
                         ▶️ Activate
@@ -834,6 +852,9 @@
                     throw new Error('No JWT token found');
                 }
 
+                // Set the current editing user for debugging
+                currentEditingUser = { id: userId };
+
                 const newStatus = !currentStatus;
                 console.log('Toggling user status:', userId, 'from', currentStatus, 'to', newStatus);
 
@@ -856,12 +877,17 @@
 
                 const data = await response.json();
                 console.log('Status update response:', data);
+                console.log('Expected new status:', newStatus);
+                console.log('Response status:', data.status);
+                console.log('Response message:', data.message);
 
                 showSuccess(`User ${newStatus ? 'activated' : 'deactivated'} successfully ✅`);
                 
-                // Refresh current view
-                const filters = buildFilters(activeTab, searchTerm);
-                fetchUsersWithFilter(filters);
+                // Refresh current view - EXACTLY like React implementation
+                console.log('Refreshing user list after status update...');
+                const pagination = { ...buildFilters(activeTab, searchTerm), pageNumber: currentPage - 1, pageSize };
+                console.log('Pagination for refresh:', pagination);
+                await fetchUsersWithFilter(pagination);
                 
             } catch (error) {
                 console.error('Status update failed:', error);
@@ -900,9 +926,11 @@
 
                 showSuccess('User soft deleted successfully ✅');
                 
-                // Refresh current view
-                const filters = buildFilters(activeTab, searchTerm);
-                fetchUsersWithFilter(filters);
+                // Refresh current view - EXACTLY like React implementation
+                console.log('Refreshing user list after soft delete...');
+                const filters = { ...buildFilters(activeTab, searchTerm), pageNumber: currentPage - 1, pageSize };
+                console.log('Filters for refresh:', filters);
+                await fetchUsersWithFilter(filters);
                 
             } catch (error) {
                 console.error('Soft delete failed:', error);
@@ -941,9 +969,11 @@
 
                 showSuccess('User restored successfully ✅');
                 
-                // Refresh current view
-                const filters = buildFilters(activeTab, searchTerm);
-                fetchUsersWithFilter(filters);
+                // Refresh current view - EXACTLY like React implementation
+                console.log('Refreshing user list after restore...');
+                const filters = { ...buildFilters(activeTab, searchTerm), pageNumber: currentPage - 1, pageSize };
+                console.log('Filters for refresh:', filters);
+                await fetchUsersWithFilter(filters);
                 
             } catch (error) {
                 console.error('Restore failed:', error);
@@ -991,6 +1021,20 @@
                         }
                     } catch (e) {
                         errorMessage += ` - ${errorText}`;
+                    }
+                    
+                    // Special handling for data integrity violation
+                    if (errorMessage.includes('Data integrity violation')) {
+                        errorMessage = '⚠️ Cannot permanently delete this user!\n\n' +
+                                     'This user has associated data that prevents deletion:\n' +
+                                     '• Students/Teachers (Workers)\n' +
+                                     '• School classes they own\n' +
+                                     '• Exams, assignments, or other records\n' +
+                                     '• Library books they issued\n\n' +
+                                     'Please use "Soft Delete" instead, which will:\n' +
+                                     '• Mark the user as deleted\n' +
+                                     '• Preserve all relationships\n' +
+                                     '• Allow restoration if needed';
                     }
                     
                     throw new Error(errorMessage);
@@ -1279,7 +1323,7 @@
             document.getElementById('userProfileImage').textContent = initials;
             
             // Set status
-            const isActive = user.accountStatus?.isActive;
+            const isActive = user.accountStatus?.isActive ?? false;
             const statusElement = document.getElementById('userDetailStatus');
             const indicatorElement = document.getElementById('userStatusIndicator');
             
@@ -1567,8 +1611,8 @@
                                             <label class="block text-sm font-medium text-gray-700">Status</label>
                                             <select id="userStatus" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
                                                     ${isViewOnly ? 'disabled' : ''}>
-                                                <option value="true" ${(user.accountStatus?.isActive || user.isActive) ? 'selected' : ''}>Active</option>
-                                                <option value="false" ${!(user.accountStatus?.isActive || user.isActive) ? 'selected' : ''}>Inactive</option>
+                                                <option value="true" ${user.accountStatus?.isActive === true ? 'selected' : ''}>Active</option>
+                                                <option value="false" ${user.accountStatus?.isActive !== true ? 'selected' : ''}>Inactive</option>
                                             </select>
                                         </div>
                                         

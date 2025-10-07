@@ -1,5 +1,6 @@
 package com.vijay.User_Master.dto;
 
+import com.vijay.User_Master.entity.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class UserResponse {
     private boolean isDeleted;
     private Date deletedOn;
     private Set<String> roles;
+    private AccountStatus accountStatus;
     private Date createdOn;
     private Date updatedOn;
 }
