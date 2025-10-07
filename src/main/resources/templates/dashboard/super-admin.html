@@ -46,6 +46,20 @@
             transform: translateY(-5px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .sidebar-mobile {
+            transform: translateX(-100%);
+        }
+        .sidebar-mobile.open {
+            transform: translateX(0);
+        }
+        @media (min-width: 768px) {
+            .sidebar-mobile {
+                transform: translateX(0);
+            }
+        }
         .school-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
@@ -61,14 +75,26 @@
     </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Mobile Overlay -->
+    <div class="fixed inset-0 z-40 bg-black bg-opacity-50 hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
     <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
+    <nav class="bg-white shadow-lg sidebar-transition sidebar-mobile" id="sidebar">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 mr-4">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    
                     <div class="flex-shrink-0">
                         <h1 class="text-xl font-bold text-gray-900">Super Admin Dashboard</h1>
                     </div>
+                    <!-- Mobile Close Button -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 ml-4">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
                 <div class="flex items-center space-x-4">
                     <!-- User Menu with Role Dropdown -->
@@ -129,7 +155,7 @@
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto px-4 py-8 pl-0 md:pl-0" id="mainContent">
         <!-- Header -->
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">All Schools Overview</h1>
@@ -319,27 +345,1519 @@
                 </table>
             </div>
         </div>
+
+        <!-- User Management Section -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">User Management</h3>
+                <p class="text-gray-600">Manage users, roles, and permissions</p>
+            </div>
+
+            <!-- Controls -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                    <!-- Search -->
+                    <div class="relative flex-1 max-w-md">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">🔍</span>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Search by name, email, or username..."
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                    </div>
+
+                    <div class="flex gap-4 items-center">
+                        <!-- Page Size Selector -->
+                        <select id="pageSizeSelect" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="3">3 per page</option>
+                            <option value="5">5 per page</option>
+                            <option value="10" selected>10 per page</option>
+                            <option value="15">15 per page</option>
+                            <option value="20">20 per page</option>
+                            <option value="25">25 per page</option>
+                        </select>
+
+                        <!-- Stats -->
+                        <div class="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+                            <span class="font-medium text-gray-900" id="totalUsers">0</span> total users
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="flex flex-nowrap gap-4 px-0 sm:px-6 overflow-x-auto scrollbar-thin scrollbar-none" role="tablist">
+                        <button role="tab" onclick="handleTabChange(0)" class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap border-blue-500 text-blue-600" id="tab-0">
+                            <span class="text-base sm:text-lg">👥</span>
+                            <span>All Users</span>
+                        </button>
+                        <button role="tab" onclick="handleTabChange(1)" class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" id="tab-1">
+                            <span class="text-base sm:text-lg">✅</span>
+                            <span>Active</span>
+                        </button>
+                        <button role="tab" onclick="handleTabChange(2)" class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" id="tab-2">
+                            <span class="text-base sm:text-lg">❌</span>
+                            <span>Deleted</span>
+                        </button>
+                        <button role="tab" onclick="handleTabChange(3)" class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" id="tab-3">
+                            <span class="text-base sm:text-lg">⏰</span>
+                            <span>Expired</span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hidden">
+                <div class="flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span class="ml-3 text-gray-600">Loading users...</span>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 hidden">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <span class="text-red-400 text-lg">⚠️</span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-800" id="errorMessage"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div id="usersTableContainer" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roles</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="usersTable">
+                            <!-- Users data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-6 flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalUsers">0</span> users
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="changePage('prev')" id="prevBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-1"></i>Previous
+                    </button>
+                    <button onclick="changePage('next')" id="nextBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Next<i class="fas fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Initialize dashboard
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (sidebar.classList.contains('open')) {
+                // Close sidebar
+                sidebar.classList.remove('open');
+                overlay.classList.add('hidden');
+                // Reset main content padding on mobile
+                if (window.innerWidth < 768) {
+                    mainContent.classList.remove('pl-0');
+                    mainContent.classList.add('pl-0');
+                }
+            } else {
+                // Open sidebar
+                sidebar.classList.add('open');
+                overlay.classList.remove('hidden');
+                // Add padding to main content on mobile when sidebar is open
+                if (window.innerWidth < 768) {
+                    mainContent.classList.remove('pl-0');
+                    mainContent.classList.add('pl-0');
+                }
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth >= 768) {
+                // Desktop view - always show sidebar, hide overlay
+                sidebar.classList.remove('open');
+                overlay.classList.add('hidden');
+                mainContent.classList.remove('pl-0');
+                mainContent.classList.add('pl-0');
+            } else {
+                // Mobile view - hide sidebar by default, show overlay only when open
+                if (!sidebar.classList.contains('open')) {
+                    overlay.classList.add('hidden');
+                    mainContent.classList.remove('pl-0');
+                    mainContent.classList.add('pl-0');
+                }
+            }
+        });
+
+        // User Management Variables - Matching React Implementation
+        let activeTab = 0;
+        let searchTerm = '';
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalPages = 1;
+        let totalUsers = 0;
+        let loading = false;
+        let error = null;
+        let users = [];
+
+        // Tab configuration matching React
+        const tabs = [
+            { id: 0, label: 'All Users', icon: '👥', color: 'blue' },
+            { id: 1, label: 'Active', icon: '✅', color: 'green' },
+            { id: 2, label: 'Deleted', icon: '❌', color: 'red' },
+            { id: 3, label: 'Expired', icon: '⏰', color: 'orange' }
+        ];
+
+        const colorStyles = {
+            blue: { border: 'border-blue-500', text: 'text-blue-600' },
+            green: { border: 'border-green-500', text: 'text-green-600' },
+            red: { border: 'border-red-500', text: 'text-red-600' },
+            orange: { border: 'border-orange-500', text: 'text-orange-600' }
+        };
+
+        // Build filters matching React implementation
+        function buildFilters(tabKey, keyword = '') {
+            let newFilters = { keyword };
+            switch (tabKey) {
+                case 1:
+                    newFilters.isDeleted = false;
+                    newFilters.isActive = true;
+                    break;
+                case 2:
+                    newFilters.isDeleted = true;
+                    break;
+                case 3:
+                    newFilters.isDeleted = false;
+                    newFilters.isActive = false;
+                    break;
+                default:
+                    newFilters.isDeleted = false;
+                    break;
+            }
+            return newFilters;
+        }
+
+        // Fetch users with filter - matching React implementation
+        async function fetchUsersWithFilter(filters) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                console.log('JWT Token found:', token ? 'Yes' : 'No');
+                if (!token) {
+                    console.error('No JWT token found - user not authenticated');
+                    showError('Please login to access user management');
+                    return;
+                }
+
+                loading = true;
+                error = null;
+                showLoading(true);
+
+                const params = new URLSearchParams({
+                    pageNumber: (currentPage - 1).toString(),
+                    pageSize: pageSize.toString(),
+                    sortBy: 'name',
+                    sortDir: 'asc'
+                });
+
+                // Add filters only if they have values
+                if (filters.keyword) params.append('keyword', filters.keyword);
+                if (filters.isDeleted !== undefined) params.append('isDeleted', filters.isDeleted.toString());
+                if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString());
+
+                console.log('Fetching users with params:', params.toString());
+                console.log('Current filters:', filters);
+
+                console.log('Making API call to:', `/api/users/filter?${params}`);
+                console.log('Authorization header:', `Bearer ${token.substring(0, 20)}...`);
+
+                const response = await fetch(`/api/users/filter?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                if (data.responseStatus === 'OK') {
+                    const payload = data.data || {};
+                    console.log('Payload:', payload);
+                    
+                    users = payload.content || [];
+                    currentPage = (payload.pageable?.pageNumber || 0) + 1;
+                    totalPages = payload.totalPages || 1;
+                    totalUsers = payload.totalElements || 0;
+                    
+                    console.log('Processed data - users:', users.length, 'currentPage:', currentPage, 'totalPages:', totalPages, 'totalUsers:', totalUsers);
+                    
+                    displayUsers();
+                    updateStats();
+                    updatePagination();
+                    error = null;
+                } else {
+                    console.error('API Error Response:', data);
+                    throw new Error(data.message || 'Failed to fetch users');
+                }
+
+            } catch (err) {
+                console.error('Error fetching users:', err);
+                error = err.message || 'Failed to fetch users';
+                users = [];
+                showError(error);
+            } finally {
+                loading = false;
+                showLoading(false);
+            }
+        }
+
+        // Display users in table - matching React implementation
+        function displayUsers() {
+            const usersTable = document.getElementById('usersTable');
+            if (!users || users.length === 0) {
+                usersTable.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No users found</td></tr>';
+                return;
+            }
+
+            usersTable.innerHTML = users.map((user, index) => `
+                <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <span class="text-sm font-medium text-blue-600">
+                                        ${user.name?.charAt(0)?.toUpperCase() || 'U'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${user.name || 'N/A'}</div>
+                                <div class="text-sm text-gray-500">ID: ${user.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${user.email || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.accountStatus?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${user.accountStatus?.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex flex-wrap gap-1">
+                            ${user.roles?.map(role => {
+                                const roleName = role.name || role.toString().match(/name=([^,)]+)/)?.[1] || role.toString();
+                                const displayName = roleName.replace('ROLE_', '');
+                                let colorClass = 'bg-blue-500';
+                                if (roleName.includes('ADMIN')) colorClass = 'bg-red-500';
+                                else if (roleName.includes('SUPER')) colorClass = 'bg-yellow-500';
+                                else if (roleName.includes('WORKER')) colorClass = 'bg-cyan-500';
+                                else if (roleName.includes('NORMAL')) colorClass = 'bg-gray-500';
+                                else if (roleName.includes('TEACHER')) colorClass = 'bg-green-500';
+                                else if (roleName.includes('STUDENT')) colorClass = 'bg-purple-500';
+                                else if (roleName.includes('PARENT')) colorClass = 'bg-indigo-500';
+                                
+                                return `<span class="inline-flex px-2 py-1 text-xs font-medium rounded-md text-white ${colorClass}">${displayName}</span>`;
+                            }).join('') || '<span class="text-sm text-gray-500">No roles</span>'}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            ${getTabSpecificActions(user)}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Get tab-specific actions - matching React implementation
+        function getTabSpecificActions(user) {
+            let actions = '';
+            
+            // Edit Roles Button - show for All Users and Active tabs
+            if (activeTab === 0 || activeTab === 1) {
+                actions += `
+                    <button
+                        onclick="openRoleModal(${user.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        ✏️ Roles
+                    </button>
+                `;
+            }
+
+            // Tab-specific actions
+            if (activeTab === 0) {
+                // All Users tab
+                actions += `
+                    <button
+                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${user.accountStatus?.isActive ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500' : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'}"
+                    >
+                        ${user.accountStatus?.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${user.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            } else if (activeTab === 1) {
+                // Active tab
+                actions += `
+                    <button
+                        onclick="viewUser(${user.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        👁 View
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${user.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            } else if (activeTab === 2) {
+                // Deleted tab
+                actions += `
+                    <button
+                        onclick="handleRestore(${user.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                        ↻ Restore
+                    </button>
+                    <button
+                        onclick="handlePermanentDelete(${user.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                        ❌ Permanent
+                    </button>
+                `;
+            } else if (activeTab === 3) {
+                // Expired tab
+                actions += `
+                    <button
+                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                        ▶️ Activate
+                    </button>
+                `;
+            }
+            
+            return actions;
+        }
+
+        // Handle tab change - matching React implementation
+        function handleTabChange(tabId) {
+            activeTab = tabId;
+            currentPage = 1;
+            
+            // Update tab styles
+            tabs.forEach((tab, index) => {
+                const tabElement = document.getElementById(`tab-${index}`);
+                if (index === tabId) {
+                    const colorStyle = colorStyles[tab.color];
+                    tabElement.className = `flex items-center gap-2 px-3 sm:px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${colorStyle.border} ${colorStyle.text}`;
+                } else {
+                    tabElement.className = 'flex items-center gap-2 px-3 sm:px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+                }
+            });
+            
+            // Apply filters and fetch data
+            const newFilters = buildFilters(tabId, searchTerm);
+            fetchUsersWithFilter(newFilters);
+        }
+
+        // Handle search - matching React implementation
+        function handleSearch(e) {
+            searchTerm = e.target.value;
+            currentPage = 1;
+            const newFilters = buildFilters(activeTab, searchTerm);
+            fetchUsersWithFilter(newFilters);
+        }
+
+        // Handle status toggle - matching React implementation
+        async function handleStatusToggle(userId, currentStatus) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    throw new Error('No JWT token found');
+                }
+
+                const newStatus = !currentStatus;
+                const response = await fetch(`/api/users/${userId}/status?isActive=${newStatus}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                showSuccess(`User ${newStatus ? 'activated' : 'deactivated'}`);
+                
+                // Refresh current view
+                const filters = buildFilters(activeTab, searchTerm);
+                fetchUsersWithFilter(filters);
+                
+            } catch (error) {
+                console.error('Status update failed:', error);
+                showError(`Status update failed: ${error.message}`);
+            }
+        }
+
+        // Handle soft delete - matching React implementation
+        async function handleSoftDelete(userId) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    throw new Error('No JWT token found');
+                }
+
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                showSuccess('User soft deleted');
+                
+                // Refresh current view
+                const filters = buildFilters(activeTab, searchTerm);
+                fetchUsersWithFilter(filters);
+                
+            } catch (error) {
+                console.error('Soft delete failed:', error);
+                showError(`Soft delete failed: ${error.message}`);
+            }
+        }
+
+        // Handle restore - matching React implementation
+        async function handleRestore(userId) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    throw new Error('No JWT token found');
+                }
+
+                const response = await fetch(`/api/users/${userId}/restore`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                showSuccess('User restored');
+                
+                // Refresh current view
+                const filters = buildFilters(activeTab, searchTerm);
+                fetchUsersWithFilter(filters);
+                
+            } catch (error) {
+                console.error('Restore failed:', error);
+                showError(`Restore failed: ${error.message}`);
+            }
+        }
+
+        // Handle permanent delete - matching React implementation
+        async function handlePermanentDelete(userId) {
+            if (!confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    throw new Error('No JWT token found');
+                }
+
+                const response = await fetch(`/api/users/${userId}/permanent`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                showSuccess('User permanently deleted');
+                
+                // Refresh current view
+                const filters = buildFilters(activeTab, searchTerm);
+                fetchUsersWithFilter(filters);
+                
+            } catch (error) {
+                console.error('Permanent delete failed:', error);
+                showError(`Permanent delete failed: ${error.message}`);
+            }
+        }
+
+        // Open role modal
+        function openRoleModal(userId) {
+            // Find user in current users array
+            const user = users.find(u => u.id === userId);
+            if (user) {
+                showRoleSelector(user);
+            }
+        }
+
+        // View user details
+        function viewUser(userId) {
+            // Find user in current users array
+            const user = users.find(u => u.id === userId);
+            if (user) {
+                showEditUserModal(user, true); // true for view-only mode
+            }
+        }
+
+        // Show loading state
+        function showLoading(show) {
+            const loadingState = document.getElementById('loadingState');
+            const usersTableContainer = document.getElementById('usersTableContainer');
+            
+            if (show) {
+                loadingState.classList.remove('hidden');
+                usersTableContainer.classList.add('hidden');
+            } else {
+                loadingState.classList.add('hidden');
+                usersTableContainer.classList.remove('hidden');
+            }
+        }
+
+        // Show error state
+        function showError(message) {
+            const errorState = document.getElementById('errorState');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.textContent = message;
+            errorState.classList.remove('hidden');
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                errorState.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            // Create a simple toast notification
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalUsers').textContent = totalUsers;
+        }
+
+        // Update pagination info
+        function updatePagination() {
+            const showingStart = ((currentPage - 1) * pageSize) + 1;
+            const showingEnd = Math.min(currentPage * pageSize, totalUsers);
+            
+            document.getElementById('showingStart').textContent = showingStart;
+            document.getElementById('showingEnd').textContent = showingEnd;
+            document.getElementById('totalUsers').textContent = totalUsers;
+
+            // Update pagination buttons
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+        }
+
+        // Change page
+        function changePage(direction) {
+            if (direction === 'prev' && currentPage > 1) {
+                currentPage--;
+            } else if (direction === 'next' && currentPage < totalPages) {
+                currentPage++;
+            }
+            const filters = buildFilters(activeTab, searchTerm);
+            fetchUsersWithFilter(filters);
+        }
+
+        // Role management variables
+        let selectedRoles = new Set();
+        let currentEditingUser = null;
+        let availableRoles = [];
+
+        // Show role selector - matching React implementation
+        async function showRoleSelector(user) {
+            currentEditingUser = user;
+            
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch('/api/roles/active', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.responseStatus === 'OK') {
+                    availableRoles = data.data || [];
+                    showRoleSelectionModal(availableRoles, user);
+                } else {
+                    throw new Error(data.message || 'Failed to fetch roles');
+                }
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+                showError('Failed to load roles');
+            }
+        }
+
+        // Show role selection modal - matching React implementation
+        function showRoleSelectionModal(roles, user) {
+            const modal = document.getElementById('roleEditorModal');
+            const title = document.getElementById('roleModalTitle');
+            const checkboxes = document.getElementById('roleCheckboxes');
+            
+            // Set modal title
+            title.textContent = `Manage Roles for ${user.name}`;
+            
+            // Initialize selected roles with current user roles
+            selectedRoles.clear();
+            if (user.roles) {
+                user.roles.forEach(role => {
+                    const roleId = role.id || role.toString().match(/id=(\d+)/)?.[1];
+                    if (roleId) {
+                        selectedRoles.add(parseInt(roleId));
+                    }
+                });
+            }
+            
+            // Generate role checkboxes
+            checkboxes.innerHTML = roles.map(role => `
+                <label class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input 
+                        type="checkbox" 
+                        value="${role.id}" 
+                        ${selectedRoles.has(role.id) ? 'checked' : ''}
+                        onchange="toggleRoleSelection(${role.id})"
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    >
+                    <span class="ml-3 text-sm font-medium text-gray-900">
+                        ${role.name.replace('ROLE_', '')}
+                    </span>
+                </label>
+            `).join('');
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        }
+
+        // Toggle role selection - matching React implementation
+        function toggleRoleSelection(roleId) {
+            if (selectedRoles.has(roleId)) {
+                selectedRoles.delete(roleId);
+            } else {
+                selectedRoles.add(roleId);
+            }
+        }
+
+        // Save user roles - matching React implementation
+        async function saveUserRoles() {
+            if (!currentEditingUser) return;
+
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const saveBtn = document.getElementById('saveRolesBtn');
+                
+                // Show loading state
+                saveBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...';
+                saveBtn.disabled = true;
+
+                const payload = {
+                    userId: currentEditingUser.id,
+                    roleIds: Array.from(selectedRoles),
+                    action: "REPLACE"
+                };
+
+                const response = await fetch('/api/roles/replace', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                showSuccess('Roles updated successfully ✅');
+                closeRoleModal();
+                
+                // Refresh current view
+                const filters = buildFilters(activeTab, searchTerm);
+                fetchUsersWithFilter(filters);
+                
+            } catch (error) {
+                console.error('Failed to assign roles:', error);
+                showError('Failed to update roles ❌');
+            } finally {
+                // Reset button state
+                const saveBtn = document.getElementById('saveRolesBtn');
+                saveBtn.innerHTML = 'Save Roles';
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Close role modal
+        function closeRoleModal() {
+            const modal = document.getElementById('roleEditorModal');
+            modal.classList.add('hidden');
+            currentEditingUser = null;
+            selectedRoles.clear();
+        }
+
+        // Show edit user modal - matching React implementation
+        function showEditUserModal(user, isViewOnly = false) {
+            const modal = document.getElementById('userDetailsModal');
+            
+            // Set user details
+            document.getElementById('userProfileName').textContent = user.name || 'Unknown User';
+            document.getElementById('userProfileEmail').textContent = user.email || 'No email provided';
+            document.getElementById('userDetailName').textContent = user.name || '-';
+            document.getElementById('userDetailEmail').textContent = user.email || '-';
+            document.getElementById('userDetailId').textContent = user.id;
+            
+            // Set profile image initials
+            const initials = (user.name || 'User').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            document.getElementById('userProfileImage').textContent = initials;
+            
+            // Set status
+            const isActive = user.accountStatus?.isActive;
+            const statusElement = document.getElementById('userDetailStatus');
+            const indicatorElement = document.getElementById('userStatusIndicator');
+            
+            if (isActive) {
+                statusElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border bg-emerald-50 text-emerald-700 border-emerald-200';
+                statusElement.innerHTML = '<div class="w-2 h-2 rounded-full mr-2 bg-emerald-400"></div>Active';
+                indicatorElement.className = 'w-4 h-4 rounded-full bg-green-400';
+            } else {
+                statusElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border bg-rose-50 text-rose-700 border-rose-200';
+                statusElement.innerHTML = '<div class="w-2 h-2 rounded-full mr-2 bg-rose-400"></div>Inactive';
+                indicatorElement.className = 'w-4 h-4 rounded-full bg-red-400';
+            }
+            
+            // Set roles
+            const rolesContainer = document.getElementById('userDetailRoles');
+            if (user.roles && user.roles.length > 0) {
+                const roleColors = [
+                    'bg-blue-50 text-blue-700 border-blue-200',
+                    'bg-purple-50 text-purple-700 border-purple-200',
+                    'bg-indigo-50 text-indigo-700 border-indigo-200',
+                    'bg-cyan-50 text-cyan-700 border-cyan-200',
+                ];
+                
+                rolesContainer.innerHTML = user.roles.map((role, index) => {
+                    const roleName = role.name || role.toString().match(/name=([^,)]+)/)?.[1] || role.toString();
+                    const displayName = roleName.replace('ROLE_', '');
+                    const colorClass = roleColors[index % roleColors.length];
+                    
+                    return `
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${colorClass}">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            ${displayName}
+                        </span>
+                    `;
+                }).join('');
+            } else {
+                rolesContainer.innerHTML = `
+                    <div class="flex items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
+                        <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <span class="text-gray-600 text-sm">No roles assigned</span>
+                    </div>
+                `;
+            }
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        }
+
+        // Close user modal
+        function closeUserModal() {
+            const modal = document.getElementById('userDetailsModal');
+            modal.classList.add('hidden');
+        }
+
+        // Filter change handlers
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                console.error('User not authenticated - redirecting to login');
+                window.location.href = '/login';
+                return;
+            }
+
             loadSuperAdminDashboardData();
             loadUserInfo();
             loadRoleNavigation();
+
+            // Initialize user management
+            initializeUserManagement();
+            
+            // Load initial users data
+            const initialFilters = buildFilters(activeTab, searchTerm);
+            fetchUsersWithFilter(initialFilters);
         });
+
+        // Initialize user management event listeners
+        function initializeUserManagement() {
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', handleSearch);
+            }
+
+            // Page size selector
+            const pageSizeSelect = document.getElementById('pageSizeSelect');
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener('change', function() {
+                    pageSize = parseInt(this.value);
+                    currentPage = 1;
+                    const filters = buildFilters(activeTab, searchTerm);
+                    fetchUsersWithFilter(filters);
+                });
+            }
+        }
+
+        // User action functions
+        async function editUser(userId) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch(`/api/users/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.responseStatus === 'OK') {
+                        window.currentEditingUser = data.data; // Store user data for role management
+                        showEditUserModal(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+                showError('Failed to load user details');
+            }
+        }
+
+        function viewUser(userId) {
+            editUser(userId); // Same modal, but in view-only mode
+        }
+
+        async function toggleUserStatus(userId, currentStatus) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const newStatus = !currentStatus;
+                
+                console.log('Toggling user status:', userId, 'from', currentStatus, 'to', newStatus);
+                
+                // Try different API endpoints that might work
+                let response;
+                
+                // Use the correct endpoint format from React project
+                const statusParams = new URLSearchParams({ isActive: newStatus });
+                response = await fetch(`/api/users/${userId}/status?${statusParams}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.log('Status update failed, trying alternative endpoint');
+                    // Try alternative endpoint with body
+                    response = await fetch(`/api/users/${userId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            isActive: newStatus
+                        })
+                    });
+                }
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Status update response:', data);
+                    
+                    if (data.responseStatus === 'OK' || data.success) {
+                        showSuccess(`User ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                        const filters = buildFilters(activeTab, searchTerm);
+                        fetchUsersWithFilter(filters);
+                    } else {
+                        showError(data.message || 'Failed to update user status');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error('Status update failed:', response.status, errorText);
+                    showError(`Failed to update user status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error toggling user status:', error);
+                showError('Failed to update user status');
+            }
+        }
+
+        async function softDeleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user? This action can be undone.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('jwtToken');
+                
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.responseStatus === 'OK') {
+                        showSuccess('User deleted successfully');
+                        const filters = buildFilters(activeTab, searchTerm);
+                        fetchUsersWithFilter(filters);
+                    } else {
+                        showError(data.message || 'Failed to delete user');
+                    }
+                } else {
+                    showError('Failed to delete user');
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showError('Failed to delete user');
+            }
+        }
+
+        async function restoreUser(userId) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                
+                const response = await fetch(`/api/users/${userId}/restore`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.responseStatus === 'OK') {
+                        showSuccess('User restored successfully');
+                        const filters = buildFilters(activeTab, searchTerm);
+                        fetchUsersWithFilter(filters);
+                    } else {
+                        showError(data.message || 'Failed to restore user');
+                    }
+                } else {
+                    showError('Failed to restore user');
+                }
+            } catch (error) {
+                console.error('Error restoring user:', error);
+                showError('Failed to restore user');
+            }
+        }
+
+        // Show edit user modal
+        function showEditUserModal(user, isViewOnly = false) {
+            // Create modal HTML
+            const modalHtml = `
+                <div id="userModal" class="fixed inset-0 z-50 overflow-y-auto">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeUserModal()"></div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-medium text-gray-900">${isViewOnly ? 'View User' : 'Edit User'}</h3>
+                                    <button onclick="closeUserModal()" class="text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <form id="userForm" onsubmit="saveUser(event)">
+                                    <input type="hidden" id="userId" value="${user.id}">
+                                    
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Name</label>
+                                            <input type="text" id="userName" value="${user.name || ''}" 
+                                                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
+                                                   ${isViewOnly ? 'readonly' : ''}>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                                            <input type="email" id="userEmail" value="${user.email || ''}" 
+                                                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
+                                                   ${isViewOnly ? 'readonly' : ''}>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                                            <select id="userStatus" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
+                                                    ${isViewOnly ? 'disabled' : ''}>
+                                                <option value="true" ${(user.accountStatus?.isActive || user.isActive) ? 'selected' : ''}>Active</option>
+                                                <option value="false" ${!(user.accountStatus?.isActive || user.isActive) ? 'selected' : ''}>Inactive</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Roles</label>
+                                            <div id="rolesContainer" class="mt-1 space-y-2">
+                                                ${user.roles ? user.roles.map(role => {
+                                                    // Handle both string and object formats
+                                                    let roleName;
+                                                    if (typeof role === 'string') {
+                                                        roleName = role;
+                                                    } else if (role.name) {
+                                                        roleName = role.name;
+                                                    } else {
+                                                        roleName = role.toString();
+                                                    }
+                                                    
+                                                    const displayName = roleName.replace('ROLE_', '');
+                                                    let colorClass = 'bg-blue-500';
+                                                    if (roleName.includes('ADMIN')) colorClass = 'bg-red-500';
+                                                    else if (roleName.includes('SUPER')) colorClass = 'bg-yellow-500';
+                                                    else if (roleName.includes('WORKER')) colorClass = 'bg-cyan-500';
+                                                    else if (roleName.includes('NORMAL')) colorClass = 'bg-gray-500';
+                                                    else if (roleName.includes('TEACHER')) colorClass = 'bg-green-500';
+                                                    else if (roleName.includes('STUDENT')) colorClass = 'bg-purple-500';
+                                                    
+                                                    return `
+                                                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-md text-white ${colorClass}">${displayName}</span>
+                                                        </div>
+                                                    `;
+                                                }).join('') : '<div class="text-sm text-gray-500">No roles assigned</div>'}
+                                            </div>
+                                            ${!isViewOnly ? `
+                                                <button type="button" onclick="showRoleSelector()" class="mt-2 px-3 py-1 bg-primary-600 text-white rounded text-sm hover:bg-primary-700">
+                                                    <i class="fas fa-edit mr-1"></i>Manage Roles
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    ${!isViewOnly ? `
+                                        <div class="mt-6 flex justify-end space-x-3">
+                                            <button type="button" onclick="closeUserModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                                                Save Changes
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <div class="mt-6 flex justify-end">
+                                            <button type="button" onclick="closeUserModal()" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                                                Close
+                                            </button>
+                                        </div>
+                                    `}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        // Close user modal
+        function closeUserModal() {
+            const modal = document.getElementById('userModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Save user changes
+        async function saveUser(event) {
+            event.preventDefault();
+            
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const userId = document.getElementById('userId').value;
+                
+                const userData = {
+                    name: document.getElementById('userName').value,
+                    email: document.getElementById('userEmail').value,
+                    isActive: document.getElementById('userStatus').value === 'true'
+                };
+                
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.responseStatus === 'OK') {
+                        showSuccess('User updated successfully');
+                        closeUserModal();
+                        const filters = buildFilters(activeTab, searchTerm);
+                        fetchUsersWithFilter(filters);
+                    } else {
+                        showError(data.message || 'Failed to update user');
+                    }
+                } else {
+                    showError('Failed to update user');
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+                showError('Failed to update user');
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            showMessage(message, 'success');
+        }
+
+        // Show error message
+        function showError(message) {
+            showMessage(message, 'error');
+        }
+
+        // Show message toast
+        function showMessage(message, type) {
+            const toastHtml = `
+                <div id="toast" class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}">
+                    <div class="flex items-center">
+                        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
+                        <span>${message}</span>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            
+            setTimeout(() => {
+                const toast = document.getElementById('toast');
+                if (toast) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+
+        // Role management functions
+        async function showRoleSelector() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch('/api/roles/active', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.responseStatus === 'OK') {
+                        showRoleSelectionModal(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+                showError('Failed to load roles');
+            }
+        }
+
+        function showRoleSelectionModal(roles) {
+            const userId = document.getElementById('userId').value;
+            const currentUser = window.currentEditingUser; // We'll set this when opening the modal
+            
+            console.log('Current user for role selection:', currentUser);
+            console.log('Available roles:', roles);
+            
+            // Initialize selected roles with current user roles
+            selectedRoles.clear();
+            if (currentUser?.roles) {
+                currentUser.roles.forEach(role => {
+                    // Extract role ID from different possible formats
+                    let roleId;
+                    if (role && role.id) {
+                        roleId = role.id;
+                    } else if (typeof role === 'object') {
+                        // Extract ID from toString format
+                        const roleString = role.toString();
+                        const idMatch = roleString.match(/id=(\d+)/);
+                        if (idMatch) {
+                            roleId = parseInt(idMatch[1]);
+                        }
+                    }
+                    
+                    if (roleId) {
+                        selectedRoles.add(roleId);
+                        console.log('Added role ID to selection:', roleId);
+                    }
+                });
+            }
+            
+            const modalHtml = `
+                <div id="roleModal" class="fixed inset-0 z-50 overflow-y-auto">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeRoleModal()"></div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Manage Roles for ${currentUser?.name || 'User'}</h3>
+                                    <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-3 max-h-64 overflow-y-auto">
+                                    ${roles.map(role => {
+                                        // Check if this role is selected using the selectedRoles Set
+                                        const isSelected = selectedRoles.has(role.id);
+                                        const roleName = role.name.replace('ROLE_', '');
+                                        console.log('Role:', role.name, 'ID:', role.id, 'Selected:', isSelected);
+                                        return `
+                                            <div class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id="role-${role.id}" 
+                                                    value="${role.id}"
+                                                    ${isSelected ? 'checked' : ''}
+                                                    class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                                    onchange="toggleRoleSelection('${role.id}')"
+                                                >
+                                                <label for="role-${role.id}" class="ml-3 text-sm font-medium text-gray-900 cursor-pointer">
+                                                    ${roleName}
+                                                </label>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                                
+                                <div class="mt-6 flex justify-end space-x-3">
+                                    <button onclick="closeRoleModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                                        Cancel
+                                    </button>
+                                    <button onclick="saveUserRoles()" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                                        Save Roles
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function closeRoleModal() {
+            const modal = document.getElementById('roleModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Track selected roles
+
+        function toggleRoleSelection(roleId) {
+            const checkbox = document.getElementById(`role-${roleId}`);
+            if (checkbox.checked) {
+                selectedRoles.add(roleId);
+            } else {
+                selectedRoles.delete(roleId);
+            }
+        }
+
+        async function saveUserRoles() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const userId = document.getElementById('userId').value;
+                const roleIds = Array.from(selectedRoles);
+                
+                console.log('Saving user roles:', userId, roleIds);
+                console.log('Selected roles set:', selectedRoles);
+                console.log('Role IDs array:', roleIds);
+                
+                if (!userId || userId === 'undefined') {
+                    showError('User ID is missing');
+                    return;
+                }
+                
+                if (roleIds.length === 0) {
+                    showError('No roles selected');
+                    return;
+                }
+                
+                let response;
+                
+                // Use the correct role management format from React project
+                const rolePayload = {
+                    userId: userId,
+                    roleIds: roleIds,
+                    action: "REPLACE"
+                };
+                
+                console.log('Role payload:', rolePayload);
+                
+                response = await fetch('/api/roles/replace', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(rolePayload)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Role update response:', data);
+                    
+                    if (data.responseStatus === 'OK' || data.success) {
+                        showSuccess('Roles updated successfully');
+                        closeRoleModal();
+                        const filters = buildFilters(activeTab, searchTerm);
+                        fetchUsersWithFilter(filters);
+                    } else {
+                        showError(data.message || 'Failed to update roles');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error('Role update failed:', response.status, errorText);
+                    showError(`Failed to update roles: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error updating roles:', error);
+                showError('Failed to update roles');
+            }
+        }
+
+        // Load super admin dashboard data
+        function loadSuperAdminDashboardData() {
+            // This function can load dashboard statistics
+            console.log('Loading super admin dashboard data...');
+        }
+
+        // Load user info
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userNameElement = document.getElementById('userName');
+            const userEmailElement = document.getElementById('userEmail');
+            
+            if (userNameElement) userNameElement.textContent = user.name || 'Admin User';
+            if (userEmailElement) userEmailElement.textContent = user.email || 'admin@example.com';
+        }
+
+        // Load role navigation
+        function loadRoleNavigation() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const roles = user.roles || [];
+            
+            // This function can be extended to show role-based navigation
+            console.log('User roles for navigation:', roles);
+        }
 
         // Toggle user dropdown
         function toggleUserDropdown() {
             const dropdown = document.getElementById('userDropdown');
             const chevron = document.getElementById('dropdownChevron');
             
-            if (dropdown.classList.contains('hidden')) {
+            if (dropdown && dropdown.classList.contains('hidden')) {
                 dropdown.classList.remove('hidden');
-                chevron.style.transform = 'rotate(180deg)';
-            } else {
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+            } else if (dropdown) {
                 dropdown.classList.add('hidden');
-                chevron.style.transform = 'rotate(0deg)';
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
             }
         }
 
@@ -638,5 +2156,145 @@
             window.location.href = '/login';
         }
     </script>
+
+    <!-- Role Editor Modal -->
+    <div id="roleEditorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 pt-20 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <!-- Header -->
+            <div class="relative bg-gradient-to-r from-slate-50 to-gray-50 p-6 rounded-t-2xl border-b border-gray-100">
+                <button onclick="closeRoleModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-gray-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <h3 class="text-xl font-bold text-gray-900 pr-10" id="roleModalTitle">Manage Roles</h3>
+                <p class="text-gray-600 mt-1">Select roles for this user</p>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6">
+                <div id="roleCheckboxes" class="space-y-3">
+                    <!-- Role checkboxes will be generated here -->
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-gray-50 rounded-b-2xl flex justify-end space-x-3">
+                <button onclick="closeRoleModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Cancel
+                </button>
+                <button onclick="saveUserRoles()" id="saveRolesBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Save Roles
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 pt-20 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto mt-4">
+            <!-- Header -->
+            <div class="relative bg-gradient-to-r from-slate-50 to-gray-50 p-6 rounded-t-2xl border-b border-gray-100">
+                <button onclick="closeUserModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-gray-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-900 pr-10">User Profile</h2>
+                <p class="text-gray-600 mt-1">Complete user information and details</p>
+            </div>
+
+            <div class="p-6">
+                <!-- Profile Image Section -->
+                <div class="flex flex-col items-center mb-8">
+                    <div class="relative mb-4">
+                        <div id="userProfileImage" class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg ring-4 ring-gray-100">
+                            <!-- User initials will be set here -->
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
+                            <div id="userStatusIndicator" class="w-4 h-4 rounded-full"></div>
+                        </div>
+                    </div>
+                    <h3 id="userProfileName" class="text-xl font-semibold text-gray-900"></h3>
+                    <p id="userProfileEmail" class="text-gray-600"></p>
+                </div>
+
+                <!-- Details Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Basic Information -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Basic Information</h4>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 mt-0.5">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">Full Name</p>
+                                    <p id="userDetailName" class="text-gray-900"></p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center mr-3 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">Email Address</p>
+                                    <p id="userDetailEmail" class="text-gray-900 break-all"></p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center mr-3 mt-0.5">
+                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">User ID</p>
+                                    <p id="userDetailId" class="text-gray-900 font-mono text-sm"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status & Roles -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Status & Permissions</h4>
+                        
+                        <div class="space-y-4">
+                            <!-- Account Status -->
+                            <div>
+                                <p class="text-sm font-medium text-gray-700 mb-2">Account Status</p>
+                                <span id="userDetailStatus" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border"></span>
+                            </div>
+
+                            <!-- User Roles -->
+                            <div>
+                                <p class="text-sm font-medium text-gray-700 mb-3">Assigned Roles</p>
+                                <div id="userDetailRoles" class="flex flex-wrap gap-2">
+                                    <!-- Roles will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+                    <button onclick="closeUserModal()" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
