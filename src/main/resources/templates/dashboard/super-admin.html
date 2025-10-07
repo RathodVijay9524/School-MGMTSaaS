@@ -655,6 +655,16 @@
                 return;
             }
 
+            // Debug: Log first user to see actual structure
+            if (users.length > 0) {
+                console.log('First user data structure:', users[0]);
+                console.log('User status fields:', {
+                    accountStatus: users[0].accountStatus,
+                    isActive: users[0].isActive,
+                    accountStatusIsActive: users[0].accountStatus?.isActive
+                });
+            }
+
             usersTable.innerHTML = users.map((user, index) => `
                 <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -676,8 +686,8 @@
                         <div class="text-sm text-gray-900">${user.email || 'N/A'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.accountStatus?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${user.accountStatus?.isActive ? 'Active' : 'Inactive'}
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${(user.accountStatus?.isActive || user.isActive) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${(user.accountStatus?.isActive || user.isActive) ? 'Active' : 'Inactive'}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -728,10 +738,10 @@
                 // All Users tab
                 actions += `
                     <button
-                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive})"
-                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${user.accountStatus?.isActive ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500' : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'}"
+                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive || user.isActive})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${(user.accountStatus?.isActive || user.isActive) ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500' : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'}"
                     >
-                        ${user.accountStatus?.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
+                        ${(user.accountStatus?.isActive || user.isActive) ? '⏸️ Deactivate' : '▶️ Activate'}
                     </button>
                     <button
                         onclick="handleSoftDelete(${user.id})"
@@ -776,7 +786,7 @@
                 // Expired tab
                 actions += `
                     <button
-                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive})"
+                        onclick="handleStatusToggle(${user.id}, ${user.accountStatus?.isActive || user.isActive})"
                         class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                     >
                         ▶️ Activate
@@ -825,6 +835,9 @@
                 }
 
                 const newStatus = !currentStatus;
+                console.log('Toggling user status:', userId, 'from', currentStatus, 'to', newStatus);
+
+                // EXACTLY like React: PATCH /users/${userId}/status with params: { isActive: status }
                 const response = await fetch(`/api/users/${userId}/status?isActive=${newStatus}`, {
                     method: 'PATCH',
                     headers: {
@@ -833,11 +846,18 @@
                     }
                 });
 
+                console.log('Status update response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Status update error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
                 }
 
-                showSuccess(`User ${newStatus ? 'activated' : 'deactivated'}`);
+                const data = await response.json();
+                console.log('Status update response:', data);
+
+                showSuccess(`User ${newStatus ? 'activated' : 'deactivated'} successfully ✅`);
                 
                 // Refresh current view
                 const filters = buildFilters(activeTab, searchTerm);
@@ -849,7 +869,7 @@
             }
         }
 
-        // Handle soft delete - matching React implementation
+        // Handle soft delete - EXACTLY matching React implementation
         async function handleSoftDelete(userId) {
             try {
                 const token = localStorage.getItem('jwtToken');
@@ -857,6 +877,9 @@
                     throw new Error('No JWT token found');
                 }
 
+                console.log('Soft deleting user:', userId);
+
+                // EXACTLY like React: DELETE /users/${userId}
                 const response = await fetch(`/api/users/${userId}`, {
                     method: 'DELETE',
                     headers: {
@@ -865,11 +888,17 @@
                     }
                 });
 
+                console.log('Soft delete response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Soft delete error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
                 }
 
-                showSuccess('User soft deleted');
+                console.log('Soft delete successful');
+
+                showSuccess('User soft deleted successfully ✅');
                 
                 // Refresh current view
                 const filters = buildFilters(activeTab, searchTerm);
@@ -881,7 +910,7 @@
             }
         }
 
-        // Handle restore - matching React implementation
+        // Handle restore - EXACTLY matching React implementation
         async function handleRestore(userId) {
             try {
                 const token = localStorage.getItem('jwtToken');
@@ -889,6 +918,9 @@
                     throw new Error('No JWT token found');
                 }
 
+                console.log('Restoring user:', userId);
+
+                // EXACTLY like React: PATCH /users/${userId}/restore
                 const response = await fetch(`/api/users/${userId}/restore`, {
                     method: 'PATCH',
                     headers: {
@@ -897,11 +929,17 @@
                     }
                 });
 
+                console.log('Restore response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Restore error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
                 }
 
-                showSuccess('User restored');
+                console.log('Restore successful');
+
+                showSuccess('User restored successfully ✅');
                 
                 // Refresh current view
                 const filters = buildFilters(activeTab, searchTerm);
@@ -915,7 +953,7 @@
 
         // Handle permanent delete - matching React implementation
         async function handlePermanentDelete(userId) {
-            if (!confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) {
+            if (!confirm('⚠️ WARNING: This will permanently delete the user and ALL associated data!\n\nThis includes:\n• User profile\n• All relationships\n• All associated records\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?')) {
                 return;
             }
 
@@ -925,6 +963,9 @@
                     throw new Error('No JWT token found');
                 }
 
+                console.log('Permanently deleting user:', userId);
+
+                // EXACTLY like React: DELETE /users/${userId}/permanent
                 const response = await fetch(`/api/users/${userId}/permanent`, {
                     method: 'DELETE',
                     headers: {
@@ -933,11 +974,31 @@
                     }
                 });
 
+                console.log('Hard delete response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Hard delete error response:', errorText);
+                    
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        if (errorData.errorMessage) {
+                            errorMessage = errorData.errorMessage;
+                        }
+                        if (errorData.details) {
+                            errorMessage += `\nDetails: ${errorData.details}`;
+                        }
+                    } catch (e) {
+                        errorMessage += ` - ${errorText}`;
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
 
-                showSuccess('User permanently deleted');
+                console.log('Hard delete successful');
+
+                showSuccess('User permanently deleted successfully ✅');
                 
                 // Refresh current view
                 const filters = buildFilters(activeTab, searchTerm);
