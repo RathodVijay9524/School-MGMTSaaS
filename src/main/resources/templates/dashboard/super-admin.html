@@ -1043,12 +1043,14 @@
         let currentEditingUser = null;
         let availableRoles = [];
 
-        // Show role selector - matching React implementation
+        // Show role selector - EXACTLY matching React implementation
         async function showRoleSelector(user) {
             currentEditingUser = user;
             
             try {
                 const token = localStorage.getItem('jwtToken');
+                console.log('Fetching available roles for user:', user.name);
+                
                 const response = await fetch('/api/roles/active', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -1056,13 +1058,18 @@
                     }
                 });
 
+                console.log('Roles API response status:', response.status);
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
+                console.log('Roles API response:', data);
+                
                 if (data.responseStatus === 'OK') {
                     availableRoles = data.data || [];
+                    console.log('Available roles:', availableRoles);
                     showRoleSelectionModal(availableRoles, user);
                 } else {
                     throw new Error(data.message || 'Failed to fetch roles');
@@ -1073,34 +1080,37 @@
             }
         }
 
-        // Show role selection modal - matching React implementation
+        // Show role selection modal - EXACTLY matching React implementation
         function showRoleSelectionModal(roles, user) {
             const modal = document.getElementById('roleEditorModal');
             const title = document.getElementById('roleModalTitle');
             const checkboxes = document.getElementById('roleCheckboxes');
             
-            // Set modal title
+            // Set modal title - EXACTLY like React
             title.textContent = `Manage Roles for ${user.name}`;
             
-            // Initialize selected roles with current user roles
+            // Initialize selected roles with current user roles - EXACTLY like React
             selectedRoles.clear();
             if (user.roles) {
-                user.roles.forEach(role => {
-                    const roleId = role.id || role.toString().match(/id=(\d+)/)?.[1];
-                    if (roleId) {
-                        selectedRoles.add(parseInt(roleId));
-                    }
+                // EXACTLY like React: user.roles?.map(role => role.id) || []
+                const currentRoleIds = user.roles.map(role => role.id) || [];
+                console.log('Current user role IDs:', currentRoleIds);
+                currentRoleIds.forEach(roleId => {
+                    selectedRoles.add(roleId);
                 });
             }
             
-            // Generate role checkboxes
+            console.log('Initialized selectedRoles:', selectedRoles);
+            
+            // Generate role checkboxes - EXACTLY like React Form.Check
             checkboxes.innerHTML = roles.map(role => `
                 <label class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
                     <input 
                         type="checkbox" 
+                        id="role-${role.id}"
                         value="${role.id}" 
                         ${selectedRoles.has(role.id) ? 'checked' : ''}
-                        onchange="toggleRoleSelection(${role.id})"
+                        onchange="handleRoleChange(${role.id})"
                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                     >
                     <span class="ml-3 text-sm font-medium text-gray-900">
@@ -1113,16 +1123,20 @@
             modal.classList.remove('hidden');
         }
 
-        // Toggle role selection - matching React implementation
-        function toggleRoleSelection(roleId) {
-            if (selectedRoles.has(roleId)) {
-                selectedRoles.delete(roleId);
+        // Handle role change - EXACTLY matching React implementation
+        function handleRoleChange(roleId) {
+            // EXACTLY like React: setSelectedRoles(prev => { const newSet = new Set(prev); ... })
+            const newSet = new Set(selectedRoles);
+            if (newSet.has(roleId)) {
+                newSet.delete(roleId);
             } else {
-                selectedRoles.add(roleId);
+                newSet.add(roleId);
             }
+            selectedRoles = newSet;
+            console.log('Role changed, new selectedRoles:', selectedRoles);
         }
 
-        // Save user roles - matching React implementation
+        // Save user roles - EXACTLY matching React implementation
         async function saveUserRoles() {
             if (!currentEditingUser) return;
 
@@ -1130,15 +1144,18 @@
                 const token = localStorage.getItem('jwtToken');
                 const saveBtn = document.getElementById('saveRolesBtn');
                 
-                // Show loading state
+                // Show loading state - EXACTLY like React
                 saveBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...';
                 saveBtn.disabled = true;
 
+                // EXACTLY like React: PUT /roles/replace with payload
                 const payload = {
                     userId: currentEditingUser.id,
                     roleIds: Array.from(selectedRoles),
                     action: "REPLACE"
                 };
+
+                console.log('Sending role update payload:', payload);
 
                 const response = await fetch('/api/roles/replace', {
                     method: 'PUT',
@@ -1149,19 +1166,25 @@
                     body: JSON.stringify(payload)
                 });
 
+                console.log('Role update response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Role update error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
                 }
 
+                // EXACTLY like React: toast.success("Roles updated successfully ✅")
                 showSuccess('Roles updated successfully ✅');
                 closeRoleModal();
                 
-                // Refresh current view
+                // EXACTLY like React: onSuccess?.(); // Refresh user list
                 const filters = buildFilters(activeTab, searchTerm);
                 fetchUsersWithFilter(filters);
                 
             } catch (error) {
                 console.error('Failed to assign roles:', error);
+                // EXACTLY like React: toast.error("Failed to update roles ❌")
                 showError('Failed to update roles ❌');
             } finally {
                 // Reset button state
@@ -1519,7 +1542,7 @@
                                                 }).join('') : '<div class="text-sm text-gray-500">No roles assigned</div>'}
                                             </div>
                                             ${!isViewOnly ? `
-                                                <button type="button" onclick="showRoleSelector()" class="mt-2 px-3 py-1 bg-primary-600 text-white rounded text-sm hover:bg-primary-700">
+                                                <button type="button" onclick="currentEditingUser = ${JSON.stringify(user)}; showRoleSelector(currentEditingUser)" class="mt-2 px-3 py-1 bg-primary-600 text-white rounded text-sm hover:bg-primary-700">
                                                     <i class="fas fa-edit mr-1"></i>Manage Roles
                                                 </button>
                                             ` : ''}
@@ -1633,31 +1656,9 @@
             }, 3000);
         }
 
-        // Role management functions
-        async function showRoleSelector() {
-            try {
-                const token = localStorage.getItem('jwtToken');
-                const response = await fetch('/api/roles/active', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.responseStatus === 'OK') {
-                        showRoleSelectionModal(data.data);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching roles:', error);
-                showError('Failed to load roles');
-            }
-        }
 
         function showRoleSelectionModal(roles) {
-            const userId = document.getElementById('userId').value;
+            // const userId = document.getElementById('userId').value; // Removed - not needed
             const currentUser = window.currentEditingUser; // We'll set this when opening the modal
             
             console.log('Current user for role selection:', currentUser);
@@ -1760,19 +1761,19 @@
         }
 
         async function saveUserRoles() {
+            if (!currentEditingUser) {
+                showError('No user selected for role editing');
+                return;
+            }
+
             try {
                 const token = localStorage.getItem('jwtToken');
-                const userId = document.getElementById('userId').value;
+                const userId = currentEditingUser.id;
                 const roleIds = Array.from(selectedRoles);
                 
-                console.log('Saving user roles:', userId, roleIds);
+                console.log('Saving user roles for user:', currentEditingUser.name, 'ID:', userId, 'Role IDs:', roleIds);
                 console.log('Selected roles set:', selectedRoles);
                 console.log('Role IDs array:', roleIds);
-                
-                if (!userId || userId === 'undefined') {
-                    showError('User ID is missing');
-                    return;
-                }
                 
                 if (roleIds.length === 0) {
                     showError('No roles selected');
