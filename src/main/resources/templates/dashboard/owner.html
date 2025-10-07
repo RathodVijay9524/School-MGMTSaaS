@@ -61,6 +61,17 @@
         .sidebar-transition {
             transition: all 0.3s ease;
         }
+        .sidebar-mobile {
+            transform: translateX(-100%);
+        }
+        .sidebar-mobile.open {
+            transform: translateX(0);
+        }
+        @media (min-width: 768px) {
+            .sidebar-mobile {
+                transform: translateX(0);
+            }
+        }
         .notification-badge {
             animation: pulse 2s infinite;
         }
@@ -71,14 +82,21 @@
     </style>
 </head>
 <body class="bg-gray-50">
+    <!-- Mobile Overlay -->
+    <div class="fixed inset-0 z-40 bg-black bg-opacity-50 hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition" id="sidebar">
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition sidebar-mobile" id="sidebar">
         <!-- Logo -->
-        <div class="flex items-center justify-center h-16 bg-primary-600">
+        <div class="flex items-center justify-between h-16 bg-primary-600 px-4">
             <div class="flex items-center space-x-2">
                 <i class="fas fa-graduation-cap text-white text-2xl"></i>
                 <span class="text-xl font-bold text-white">SchoolManager</span>
             </div>
+            <!-- Mobile Close Button -->
+            <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-300">
+                <i class="fas fa-times text-lg"></i>
+            </button>
         </div>
 
         <!-- User Info -->
@@ -138,15 +156,23 @@
     </div>
 
     <!-- Main Content -->
-    <div class="pl-64">
+    <div class="pl-0 md:pl-64" id="mainContent">
         <!-- Top Navigation -->
         <div class="bg-white shadow-sm border-b border-gray-200">
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
-                    <!-- Page Title -->
-                    <div>
-                        <h1 class="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
-                        <p class="text-sm text-gray-500">Welcome back! Here's what's happening at your school.</p>
+                    <!-- Mobile Menu Button & Page Title -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Mobile Menu Button -->
+                        <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        
+                        <!-- Page Title -->
+                        <div>
+                            <h1 class="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
+                            <p class="text-sm text-gray-500">Welcome back! Here's what's happening at your school.</p>
+                        </div>
                     </div>
 
                     <!-- Top Right Actions -->
@@ -342,6 +368,55 @@
     </div>
 
     <script>
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (sidebar.classList.contains('open')) {
+                // Close sidebar
+                sidebar.classList.remove('open');
+                overlay.classList.add('hidden');
+                // Reset main content padding on mobile
+                if (window.innerWidth < 768) {
+                    mainContent.classList.remove('pl-64');
+                    mainContent.classList.add('pl-0');
+                }
+            } else {
+                // Open sidebar
+                sidebar.classList.add('open');
+                overlay.classList.remove('hidden');
+                // Add padding to main content on mobile when sidebar is open
+                if (window.innerWidth < 768) {
+                    mainContent.classList.remove('pl-0');
+                    mainContent.classList.add('pl-64');
+                }
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth >= 768) {
+                // Desktop view - always show sidebar, hide overlay
+                sidebar.classList.remove('open');
+                overlay.classList.add('hidden');
+                mainContent.classList.remove('pl-0');
+                mainContent.classList.add('md:pl-64');
+            } else {
+                // Mobile view - hide sidebar by default, show overlay only when open
+                if (!sidebar.classList.contains('open')) {
+                    overlay.classList.add('hidden');
+                    mainContent.classList.remove('pl-64');
+                    mainContent.classList.add('pl-0');
+                }
+            }
+        });
+
         // Initialize dashboard
         let isLoadingData = false; // Prevent multiple simultaneous requests
         
