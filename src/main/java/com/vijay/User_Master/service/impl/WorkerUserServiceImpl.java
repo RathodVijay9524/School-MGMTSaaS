@@ -25,7 +25,7 @@ import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.repository.RoleRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-@Log4j2
+@Slf4j
 public class WorkerUserServiceImpl implements WorkerUserService {
 
     private final WorkerRepository workerRepository;

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Role - School Management System</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .role-card {
+            transition: all 0.3s ease;
+        }
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .role-card.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Suppress Tailwind CDN warning -->
+    <script>
+        console.clear();
+    </script>
+
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl w-full space-y-8">
+            <!-- Header -->
+            <div class="text-center">
+                <div class="mx-auto h-16 w-16 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-shield text-primary-600 text-2xl"></i>
+                </div>
+                <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                    Select Your Role
+                </h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    You have multiple roles. Please select which portal you'd like to access.
+                </p>
+            </div>
+
+            <!-- Role Selection Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="roleCards">
+                <!-- Role cards will be populated by JavaScript -->
+            </div>
+
+            <!-- Continue Button -->
+            <div class="text-center">
+                <button id="continueButton" disabled class="bg-gray-300 text-gray-500 px-8 py-3 rounded-lg font-medium cursor-not-allowed">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    Continue to Dashboard
+                </button>
+            </div>
+
+            <!-- Back to Login -->
+            <div class="text-center">
+                <button onclick="logout()" class="text-primary-600 hover:text-primary-500 text-sm font-medium">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Back to Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get user data from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userRoles = user.roles || [];
+        
+        // Parse roles from the API response format
+        const parsedRoles = userRoles.map(role => {
+            if (typeof role === 'string') {
+                const nameMatch = role.match(/name=([^,]+)/);
+                return nameMatch ? nameMatch[1] : role;
+            }
+            return role.name || role;
+        });
+
+        console.log('User roles:', parsedRoles);
+
+        // Role configurations
+        const roleConfigs = {
+            'ROLE_ADMIN': {
+                title: 'Application Owner',
+                description: 'All schools overview and management',
+                icon: 'fas fa-globe',
+                color: 'bg-purple-600',
+                dashboard: '/dashboard/super-admin'
+            },
+            'ROLE_SUPER_USER': {
+                title: 'Super Administrator',
+                description: 'Full system access and management',
+                icon: 'fas fa-crown',
+                color: 'bg-purple-500',
+                dashboard: '/dashboard/owner'
+            },
+            'ROLE_SUPER_ADMIN': {
+                title: 'Application Owner',
+                description: 'All schools overview and management',
+                icon: 'fas fa-globe',
+                color: 'bg-purple-600',
+                dashboard: '/dashboard/super-admin'
+            },
+            'ROLE_NORMAL': {
+                title: 'School Owner',
+                description: 'Manage your school and staff',
+                icon: 'fas fa-building',
+                color: 'bg-blue-500',
+                dashboard: '/dashboard/owner'
+            },
+            'ROLE_TEACHER': {
+                title: 'Teacher',
+                description: 'Manage classes, students, and assignments',
+                icon: 'fas fa-chalkboard-teacher',
+                color: 'bg-green-500',
+                dashboard: '/dashboard/teacher'
+            },
+            'ROLE_STUDENT': {
+                title: 'Student',
+                description: 'View grades, assignments, and schedule',
+                icon: 'fas fa-graduation-cap',
+                color: 'bg-indigo-500',
+                dashboard: '/dashboard/student'
+            },
+            'ROLE_PARENT': {
+                title: 'Parent',
+                description: 'Monitor your child\'s progress',
+                icon: 'fas fa-user-friends',
+                color: 'bg-yellow-500',
+                dashboard: '/dashboard/parent'
+            },
+            'ROLE_MANAGER': {
+                title: 'Parent',
+                description: 'Monitor your child\'s progress',
+                icon: 'fas fa-user-friends',
+                color: 'bg-yellow-500',
+                dashboard: '/dashboard/parent'
+            },
+            'ROLE_LIBRARIAN': {
+                title: 'Librarian',
+                description: 'Manage library and books',
+                icon: 'fas fa-book',
+                color: 'bg-orange-500',
+                dashboard: '/dashboard/librarian'
+            }
+        };
+
+        let selectedRole = null;
+
+        // Create role cards
+        function createRoleCards() {
+            const roleCardsContainer = document.getElementById('roleCards');
+            const continueButton = document.getElementById('continueButton');
+
+            parsedRoles.forEach(roleName => {
+                const config = roleConfigs[roleName];
+                if (config) {
+                    const card = document.createElement('div');
+                    card.className = 'role-card bg-white rounded-lg shadow-md p-6 border-2 border-gray-200 cursor-pointer';
+                    card.onclick = () => selectRole(roleName, card);
+                    
+                    card.innerHTML = `
+                        <div class="text-center">
+                            <div class="mx-auto h-16 w-16 ${config.color} rounded-full flex items-center justify-center mb-4">
+                                <i class="${config.icon} text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">${config.title}</h3>
+                            <p class="text-sm text-gray-600">${config.description}</p>
+                        </div>
+                    `;
+                    
+                    roleCardsContainer.appendChild(card);
+                }
+            });
+
+            // Enable continue button if only one role
+            if (parsedRoles.length === 1) {
+                selectRole(parsedRoles[0], roleCardsContainer.firstElementChild);
+                continueButton.disabled = false;
+                continueButton.className = 'bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-medium transition duration-150 ease-in-out';
+            }
+        }
+
+        // Select role
+        function selectRole(roleName, cardElement) {
+            selectedRole = roleName;
+            
+            // Remove selection from all cards
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            cardElement.classList.add('selected');
+            
+            // Enable continue button
+            const continueButton = document.getElementById('continueButton');
+            continueButton.disabled = false;
+            continueButton.className = 'bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-medium transition duration-150 ease-in-out';
+        }
+
+        // Continue to dashboard
+        function continueToDashboard() {
+            if (selectedRole) {
+                const config = roleConfigs[selectedRole];
+                if (config) {
+                    // Store selected role in localStorage
+                    localStorage.setItem('selectedRole', selectedRole);
+                    window.location.href = config.dashboard;
+                }
+            }
+        }
+
+        // Event listeners
+        document.getElementById('continueButton').addEventListener('click', continueToDashboard);
+
+        // Logout function
+        function logout() {
+            // Clear all stored authentication data
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('selectedRole');
+            
+            // Redirect to login page
+            window.location.href = '/login';
+        }
+
+        // Initialize
+        createRoleCards();
+    </script>
+</body>
+</html>

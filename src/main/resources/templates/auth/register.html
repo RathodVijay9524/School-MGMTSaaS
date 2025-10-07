@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Register - School Management System</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-primary-600 text-2xl"></i>
+                        <span class="text-xl font-bold text-gray-900">SchoolManager</span>
+                    </a>
+                </div>
+
+                <!-- Back to Home -->
+                <div class="flex items-center">
+                    <a href="/" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-arrow-left mr-1"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Registration Section -->
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl w-full space-y-8">
+            <!-- Header -->
+            <div class="text-center">
+                <div class="mx-auto h-16 w-16 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-plus text-primary-600 text-2xl"></i>
+                </div>
+                <h2 class="mt-6 text-3xl font-bold text-gray-900">
+                    Create your school account
+                </h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    Register as a school owner to start managing your institution
+                </p>
+            </div>
+
+            <!-- Registration Form -->
+            <form class="mt-8 space-y-6" id="registerForm">
+                <!-- Error/Success Messages -->
+                <div id="messageContainer" class="hidden">
+                    <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <span id="errorText"></span>
+                        </div>
+                    </div>
+                    <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span id="successText"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <i class="fas fa-user mr-2"></i>Personal Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Full Name -->
+                        <div class="md:col-span-2">
+                            <label for="name" class="block text-sm font-medium text-gray-700">
+                                Full Name *
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="name" name="name" type="text" required
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Enter your full name">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-user text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Username -->
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700">
+                                Username *
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="username" name="username" type="text" required
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Choose a username">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-at text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">
+                                Email Address *
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="email" name="email" type="email" required
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Enter your email">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-envelope text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label for="phoNo" class="block text-sm font-medium text-gray-700">
+                                Phone Number
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="phoNo" name="phoNo" type="tel"
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Enter your phone number">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-phone text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700">
+                                Password *
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="password" name="password" type="password" required
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Create a password">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-lock text-gray-400"></i>
+                                </div>
+                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+                                Confirm Password *
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="confirmPassword" name="confirmPassword" type="password" required
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Confirm your password">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-lock text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- School Information -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <i class="fas fa-school mr-2"></i>School Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- School Name -->
+                        <div class="md:col-span-2">
+                            <label for="schoolName" class="block text-sm font-medium text-gray-700">
+                                School/Institution Name *
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="schoolName" name="schoolName" type="text" required
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Enter your school name">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-building text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- School Type -->
+                        <div>
+                            <label for="schoolType" class="block text-sm font-medium text-gray-700">
+                                School Type
+                            </label>
+                            <div class="mt-1 relative">
+                                <select id="schoolType" name="schoolType"
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                                    <option value="">Select school type</option>
+                                    <option value="Elementary">Elementary School</option>
+                                    <option value="Middle">Middle School</option>
+                                    <option value="High">High School</option>
+                                    <option value="K-12">K-12 School</option>
+                                    <option value="College">College/University</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-graduation-cap text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-700">
+                                Location/City
+                            </label>
+                            <div class="mt-1 relative">
+                                <input id="location" name="location" type="text"
+                                    class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Enter city/location">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-map-marker-alt text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- About -->
+                        <div class="md:col-span-2">
+                            <label for="about" class="block text-sm font-medium text-gray-700">
+                                About Your School
+                            </label>
+                            <div class="mt-1">
+                                <textarea id="about" name="about" rows="3"
+                                    class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Tell us about your school..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="flex items-center">
+                    <input id="agreeTerms" name="agreeTerms" type="checkbox" required
+                        class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                    <label for="agreeTerms" class="ml-2 block text-sm text-gray-900">
+                        I agree to the 
+                        <a href="#" class="text-primary-600 hover:text-primary-500">Terms and Conditions</a>
+                        and 
+                        <a href="#" class="text-primary-600 hover:text-primary-500">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" id="registerButton"
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <i class="fas fa-user-plus text-primary-500 group-hover:text-primary-400"></i>
+                        </span>
+                        <span id="registerButtonText">Create Account</span>
+                        <span id="registerButtonLoading" class="hidden">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Login Link -->
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        Already have an account?
+                        <a href="/login" class="font-medium text-primary-600 hover:text-primary-500">
+                            Sign in here
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Password toggle
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordField = document.getElementById('password');
+            const toggleIcon = this.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        });
+
+        // Password confirmation validation
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.setCustomValidity('Passwords do not match');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Registration form submission
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const registerButton = document.getElementById('registerButton');
+            const registerButtonText = document.getElementById('registerButtonText');
+            const registerButtonLoading = document.getElementById('registerButtonLoading');
+            const messageContainer = document.getElementById('messageContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Validate passwords match
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                document.getElementById('errorText').textContent = 'Passwords do not match';
+                errorMessage.classList.remove('hidden');
+                messageContainer.classList.remove('hidden');
+                return;
+            }
+            
+            // Show loading state
+            registerButton.disabled = true;
+            registerButtonText.classList.add('hidden');
+            registerButtonLoading.classList.remove('hidden');
+            messageContainer.classList.add('hidden');
+            
+            try {
+                const formData = new FormData(this);
+                const registerData = {
+                    name: formData.get('name'),
+                    username: formData.get('username'),
+                    email: formData.get('email'),
+                    phoNo: formData.get('phoNo'),
+                    password: formData.get('password'),
+                    about: formData.get('about') + ' | School: ' + formData.get('schoolName') + ' | Type: ' + formData.get('schoolType') + ' | Location: ' + formData.get('location')
+                };
+                
+                const response = await fetch('/api/auth/register/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(registerData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.responseStatus === 'OK') {
+                    // Show success message
+                    document.getElementById('successText').textContent = 'Account created successfully! Please check your email for verification.';
+                    successMessage.classList.remove('hidden');
+                    messageContainer.classList.remove('hidden');
+                    
+                    // Redirect to login page after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 3000);
+                    
+                } else {
+                    throw new Error(result.message || 'Registration failed');
+                }
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                
+                // Show error message
+                document.getElementById('errorText').textContent = error.message || 'An error occurred during registration';
+                errorMessage.classList.remove('hidden');
+                messageContainer.classList.remove('hidden');
+                
+            } finally {
+                // Reset button state
+                registerButton.disabled = false;
+                registerButtonText.classList.remove('hidden');
+                registerButtonLoading.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

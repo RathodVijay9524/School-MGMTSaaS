@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - School Management System</title>
+    
+    <!-- Tailwind CSS CDN (Development only - use local installation for production) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Suppress Tailwind CDN warning for development
+        console.warn = function(message) {
+            if (message.includes('tailwindcss.com should not be used in production')) {
+                return; // Suppress this warning
+            }
+            console.log(message); // Log other warnings normally
+        };
+    </script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition" id="sidebar">
+        <!-- Logo -->
+        <div class="flex items-center justify-center h-16 bg-primary-600">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                <span class="text-xl font-bold text-white">SchoolManager</span>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-primary-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-900" id="userName">Admin User</p>
+                    <p class="text-xs text-gray-500">School Owner</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="mt-5 px-2">
+            <div class="space-y-1">
+                <a href="#" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tachometer-alt text-primary-500 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-users text-gray-400 mr-3"></i>
+                    Students
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-chalkboard-teacher text-gray-400 mr-3"></i>
+                    Teachers
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-book text-gray-400 mr-3"></i>
+                    Classes
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-clipboard-list text-gray-400 mr-3"></i>
+                    Subjects
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
+                    Exams
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-money-bill-wave text-gray-400 mr-3"></i>
+                    Fees
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-chart-line text-gray-400 mr-3"></i>
+                    Reports
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-cog text-gray-400 mr-3"></i>
+                    Settings
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="pl-64">
+        <!-- Top Navigation -->
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Page Title -->
+                    <div>
+                        <h1 class="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
+                        <p class="text-sm text-gray-500">Welcome back! Here's what's happening at your school.</p>
+                    </div>
+
+                    <!-- Top Right Actions -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button class="p-2 text-gray-400 hover:text-gray-500 relative">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center notification-badge">3</span>
+                            </button>
+                        </div>
+
+                        <!-- User Menu -->
+                        <div class="relative">
+                            <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-primary-600 text-sm"></i>
+                                </div>
+                                <span class="hidden md:block text-sm font-medium" id="userNameTop">Admin</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Logout -->
+                        <button onclick="logout()" class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2" title="Logout">
+                            <i class="fas fa-sign-out-alt text-sm"></i>
+                            <span class="text-sm font-medium">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="p-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Total Students</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalStudents">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-600 text-sm font-medium">
+                            <i class="fas fa-arrow-up"></i> 12%
+                        </span>
+                        <span class="text-gray-500 text-sm ml-2">vs last month</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chalkboard-teacher text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Total Teachers</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalTeachers">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-600 text-sm font-medium">
+                            <i class="fas fa-arrow-up"></i> 8%
+                        </span>
+                        <span class="text-gray-500 text-sm ml-2">vs last month</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-book text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Total Classes</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalClasses">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-600 text-sm font-medium">
+                            <i class="fas fa-arrow-up"></i> 5%
+                        </span>
+                        <span class="text-gray-500 text-sm ml-2">vs last month</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-money-bill-wave text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Revenue</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalRevenue">₹0</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-600 text-sm font-medium">
+                            <i class="fas fa-arrow-up"></i> 15%
+                        </span>
+                        <span class="text-gray-500 text-sm ml-2">vs last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Removed - No more increasing values -->
+
+            <!-- Recent Activities & Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Recent Activities -->
+                <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activities</h3>
+                    <div class="space-y-4" id="recentActivities">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-plus text-green-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-900">New student enrolled</p>
+                                <p class="text-xs text-gray-500">2 minutes ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-calendar-plus text-blue-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-900">Exam scheduled</p>
+                                <p class="text-xs text-gray-500">15 minutes ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-money-bill-wave text-yellow-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-900">Fee payment received</p>
+                                <p class="text-xs text-gray-500">1 hour ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button class="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors text-left">
+                            <i class="fas fa-user-plus mr-2"></i>Add New Student
+                        </button>
+                        <button class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-left">
+                            <i class="fas fa-chalkboard-teacher mr-2"></i>Add New Teacher
+                        </button>
+                        <button class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition-colors text-left">
+                            <i class="fas fa-calendar-plus mr-2"></i>Schedule Exam
+                        </button>
+                        <button class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-left">
+                            <i class="fas fa-chart-line mr-2"></i>Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        let isLoadingData = false; // Prevent multiple simultaneous requests
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard loaded, initializing...');
+            loadDashboardData();
+            // Charts removed - no more increasing values
+            loadRecentActivities();
+        });
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            if (isLoadingData) {
+                console.log('Dashboard data already loading, skipping...');
+                return;
+            }
+            
+            isLoadingData = true;
+            console.log('Loading dashboard data...');
+            
+            try {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    console.log('No JWT token found, using mock data');
+                    updateDashboardStats({
+                        totalStudents: 1250,
+                        totalTeachers: 45,
+                        totalClasses: 25,
+                        totalRevenue: 125000
+                    });
+                    return;
+                }
+                
+                const response = await fetch('/api/v1/dashboard/school-owner', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Dashboard data loaded:', data);
+                    updateDashboardStats(data);
+                } else {
+                    console.log('Dashboard API failed, using mock data');
+                    // Use mock data if API fails
+                    updateDashboardStats({
+                        totalStudents: 1250,
+                        totalTeachers: 45,
+                        totalClasses: 25,
+                        totalRevenue: 125000
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                // Use mock data
+                updateDashboardStats({
+                    totalStudents: 1250,
+                    totalTeachers: 45,
+                    totalClasses: 25,
+                    totalRevenue: 125000
+                });
+            } finally {
+                isLoadingData = false;
+            }
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats(data) {
+            console.log('Updating dashboard stats with data:', data);
+            
+            // Extract data from the API response structure
+            let students = 0, teachers = 0, classes = 0, revenue = 0;
+            
+            if (data && data.quickStats) {
+                students = data.quickStats.totalStudents || 0;
+                teachers = data.quickStats.totalTeachers || 0;
+                classes = data.quickStats.totalClasses || 0;
+                revenue = data.quickStats.totalRevenue || 0;
+            } else if (data) {
+                // Fallback for direct data structure
+                students = data.totalStudents || 0;
+                teachers = data.totalTeachers || 0;
+                classes = data.totalClasses || 0;
+                revenue = data.totalRevenue || 0;
+            }
+            
+            // Update the UI elements
+            document.getElementById('totalStudents').textContent = students;
+            document.getElementById('totalTeachers').textContent = teachers;
+            document.getElementById('totalClasses').textContent = classes;
+            document.getElementById('totalRevenue').textContent = `₹${revenue.toLocaleString()}`;
+            
+            console.log('Dashboard stats updated:', { students, teachers, classes, revenue });
+        }
+
+        // Charts removed - no more increasing values
+
+        // Load recent activities (using mock data for now)
+        async function loadRecentActivities() {
+            console.log('Loading recent activities (mock data)');
+            // Activities are already in the HTML template as mock data
+            // In the future, we can implement a proper activities API
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Navigation handling
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('bg-primary-100', 'text-primary-700');
+                    nav.classList.add('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('bg-primary-100', 'text-primary-700');
+                this.classList.remove('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+                
+                // Handle navigation (you can add specific logic here)
+                const text = this.textContent.trim();
+                console.log('Navigating to:', text);
+            });
+        });
+
+        // Load user info
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.name) {
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userNameTop').textContent = user.name;
+        }
+    </script>
+</body>
+</html>

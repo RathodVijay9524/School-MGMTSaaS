@@ -48,14 +48,17 @@ public class WebSecurityConfig {
                         // 1) All common static resources (css/js/images/webjars/favicon, etc.)
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 
-                        // 2) Your explicit static & root fallbacks (Vite assets etc.)
-                        .requestMatchers(
-                                "/", "/index.html",
-                                "/assets/**", "/static/**",
-                                "/favicon.ico", "/vite.svg",
-                                "/manifest.*", "/robots.txt",
-                                "/error"
-                        ).permitAll()
+                        // 2) Your explicit static & root fallbacks and frontend pages
+                                .requestMatchers(
+                                        "/", "/index.html",
+                                        "/login", "/register", "/role-selection", "/about", "/contact", "/features",
+                                        "/dashboard/**", "/dashboard/owner", "/dashboard/teacher", 
+                                        "/dashboard/student", "/dashboard/parent", "/dashboard/librarian", "/dashboard/super-admin",
+                                        "/assets/**", "/static/**", "/css/**", "/js/**",
+                                        "/favicon.ico", "/vite.svg",
+                                        "/manifest.*", "/robots.txt",
+                                        "/error"
+                                ).permitAll()
 
                         // 3) Public endpoints
                         .requestMatchers(

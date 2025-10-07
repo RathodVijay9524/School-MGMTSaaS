@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - All Schools Overview</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .school-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .revenue-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .attendance-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-gray-900">Super Admin Dashboard</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500" id="adminName">Application Owner</span>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">All Schools Overview</h1>
+            <p class="text-gray-600">Comprehensive analytics across all schools in the system</p>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow card-hover p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-school text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total Schools</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="totalSchools">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow card-hover p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total Students</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="totalStudents">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow card-hover p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chalkboard-teacher text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total Teachers</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="totalTeachers">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow card-hover p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chart-line text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Average Attendance</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="averageAttendance">0%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Overview -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Financial Overview</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <p class="text-sm text-gray-500">Total Revenue</p>
+                        <p class="text-2xl font-bold text-green-600" id="totalRevenue">₹0</p>
+                    </div>
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <p class="text-sm text-gray-500">This Month</p>
+                        <p class="text-2xl font-bold text-blue-600" id="monthlyRevenue">₹0</p>
+                    </div>
+                    <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                        <p class="text-sm text-gray-500">Pending Fees</p>
+                        <p class="text-2xl font-bold text-yellow-600" id="pendingFees">₹0</p>
+                    </div>
+                    <div class="text-center p-4 bg-red-50 rounded-lg">
+                        <p class="text-sm text-gray-500">Overdue Fees</p>
+                        <p class="text-2xl font-bold text-red-600" id="overdueFees">₹0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Communication Stats</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope text-blue-500 mr-3"></i>
+                            <span class="text-sm text-gray-600">Emails Sent</span>
+                        </div>
+                        <span class="font-semibold" id="emailsSent">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-sms text-green-500 mr-3"></i>
+                            <span class="text-sm text-gray-600">SMS Sent</span>
+                        </div>
+                        <span class="font-semibold" id="smsSent">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fab fa-whatsapp text-green-600 mr-3"></i>
+                            <span class="text-sm text-gray-600">WhatsApp Sent</span>
+                        </div>
+                        <span class="font-semibold" id="whatsappSent">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Schools Overview -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Schools Overview</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teachers</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schoolsTable" class="bg-white divide-y divide-gray-200">
+                            <!-- Schools data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activities</h3>
+                <div class="space-y-4" id="recentActivities">
+                    <!-- Activities will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Class-wise Analytics -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Class-wise Analytics</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average GPA</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fees Collected</th>
+                        </tr>
+                    </thead>
+                    <tbody id="classesTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Classes data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Monthly Trends -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Monthly Trends</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">New Admissions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee Collected</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trendsTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Trends data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSuperAdminDashboardData();
+            loadUserInfo();
+        });
+
+        // Load super admin dashboard data
+        async function loadSuperAdminDashboardData() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch('/api/v1/dashboard/application-owner', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateSuperAdminStats(data);
+                } else {
+                    console.error('Failed to load super admin dashboard data');
+                }
+            } catch (error) {
+                console.error('Error loading super admin dashboard data:', error);
+            }
+        }
+
+        // Update super admin statistics
+        function updateSuperAdminStats(apiResponse) {
+            console.log('Updating super admin stats with data:', apiResponse);
+            
+            // Extract data from API response
+            const data = apiResponse.data || apiResponse;
+            
+            // Update key metrics
+            document.getElementById('totalSchools').textContent = data.totalSchools || 0;
+            document.getElementById('totalStudents').textContent = data.totalStudents || 0;
+            document.getElementById('totalTeachers').textContent = data.totalTeachers || 0;
+            document.getElementById('averageAttendance').textContent = `${data.averageAttendancePercentage || 0}%`;
+            
+            // Update financial data
+            document.getElementById('totalRevenue').textContent = `₹${(data.totalFeeCollected || 0).toLocaleString()}`;
+            document.getElementById('monthlyRevenue').textContent = `₹${(data.totalFeeCollectedThisMonth || 0).toLocaleString()}`;
+            document.getElementById('pendingFees').textContent = `₹${(data.totalFeePending || 0).toLocaleString()}`;
+            document.getElementById('overdueFees').textContent = `₹${(data.totalFeeOverdue || 0).toLocaleString()}`;
+            
+            // Update communication stats
+            document.getElementById('emailsSent').textContent = data.emailsSentThisMonth || 0;
+            document.getElementById('smsSent').textContent = data.smsSentThisMonth || 0;
+            document.getElementById('whatsappSent').textContent = data.whatsappSentThisMonth || 0;
+            
+            // Update schools table
+            if (data.schoolWiseAnalytics && Array.isArray(data.schoolWiseAnalytics)) {
+                updateSchoolsTable(data.schoolWiseAnalytics);
+            }
+            
+            // Update recent activities
+            if (data.recentActivities && Array.isArray(data.recentActivities)) {
+                updateRecentActivities(data.recentActivities);
+            }
+            
+            // Update class analytics
+            if (data.classWiseAnalytics && Array.isArray(data.classWiseAnalytics)) {
+                updateClassesTable(data.classWiseAnalytics);
+            }
+            
+            // Update monthly trends
+            if (data.monthlyTrends && Array.isArray(data.monthlyTrends)) {
+                updateTrendsTable(data.monthlyTrends);
+            }
+            
+            console.log('Super admin stats updated successfully');
+        }
+
+        // Update schools table
+        function updateSchoolsTable(schools) {
+            const tbody = document.getElementById('schoolsTable');
+            tbody.innerHTML = schools.map(school => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${school.schoolName}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${school.totalStudents || 0}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${school.totalTeachers || 0}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ₹${(school.monthlyRevenue || 0).toLocaleString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${school.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${school.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update recent activities
+        function updateRecentActivities(activities) {
+            const container = document.getElementById('recentActivities');
+            container.innerHTML = activities.slice(0, 5).map(activity => `
+                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-${getActivityIcon(activity.type)} text-blue-600 text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-900">${activity.description}</p>
+                        <p class="text-xs text-gray-500">${new Date(activity.timestamp).toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update classes table
+        function updateClassesTable(classes) {
+            const tbody = document.getElementById('classesTable');
+            tbody.innerHTML = classes.map(cls => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${cls.className}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${cls.totalStudents || 0}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${cls.averageAttendance || 0}%
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${cls.averageGPA || 0}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ₹${(cls.collectedFees || 0).toLocaleString()}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update trends table
+        function updateTrendsTable(trends) {
+            const tbody = document.getElementById('trendsTable');
+            tbody.innerHTML = trends.map(trend => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${trend.month}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${trend.newAdmissions || 0}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ₹${(trend.feeCollected || 0).toLocaleString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${trend.averageAttendance || 0}%
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Get activity icon based on type
+        function getActivityIcon(type) {
+            const icons = {
+                'STUDENT_ADMISSION': 'user-plus',
+                'FEE_PAYMENT': 'credit-card',
+                'EXAM_SCHEDULED': 'calendar',
+                'ATTENDANCE_MARKED': 'check-circle',
+                'TEACHER_JOINED': 'chalkboard-teacher'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        // Load user info
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                document.getElementById('adminName').textContent = user.name;
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

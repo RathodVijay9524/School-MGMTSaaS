@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">School Management System - Home</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-primary-600 text-2xl"></i>
+                        <span class="text-xl font-bold text-gray-900">SchoolManager</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/features" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Features</a>
+                    <a href="/about" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">About</a>
+                    <a href="/contact" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Contact</a>
+                </div>
+
+                <!-- Auth Buttons -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/login" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-sign-in-alt mr-1"></i>Login
+                    </a>
+                    <a href="/register" class="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors">
+                        <i class="fas fa-user-plus mr-1"></i>Register
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button type="button" id="mobile-menu-button" class="text-gray-700 hover:text-primary-600 focus:outline-none focus:text-primary-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation Menu -->
+            <div id="mobile-menu" class="md:hidden hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+                    <a href="/" class="text-primary-600 block px-3 py-2 rounded-md text-base font-medium">Home</a>
+                    <a href="/features" class="text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-base font-medium">Features</a>
+                    <a href="/about" class="text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-base font-medium">About</a>
+                    <a href="/contact" class="text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-base font-medium">Contact</a>
+                    <div class="border-t pt-3 mt-3">
+                        <a href="/login" class="text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </a>
+                        <a href="/register" class="bg-primary-600 text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-primary-700 mt-2">
+                            <i class="fas fa-user-plus mr-2"></i>Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                    Modern School Management
+                    <span class="block text-yellow-300">Made Simple</span>
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
+                    Streamline your school operations with our comprehensive management system. 
+                    Manage students, teachers, classes, and more with ease.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/register" class="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-rocket mr-2"></i>Get Started
+                    </a>
+                    <a href="/features" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors">
+                        <i class="fas fa-play mr-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Everything You Need to Manage Your School
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our comprehensive platform provides all the tools you need to efficiently manage 
+                    your educational institution.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+                    <div class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-users text-primary-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Student Management</h3>
+                    <p class="text-gray-600 mb-4">
+                        Complete student lifecycle management from enrollment to graduation. 
+                        Track attendance, grades, and academic progress.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Student Profiles</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Attendance Tracking</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Grade Management</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+                    <div class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-chalkboard-teacher text-primary-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Teacher Portal</h3>
+                    <p class="text-gray-600 mb-4">
+                        Empower teachers with tools to manage classes, create assignments, 
+                        and track student performance.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Class Management</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Assignment Creation</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Grade Entry</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+                    <div class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-calendar-alt text-primary-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Timetable Management</h3>
+                    <p class="text-gray-600 mb-4">
+                        Create and manage class schedules, assign teachers to subjects, 
+                        and handle timetable conflicts automatically.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Schedule Creation</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Conflict Resolution</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Room Assignment</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+                    <div class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-dollar-sign text-primary-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Fee Management</h3>
+                    <p class="text-gray-600 mb-4">
+                        Streamline fee collection, track payments, generate receipts, 
+                        and manage fee structures efficiently.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Fee Collection</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Payment Tracking</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Receipt Generation</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+                    <div class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-book text-primary-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Library Management</h3>
+                    <p class="text-gray-600 mb-4">
+                        Manage your school library with book cataloging, issue tracking, 
+                        and automated overdue notifications.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Book Catalog</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Issue Management</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Overdue Tracking</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+                    <div class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-robot text-primary-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">AI-Powered Chatbot</h3>
+                    <p class="text-gray-600 mb-4">
+                        Get instant answers and assistance with our AI-powered chatbot 
+                        that understands your school's data.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Instant Support</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Data Integration</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>24/7 Availability</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="bg-primary-600 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+                Ready to Transform Your School Management?
+            </h2>
+            <p class="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
+                Join thousands of schools already using our platform to streamline their operations.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/register" class="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                </a>
+                <a href="/contact" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors">
+                    <i class="fas fa-phone mr-2"></i>Contact Sales
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-graduation-cap text-primary-400 text-2xl"></i>
+                        <span class="text-xl font-bold">SchoolManager</span>
+                    </div>
+                    <p class="text-gray-400 mb-4 max-w-md">
+                        Comprehensive school management system designed to streamline administrative tasks, 
+                        enhance communication, and improve educational outcomes.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-linkedin-in text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/features" class="text-gray-400 hover:text-white transition-colors">Features</a></li>
+                        <li><a href="/about" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="/contact" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="/login" class="text-gray-400 hover:text-white transition-colors">Login</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Support</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">API Reference</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+                <p class="text-gray-400">&copy; 2024 SchoolManager. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            
+            if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</body>
+</html>

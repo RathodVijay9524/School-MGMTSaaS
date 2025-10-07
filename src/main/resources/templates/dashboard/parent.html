@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Dashboard - School Management System</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .child-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring-circle {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
+        <!-- Logo -->
+        <div class="flex items-center justify-center h-16 bg-primary-600">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                <span class="text-xl font-bold text-white">SchoolManager</span>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-friends text-primary-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-900" id="parentName">Parent Name</p>
+                    <p class="text-xs text-gray-500">Guardian</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="mt-5 px-2">
+            <div class="space-y-1">
+                <a href="#" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tachometer-alt text-primary-500 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-user-graduate text-gray-400 mr-3"></i>
+                    My Children
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-chart-line text-gray-400 mr-3"></i>
+                    Progress
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-calendar-check text-gray-400 mr-3"></i>
+                    Attendance
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-clipboard-list text-gray-400 mr-3"></i>
+                    Assignments
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
+                    Exams
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-money-bill-wave text-gray-400 mr-3"></i>
+                    Fees
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-comments text-gray-400 mr-3"></i>
+                    Messages
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="pl-64">
+        <!-- Top Navigation -->
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Page Title -->
+                    <div>
+                        <h1 class="text-2xl font-semibold text-gray-900">Parent Dashboard</h1>
+                        <p class="text-sm text-gray-500">Monitor your child's academic progress and school activities.</p>
+                    </div>
+
+                    <!-- Top Right Actions -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button class="p-2 text-gray-400 hover:text-gray-500 relative">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">4</span>
+                            </button>
+                        </div>
+
+                        <!-- User Menu -->
+                        <div class="relative">
+                            <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user-friends text-primary-600 text-sm"></i>
+                                </div>
+                                <span class="hidden md:block text-sm font-medium" id="parentNameTop">Parent</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Logout -->
+                        <button onclick="logout()" class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2" title="Logout">
+                            <i class="fas fa-sign-out-alt text-sm"></i>
+                            <span class="text-sm font-medium">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="p-6">
+            <!-- My Children -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">My Children</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="child-card text-white rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Raj Kumar</h3>
+                                <p class="text-sm opacity-90">Class 10A • Roll No: 15</p>
+                            </div>
+                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-graduate text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <p class="text-2xl font-bold">85%</p>
+                                <p class="text-xs opacity-90">Attendance</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-bold">3.7</p>
+                                <p class="text-xs opacity-90">GPA</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="child-card text-white rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Priya Kumar</h3>
+                                <p class="text-sm opacity-90">Class 8B • Roll No: 22</p>
+                            </div>
+                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-graduate text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <p class="text-2xl font-bold">92%</p>
+                                <p class="text-xs opacity-90">Attendance</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-bold">4.1</p>
+                                <p class="text-xs opacity-90">GPA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Avg. Attendance</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="avgAttendance">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Avg. GPA</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="avgGPA">0.0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Pending Assignments</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="pendingAssignments">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calendar-alt text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Upcoming Exams</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="upcomingExams">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Recent Activities -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activities</h3>
+                        <div class="space-y-4" id="recentActivities">
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-green-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">Raj submitted Mathematics assignment</p>
+                                    <p class="text-xs text-gray-500">2 hours ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">Priya's grades updated in Physics</p>
+                                    <p class="text-xs text-gray-500">1 day ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">Raj's attendance below 80% this week</p>
+                                    <p class="text-xs text-gray-500">2 days ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-calendar text-purple-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">Upcoming exam for Priya - Mathematics</p>
+                                    <p class="text-xs text-gray-500">3 days ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Messages -->
+                <div class="space-y-6">
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button class="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors text-left">
+                                <i class="fas fa-eye mr-2"></i>View Progress
+                            </button>
+                            <button class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-left">
+                                <i class="fas fa-calendar-check mr-2"></i>Check Attendance
+                            </button>
+                            <button class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition-colors text-left">
+                                <i class="fas fa-clipboard-list mr-2"></i>View Assignments
+                            </button>
+                            <button class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-left">
+                                <i class="fas fa-comments mr-2"></i>Contact Teacher
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Messages -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Messages</h3>
+                        <div class="space-y-3" id="recentMessages">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-primary-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">Mr. Sharma (Math Teacher)</p>
+                                    <p class="text-xs text-gray-600">Raj is doing well in Mathematics...</p>
+                                    <p class="text-xs text-gray-400">2 days ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-green-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">Ms. Patel (Physics Teacher)</p>
+                                    <p class="text-xs text-gray-600">Priya's lab report was excellent...</p>
+                                    <p class="text-xs text-gray-400">1 week ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadParentDashboardData();
+            loadUserInfo();
+        });
+
+        // Load parent dashboard data
+        async function loadParentDashboardData() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch('/api/v1/dashboard/parent', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateParentStats(data);
+                } else {
+                    // Use mock data if API fails
+                    updateParentStats({
+                        avgAttendance: 88,
+                        avgGPA: 3.9,
+                        pendingAssignments: 5,
+                        upcomingExams: 3
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading parent dashboard data:', error);
+                // Use mock data
+                updateParentStats({
+                    avgAttendance: 88,
+                    avgGPA: 3.9,
+                    pendingAssignments: 5,
+                    upcomingExams: 3
+                });
+            }
+        }
+
+        // Update parent statistics
+        function updateParentStats(apiResponse) {
+            console.log('Updating parent stats with data:', apiResponse);
+            
+            // Extract data from API response
+            const data = apiResponse.data || apiResponse;
+            
+            // Map API data to UI elements
+            document.getElementById('avgAttendance').textContent = `${data.attendanceRate || 0}%`;
+            document.getElementById('avgGPA').textContent = (data.averageGrade / 10).toFixed(1) || 0.0;
+            document.getElementById('pendingAssignments').textContent = data.unreadNotifications || 0;
+            document.getElementById('upcomingExams').textContent = data.upcomingEvents || 0;
+            
+            // Update additional stats if elements exist
+            const totalChildrenEl = document.getElementById('totalChildren');
+            const activeChildrenEl = document.getElementById('activeChildren');
+            const pendingFeesEl = document.getElementById('pendingFees');
+            const totalFeesPaidEl = document.getElementById('totalFeesPaid');
+            
+            if (totalChildrenEl) totalChildrenEl.textContent = data.totalChildren || 0;
+            if (activeChildrenEl) activeChildrenEl.textContent = data.activeChildren || 0;
+            if (pendingFeesEl) pendingFeesEl.textContent = `₹${data.pendingFees || 0}`;
+            if (totalFeesPaidEl) totalFeesPaidEl.textContent = `₹${data.totalFeesPaid || 0}`;
+            
+            // Update children data if available
+            if (data.childrenData && Array.isArray(data.childrenData)) {
+                updateChildrenList(data.childrenData);
+            }
+            
+            console.log('Parent stats updated successfully');
+        }
+
+        // Update children list
+        function updateChildrenList(children) {
+            const childrenContainer = document.getElementById('childrenList');
+            if (!childrenContainer) return;
+            
+            childrenContainer.innerHTML = children.map(child => `
+                <div class="child-card bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">${child.name}</h3>
+                            <p class="text-gray-600">${child.class}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                child.feeStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }">
+                                ${child.feeStatus}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Attendance</p>
+                            <p class="text-2xl font-bold text-blue-600">${child.attendance}%</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Grade</p>
+                            <p class="text-2xl font-bold text-green-600">${child.grade}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-clock mr-2"></i>
+                            Recent Activity: ${child.recentActivity}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load user info
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                document.getElementById('parentName').textContent = user.name;
+                document.getElementById('parentNameTop').textContent = user.name;
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Navigation handling
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('bg-primary-100', 'text-primary-700');
+                    nav.classList.add('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('bg-primary-100', 'text-primary-700');
+                this.classList.remove('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+                
+                // Handle navigation
+                const text = this.textContent.trim();
+                console.log('Navigating to:', text);
+            });
+        });
+    </script>
+</body>
+</html>

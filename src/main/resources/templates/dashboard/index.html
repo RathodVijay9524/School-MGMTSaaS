@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Dashboard - School Management System</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-primary-600 text-2xl"></i>
+                        <span class="text-xl font-bold text-gray-900">SchoolManager</span>
+                    </a>
+                </div>
+
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 focus:outline-none">
+                            <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-primary-600"></i>
+                            </div>
+                            <span class="hidden md:block text-sm font-medium" id="userName">Loading...</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2"></i>Profile
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-cog mr-2"></i>Settings
+                            </a>
+                            <hr class="my-1">
+                            <button id="logoutButton" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900" id="welcomeMessage">Welcome to your Dashboard</h1>
+            <p class="text-gray-600 mt-2" id="userInfo">Loading user information...</p>
+        </div>
+
+        <!-- Role-based Dashboard Content -->
+        <div id="dashboardContent">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin text-4xl text-primary-600 mb-4"></i>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">Loading Dashboard...</h2>
+                    <p class="text-gray-600">Please wait while we load your personalized dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Check authentication and load user data
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwtToken');
+            const user = localStorage.getItem('user');
+            
+            if (!token || !user) {
+                // Redirect to login if not authenticated
+                window.location.href = '/login';
+                return;
+            }
+            
+            try {
+                const userData = JSON.parse(user);
+                loadUserDashboard(userData);
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                window.location.href = '/login';
+            }
+        });
+
+        function loadUserDashboard(userData) {
+            // Update user info in navigation
+            document.getElementById('userName').textContent = userData.name || userData.username;
+            document.getElementById('welcomeMessage').textContent = `Welcome back, ${userData.name || userData.username}!`;
+            document.getElementById('userInfo').textContent = `Role: ${getUserRoles(userData.roles).join(', ')}`;
+            
+            // Load role-specific dashboard content
+            loadRoleSpecificContent(userData.roles);
+        }
+
+        function getUserRoles(roles) {
+            if (!roles) return ['User'];
+            return roles.map(role => role.name.replace('ROLE_', ''));
+        }
+
+        function loadRoleSpecificContent(roles) {
+            const dashboardContent = document.getElementById('dashboardContent');
+            
+            if (!roles || roles.length === 0) {
+                dashboardContent.innerHTML = createDefaultDashboard();
+                return;
+            }
+            
+            const roleNames = roles.map(role => role.name);
+            
+            if (roleNames.includes('ROLE_ADMIN') || roleNames.includes('ROLE_SUPER_USER')) {
+                dashboardContent.innerHTML = createOwnerDashboard();
+            } else if (roleNames.includes('ROLE_TEACHER')) {
+                dashboardContent.innerHTML = createTeacherDashboard();
+            } else if (roleNames.includes('ROLE_STUDENT')) {
+                dashboardContent.innerHTML = createStudentDashboard();
+            } else if (roleNames.includes('ROLE_PARENT')) {
+                dashboardContent.innerHTML = createParentDashboard();
+            } else {
+                dashboardContent.innerHTML = createDefaultDashboard();
+            }
+        }
+
+        function createOwnerDashboard() {
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Stats Cards -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-blue-100 rounded-lg">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Total Students</h3>
+                                <p class="text-2xl font-semibold text-gray-900" id="totalStudents">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-green-100 rounded-lg">
+                                <i class="fas fa-chalkboard-teacher text-green-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Total Teachers</h3>
+                                <p class="text-2xl font-semibold text-gray-900" id="totalTeachers">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-yellow-100 rounded-lg">
+                                <i class="fas fa-graduation-cap text-yellow-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Total Classes</h3>
+                                <p class="text-2xl font-semibold text-gray-900" id="totalClasses">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-purple-100 rounded-lg">
+                                <i class="fas fa-dollar-sign text-purple-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Revenue</h3>
+                                <p class="text-2xl font-semibold text-gray-900" id="totalRevenue">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">Add Student</p>
+                        </button>
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-chalkboard-teacher text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">Add Teacher</p>
+                        </button>
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-plus text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">Create Class</p>
+                        </button>
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-chart-bar text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">View Reports</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                            <div class="p-2 bg-blue-100 rounded-full">
+                                <i class="fas fa-user text-blue-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">New student enrolled</p>
+                                <p class="text-xs text-gray-500">2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                            <div class="p-2 bg-green-100 rounded-full">
+                                <i class="fas fa-check text-green-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">Assignment graded</p>
+                                <p class="text-xs text-gray-500">4 hours ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createTeacherDashboard() {
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- My Classes -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-chalkboard text-primary-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">My Classes</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-primary-600 mb-2">5</p>
+                        <p class="text-sm text-gray-500">Active classes</p>
+                    </div>
+                    
+                    <!-- Students -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-users text-green-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Students</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-green-600 mb-2">120</p>
+                        <p class="text-sm text-gray-500">Total students</p>
+                    </div>
+                    
+                    <!-- Assignments -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-tasks text-yellow-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Assignments</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-yellow-600 mb-2">8</p>
+                        <p class="text-sm text-gray-500">Pending grading</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-plus text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">Create Assignment</p>
+                        </button>
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-check-circle text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">Mark Attendance</p>
+                        </button>
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-calendar text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">View Timetable</p>
+                        </button>
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-chart-line text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700">View Reports</p>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createStudentDashboard() {
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Attendance -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-calendar-check text-green-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Attendance</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-green-600 mb-2">95%</p>
+                        <p class="text-sm text-gray-500">This month</p>
+                    </div>
+                    
+                    <!-- Grades -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-graduation-cap text-blue-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">GPA</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-blue-600 mb-2">3.8</p>
+                        <p class="text-sm text-gray-500">Current GPA</p>
+                    </div>
+                    
+                    <!-- Assignments -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-tasks text-yellow-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Assignments</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-yellow-600 mb-2">3</p>
+                        <p class="text-sm text-gray-500">Due this week</p>
+                    </div>
+                </div>
+
+                <!-- Recent Grades -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Grades</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-900">Mathematics</p>
+                                <p class="text-sm text-gray-500">Assignment 5</p>
+                            </div>
+                            <span class="text-lg font-semibold text-green-600">A+</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-900">Science</p>
+                                <p class="text-sm text-gray-500">Lab Report</p>
+                            </div>
+                            <span class="text-lg font-semibold text-blue-600">A</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createParentDashboard() {
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Child's Attendance -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-calendar-check text-green-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Attendance</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-green-600 mb-2">92%</p>
+                        <p class="text-sm text-gray-500">This month</p>
+                    </div>
+                    
+                    <!-- Child's GPA -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-graduation-cap text-blue-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">GPA</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-blue-600 mb-2">3.6</p>
+                        <p class="text-sm text-gray-500">Current GPA</p>
+                    </div>
+                    
+                    <!-- Fee Status -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-dollar-sign text-yellow-600 text-xl mr-2"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Fee Status</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-yellow-600 mb-2">$150</p>
+                        <p class="text-sm text-gray-500">Outstanding</p>
+                    </div>
+                </div>
+
+                <!-- Child's Progress -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Child's Progress</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-900">Mathematics</p>
+                                <p class="text-sm text-gray-500">Class 10-A</p>
+                            </div>
+                            <span class="text-lg font-semibold text-green-600">Excellent</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-900">Science</p>
+                                <p class="text-sm text-gray-500">Class 10-A</p>
+                            </div>
+                            <span class="text-lg font-semibold text-blue-600">Good</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createDefaultDashboard() {
+            return `
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <i class="fas fa-user text-4xl text-gray-400 mb-4"></i>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">Welcome to SchoolManager</h2>
+                    <p class="text-gray-600 mb-4">Your dashboard is being set up. Please contact your administrator for access.</p>
+                    <button class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+                        Contact Support
+                    </button>
+                </div>
+            `;
+        }
+
+        // User menu toggle
+        document.getElementById('userMenuButton').addEventListener('click', function() {
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            const userMenuButton = document.getElementById('userMenuButton');
+            
+            if (!userMenu.contains(event.target) && !userMenuButton.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            // Clear stored data
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            
+            // Redirect to login
+            window.location.href = '/login';
+        });
+    </script>
+</body>
+</html>

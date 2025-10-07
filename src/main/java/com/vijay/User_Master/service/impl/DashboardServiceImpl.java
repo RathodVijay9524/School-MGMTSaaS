@@ -220,14 +220,19 @@ public class DashboardServiceImpl implements DashboardService {
         List<DashboardAnalytics.AttendanceTrend> trends = new ArrayList<>();
         LocalDate today = LocalDate.now();
         
+        // Fixed values to prevent increasing trends
+        int[] presentValues = {38, 42, 40, 45, 41, 39, 43};
+        int[] absentValues = {7, 3, 5, 2, 4, 6, 2};
+        double[] percentages = {84.4, 93.3, 88.9, 95.7, 91.1, 86.7, 95.6};
+        
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             
             trends.add(DashboardAnalytics.AttendanceTrend.builder()
                     .date(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                    .present(40 + i)
-                    .absent(5 - i)
-                    .percentage(85.0 + i)
+                    .present(presentValues[6-i])
+                    .absent(absentValues[6-i])
+                    .percentage(percentages[6-i])
                     .build());
         }
         
@@ -278,14 +283,23 @@ public class DashboardServiceImpl implements DashboardService {
     private List<DashboardAnalytics.MonthlyTrend> getMonthlyTrendsAcrossAllSchools() {
         List<DashboardAnalytics.MonthlyTrend> trends = new ArrayList<>();
         
+        // Fixed values to prevent increasing trends
+        int[] admissions = {8, 9, 10, 7, 6, 5};
+        BigDecimal[] fees = {
+            BigDecimal.valueOf(45000), BigDecimal.valueOf(48000), 
+            BigDecimal.valueOf(50000), BigDecimal.valueOf(42000),
+            BigDecimal.valueOf(38000), BigDecimal.valueOf(35000)
+        };
+        double[] attendance = {83.0, 84.5, 85.0, 82.5, 81.0, 80.0};
+        
         for (int i = 5; i >= 0; i--) {
             LocalDate monthStart = LocalDate.now().minusMonths(i).withDayOfMonth(1);
             
             trends.add(DashboardAnalytics.MonthlyTrend.builder()
                     .month(monthStart.format(DateTimeFormatter.ofPattern("yyyy-MM")))
-                    .newAdmissions(10 + i)
-                    .feeCollected(BigDecimal.valueOf(50000 + (i * 5000)))
-                    .averageAttendance(85.0 + i)
+                    .newAdmissions(admissions[5-i])
+                    .feeCollected(fees[5-i])
+                    .averageAttendance(attendance[5-i])
                     .build());
         }
         
@@ -376,14 +390,19 @@ public class DashboardServiceImpl implements DashboardService {
         List<DashboardAnalytics.AttendanceTrend> trends = new ArrayList<>();
         LocalDate today = LocalDate.now();
         
+        // Fixed values to prevent increasing trends
+        int[] presentValues = {18, 22, 20, 25, 21, 19, 23};
+        int[] absentValues = {5, 1, 3, 0, 2, 4, 0};
+        double[] percentages = {78.3, 95.7, 87.0, 100.0, 91.3, 82.6, 100.0};
+        
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             
             trends.add(DashboardAnalytics.AttendanceTrend.builder()
                     .date(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                    .present(20 + i)
-                    .absent(3 - i)
-                    .percentage(88.0 + i)
+                    .present(presentValues[6-i])
+                    .absent(absentValues[6-i])
+                    .percentage(percentages[6-i])
                     .build());
         }
         
@@ -436,14 +455,23 @@ public class DashboardServiceImpl implements DashboardService {
     private List<DashboardAnalytics.MonthlyTrend> getMonthlyTrendsForOwner(Long ownerId) {
         List<DashboardAnalytics.MonthlyTrend> trends = new ArrayList<>();
         
+        // Fixed values to prevent increasing trends
+        int[] admissions = {3, 4, 5, 2, 1, 0};
+        BigDecimal[] fees = {
+            BigDecimal.valueOf(22500), BigDecimal.valueOf(24000), 
+            BigDecimal.valueOf(25000), BigDecimal.valueOf(21000),
+            BigDecimal.valueOf(19000), BigDecimal.valueOf(17500)
+        };
+        double[] attendance = {86.0, 87.5, 88.0, 85.5, 84.0, 83.0};
+        
         for (int i = 5; i >= 0; i--) {
             LocalDate monthStart = LocalDate.now().minusMonths(i).withDayOfMonth(1);
             
             trends.add(DashboardAnalytics.MonthlyTrend.builder()
                     .month(monthStart.format(DateTimeFormatter.ofPattern("yyyy-MM")))
-                    .newAdmissions(5 + i)
-                    .feeCollected(BigDecimal.valueOf(25000 + (i * 2500)))
-                    .averageAttendance(88.0 + i)
+                    .newAdmissions(admissions[5-i])
+                    .feeCollected(fees[5-i])
+                    .averageAttendance(attendance[5-i])
                     .build());
         }
         
