@@ -127,6 +127,10 @@
                     <i class="fas fa-chalkboard-teacher text-gray-400 mr-3"></i>
                     Teachers
                 </a>
+                <a href="/dashboard/parents" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-users-cog text-gray-400 mr-3"></i>
+                    Parents
+                </a>
                 <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-book text-gray-400 mr-3"></i>
                     Classes
@@ -355,10 +359,13 @@
                         <button onclick="openAddTeacherModal()" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-left">
                             <i class="fas fa-chalkboard-teacher mr-2"></i>Add New Teacher
                         </button>
+                        <button onclick="openAddParentModal()" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-left">
+                            <i class="fas fa-users-cog mr-2"></i>Add New Parent
+                        </button>
                         <button class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition-colors text-left">
                             <i class="fas fa-calendar-plus mr-2"></i>Schedule Exam
                         </button>
-                        <button class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-left">
+                        <button class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-left">
                             <i class="fas fa-chart-line mr-2"></i>Generate Report
                         </button>
                     </div>
@@ -509,6 +516,80 @@
                     <button type="submit" 
                         class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                         <i class="fas fa-chalkboard-teacher mr-2"></i>Add Teacher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Parent Modal -->
+    <div id="addParentModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Add New Parent</h2>
+                    <p class="text-sm text-gray-600 mt-1">Fill in the parent details below</p>
+                </div>
+                <button onclick="closeAddParentModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <form id="addParentForm" class="p-6">
+                <!-- Basic Information -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                            <input type="text" name="name" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter parent name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username *</label>
+                            <input type="text" name="username" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter username">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                            <input type="email" name="email" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="parent@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                            <input type="tel" name="phoNo" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter phone number">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                            <input type="password" name="password" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter password">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">About</label>
+                            <input type="text" name="about" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Brief description">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                    <button type="button" onclick="closeAddParentModal()" 
+                        class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        <i class="fas fa-users-cog mr-2"></i>Add Parent
                     </button>
                 </div>
             </form>
@@ -902,6 +983,19 @@
             document.body.style.overflow = 'auto';
         }
 
+        // Open Add Parent Modal
+        function openAddParentModal() {
+            document.getElementById('addParentModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close Add Parent Modal
+        function closeAddParentModal() {
+            document.getElementById('addParentModal').classList.add('hidden');
+            document.getElementById('addParentForm').reset();
+            document.body.style.overflow = 'auto';
+        }
+
         // ==================== ADD STUDENT FUNCTION ====================
         
         document.getElementById('addStudentForm').addEventListener('submit', async function(e) {
@@ -1060,16 +1154,95 @@
             }
         });
 
+        // ==================== ADD PARENT FUNCTION ====================
+        
+        document.getElementById('addParentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const requestBody = {
+                name: formData.get('name'),
+                username: formData.get('username'),
+                email: formData.get('email'),
+                phoNo: formData.get('phoNo'),
+                password: formData.get('password'),
+                about: formData.get('about'),
+                roles: ['ROLE_NORMAL']
+            };
+
+            const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+            if (!token || !user.id) {
+                alert('⚠️ Please login first');
+                window.location.href = '/login';
+                return;
+            }
+
+            // Show loading
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+
+            try {
+                console.log('📝 Creating parent with data:', requestBody);
+                console.log('🔑 Using token:', token.substring(0, 20) + '...');
+
+                const response = await fetch('/api/v1/workers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                console.log('📡 Response status:', response.status);
+
+                const result = await response.json();
+                console.log('📦 API Response:', result);
+
+                if ((response.status === 200 || response.status === 201) && 
+                    (result.responseStatus === 'OK' || result.responseStatus === 'CREATED' || result.status === 'success')) {
+                    alert('✅ Parent added successfully!\n\nUsername: ' + requestBody.username);
+                    closeAddParentModal();
+                    loadDashboardData(); // Refresh dashboard stats
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('⚠️ Session expired! Please login again.');
+                    localStorage.removeItem('jwtToken');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
+                } else {
+                    alert('❌ Error: ' + (result.message || result.data || JSON.stringify(result) || 'Failed to add parent'));
+                }
+
+            } catch (error) {
+                console.error('❌ Error creating parent:', error);
+                alert('❌ Failed to create parent. Please try again.');
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
         // Close modals when clicking outside
         window.addEventListener('click', function(event) {
             const studentModal = document.getElementById('addStudentModal');
             const teacherModal = document.getElementById('addTeacherModal');
+            const parentModal = document.getElementById('addParentModal');
             
             if (event.target === studentModal) {
                 closeAddStudentModal();
             }
             if (event.target === teacherModal) {
                 closeAddTeacherModal();
+            }
+            if (event.target === parentModal) {
+                closeAddParentModal();
             }
         });
     </script>

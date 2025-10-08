@@ -120,4 +120,13 @@ public class WebController {
         model.addAttribute("pageTitle", "Teacher Management - School Management System");
         return "dashboard/teachers";
     }
+
+    /**
+     * Parents Management page - Owner dashboard
+     */
+    @GetMapping("/dashboard/parents")
+    public String parentsManagement(Model model) {
+        model.addAttribute("pageTitle", "Parent Management - School Management System");
+        return "dashboard/parents";
+    }
 }
