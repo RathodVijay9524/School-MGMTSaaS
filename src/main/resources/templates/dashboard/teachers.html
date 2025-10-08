@@ -453,8 +453,8 @@
                         ${getStatusBadge(teacher)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div class="flex items-center gap-2">
-                            ${getActionButtons(teacher)}
+                        <div class="flex space-x-2">
+                            ${getTabSpecificActions(teacher)}
                         </div>
                     </td>
                 </tr>
@@ -483,6 +483,101 @@
             } else {
                 return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">Inactive</span>';
             }
+        }
+
+        // Get tab-specific action buttons - matching super-admin implementation
+        function getTabSpecificActions(teacher) {
+            let actions = '';
+            
+            // Edit Roles Button - show for All Teachers and Active tabs
+            if (currentTab === 0 || currentTab === 1) {
+                actions += `
+                    <button
+                        onclick="openRoleModal(${teacher.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        title="Edit Roles"
+                    >
+                        🎭 Roles
+                    </button>
+                `;
+            }
+            
+            // Tab-specific actions
+            if (currentTab === 0) {
+                // All Teachers tab
+                actions += `
+                    <button
+                        onclick="handleStatusToggle(${teacher.id}, ${teacher.accountStatus?.isActive === true})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${teacher.accountStatus?.isActive === true ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500' : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'}"
+                        title="${teacher.accountStatus?.isActive === true ? 'Deactivate' : 'Activate'}"
+                    >
+                        ${teacher.accountStatus?.isActive === true ? '⏸️ Deactivate' : '▶️ Activate'}
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${teacher.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Soft Delete"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            } else if (currentTab === 1) {
+                // Active tab
+                actions += `
+                    <button
+                        onclick="viewTeacher(${teacher.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        title="View Details"
+                    >
+                        👁 View
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${teacher.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Soft Delete"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            } else if (currentTab === 2) {
+                // Deleted tab
+                actions += `
+                    <button
+                        onclick="handleRestore(${teacher.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        title="Restore Teacher"
+                    >
+                        ↻ Restore
+                    </button>
+                    <button
+                        onclick="handlePermanentDelete(${teacher.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Permanent Delete"
+                    >
+                        ❌ Permanent
+                    </button>
+                `;
+            } else if (currentTab === 3) {
+                // Expired tab
+                actions += `
+                    <button
+                        onclick="handleStatusToggle(${teacher.id}, ${teacher.accountStatus?.isActive === true})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        title="Activate Teacher"
+                    >
+                        ▶️ Activate
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${teacher.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Soft Delete"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            }
+            
+            return actions;
         }
 
         // Get action buttons based on status
@@ -747,6 +842,173 @@
                 submitBtn.innerHTML = '<i class="fas fa-chalkboard-teacher mr-2"></i>Add Teacher';
             }
         });
+
+        // ==================== TEACHER OPERATION FUNCTIONS ====================
+        
+        // Handle status toggle (activate/deactivate)
+        async function handleStatusToggle(teacherId, currentStatus) {
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                const newStatus = !currentStatus;
+                
+                console.log('Toggling teacher status:', teacherId, 'from', currentStatus, 'to', newStatus);
+                
+                const response = await fetch(`/api/v1/workers/${teacherId}/status?isActive=${newStatus}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Status update response:', result);
+                    alert(`✅ Teacher ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+                    loadTeachers(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Status update failed:', errorText);
+                    alert(`❌ Failed to update teacher status: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error toggling teacher status:', error);
+                alert('❌ Failed to update teacher status');
+            }
+        }
+
+        // Handle soft delete
+        async function handleSoftDelete(teacherId) {
+            if (!confirm('Are you sure you want to delete this teacher? This will move them to the recycle bin.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                
+                const response = await fetch(`/api/v1/workers/${teacherId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('✅ Teacher deleted successfully!');
+                    loadTeachers(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Delete failed:', errorText);
+                    alert(`❌ Failed to delete teacher: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error deleting teacher:', error);
+                alert('❌ Failed to delete teacher');
+            }
+        }
+
+        // Handle restore
+        async function handleRestore(teacherId) {
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                
+                const response = await fetch(`/api/v1/workers/${teacherId}/restore`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('✅ Teacher restored successfully!');
+                    loadTeachers(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Restore failed:', errorText);
+                    alert(`❌ Failed to restore teacher: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error restoring teacher:', error);
+                alert('❌ Failed to restore teacher');
+            }
+        }
+
+        // Handle permanent delete
+        async function handlePermanentDelete(teacherId) {
+            if (!confirm('⚠️ WARNING: This will permanently delete the teacher and ALL associated data!\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                
+                const response = await fetch(`/api/v1/workers/${teacherId}/permanent`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('✅ Teacher permanently deleted!');
+                    loadTeachers(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Permanent delete failed:', errorText);
+                    
+                    let errorMessage = `Failed to permanently delete teacher: ${errorText}`;
+                    
+                    // Special handling for data integrity violation
+                    if (errorText.includes('Data integrity violation') || errorText.includes('Cannot permanently delete')) {
+                        errorMessage = '⚠️ Cannot permanently delete this teacher!\n\n' +
+                                     'This teacher has associated data that prevents deletion:\n' +
+                                     '• Classes they teach\n' +
+                                     '• Assignments they created\n' +
+                                     '• Exam results they graded\n' +
+                                     '• Attendance records\n\n' +
+                                     'Please use "Soft Delete" instead.';
+                    }
+                    
+                    alert('❌ ' + errorMessage);
+                }
+            } catch (error) {
+                console.error('Error permanently deleting teacher:', error);
+                alert('❌ Failed to permanently delete teacher');
+            }
+        }
+
+        // View teacher details
+        async function viewTeacher(teacherId) {
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                const response = await fetch(`/api/v1/workers/${teacherId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Teacher details:', result.data);
+                    alert(`Teacher: ${result.data.name}\nEmail: ${result.data.email}\nStatus: ${result.data.accountStatus?.isActive ? 'Active' : 'Inactive'}`);
+                } else {
+                    alert('❌ Failed to load teacher details');
+                }
+            } catch (error) {
+                console.error('Error loading teacher details:', error);
+                alert('❌ Failed to load teacher details');
+            }
+        }
+
+        // Open role assignment modal
+        function openRoleModal(teacherId) {
+            // TODO: Implement role assignment modal
+            alert(`Role assignment for teacher ID: ${teacherId}\nThis feature will be implemented next.`);
+        }
 
         // Logout function
         function logout() {

@@ -453,8 +453,8 @@
                         ${getRolesBadges(student.roles)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div class="flex items-center gap-2">
-                            ${getActionButtons(student)}
+                        <div class="flex space-x-2">
+                            ${getTabSpecificActions(student)}
                         </div>
                     </td>
                 </tr>
@@ -483,6 +483,101 @@
             } else {
                 return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">Inactive</span>';
             }
+        }
+
+        // Get tab-specific action buttons - matching super-admin implementation
+        function getTabSpecificActions(student) {
+            let actions = '';
+            
+            // Edit Roles Button - show for All Students and Active tabs
+            if (currentTab === 0 || currentTab === 1) {
+                actions += `
+                    <button
+                        onclick="openRoleModal(${student.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        title="Edit Roles"
+                    >
+                        🎭 Roles
+                    </button>
+                `;
+            }
+            
+            // Tab-specific actions
+            if (currentTab === 0) {
+                // All Students tab
+                actions += `
+                    <button
+                        onclick="handleStatusToggle(${student.id}, ${student.accountStatus?.isActive === true})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${student.accountStatus?.isActive === true ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500' : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'}"
+                        title="${student.accountStatus?.isActive === true ? 'Deactivate' : 'Activate'}"
+                    >
+                        ${student.accountStatus?.isActive === true ? '⏸️ Deactivate' : '▶️ Activate'}
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${student.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Soft Delete"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            } else if (currentTab === 1) {
+                // Active tab
+                actions += `
+                    <button
+                        onclick="viewStudent(${student.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        title="View Details"
+                    >
+                        👁 View
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${student.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Soft Delete"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            } else if (currentTab === 2) {
+                // Deleted tab
+                actions += `
+                    <button
+                        onclick="handleRestore(${student.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        title="Restore Student"
+                    >
+                        ↻ Restore
+                    </button>
+                    <button
+                        onclick="handlePermanentDelete(${student.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Permanent Delete"
+                    >
+                        ❌ Permanent
+                    </button>
+                `;
+            } else if (currentTab === 3) {
+                // Expired tab
+                actions += `
+                    <button
+                        onclick="handleStatusToggle(${student.id}, ${student.accountStatus?.isActive === true})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        title="Activate Student"
+                    >
+                        ▶️ Activate
+                    </button>
+                    <button
+                        onclick="handleSoftDelete(${student.id})"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Soft Delete"
+                    >
+                        🗑️ Delete
+                    </button>
+                `;
+            }
+            
+            return actions;
         }
 
         // Get roles badges
@@ -763,6 +858,173 @@
                 submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Add Student';
             }
         });
+
+        // ==================== STUDENT OPERATION FUNCTIONS ====================
+        
+        // Handle status toggle (activate/deactivate)
+        async function handleStatusToggle(studentId, currentStatus) {
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                const newStatus = !currentStatus;
+                
+                console.log('Toggling student status:', studentId, 'from', currentStatus, 'to', newStatus);
+                
+                const response = await fetch(`/api/v1/workers/${studentId}/status?isActive=${newStatus}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Status update response:', result);
+                    alert(`✅ Student ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+                    loadStudents(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Status update failed:', errorText);
+                    alert(`❌ Failed to update student status: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error toggling student status:', error);
+                alert('❌ Failed to update student status');
+            }
+        }
+
+        // Handle soft delete
+        async function handleSoftDelete(studentId) {
+            if (!confirm('Are you sure you want to delete this student? This will move them to the recycle bin.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                
+                const response = await fetch(`/api/v1/workers/${studentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('✅ Student deleted successfully!');
+                    loadStudents(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Delete failed:', errorText);
+                    alert(`❌ Failed to delete student: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error deleting student:', error);
+                alert('❌ Failed to delete student');
+            }
+        }
+
+        // Handle restore
+        async function handleRestore(studentId) {
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                
+                const response = await fetch(`/api/v1/workers/${studentId}/restore`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('✅ Student restored successfully!');
+                    loadStudents(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Restore failed:', errorText);
+                    alert(`❌ Failed to restore student: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error restoring student:', error);
+                alert('❌ Failed to restore student');
+            }
+        }
+
+        // Handle permanent delete
+        async function handlePermanentDelete(studentId) {
+            if (!confirm('⚠️ WARNING: This will permanently delete the student and ALL associated data!\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                
+                const response = await fetch(`/api/v1/workers/${studentId}/permanent`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('✅ Student permanently deleted!');
+                    loadStudents(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    console.error('Permanent delete failed:', errorText);
+                    
+                    let errorMessage = `Failed to permanently delete student: ${errorText}`;
+                    
+                    // Special handling for data integrity violation
+                    if (errorText.includes('Data integrity violation') || errorText.includes('Cannot permanently delete')) {
+                        errorMessage = '⚠️ Cannot permanently delete this student!\n\n' +
+                                     'This student has associated data that prevents deletion:\n' +
+                                     '• Assignments or submissions\n' +
+                                     '• Attendance records\n' +
+                                     '• Exam results\n' +
+                                     '• Library books\n\n' +
+                                     'Please use "Soft Delete" instead.';
+                    }
+                    
+                    alert('❌ ' + errorMessage);
+                }
+            } catch (error) {
+                console.error('Error permanently deleting student:', error);
+                alert('❌ Failed to permanently delete student');
+            }
+        }
+
+        // View student details
+        async function viewStudent(studentId) {
+            try {
+                const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+                const response = await fetch(`/api/v1/workers/${studentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Student details:', result.data);
+                    alert(`Student: ${result.data.name}\nEmail: ${result.data.email}\nStatus: ${result.data.accountStatus?.isActive ? 'Active' : 'Inactive'}`);
+                } else {
+                    alert('❌ Failed to load student details');
+                }
+            } catch (error) {
+                console.error('Error loading student details:', error);
+                alert('❌ Failed to load student details');
+            }
+        }
+
+        // Open role assignment modal
+        function openRoleModal(studentId) {
+            // TODO: Implement role assignment modal
+            alert(`Role assignment for student ID: ${studentId}\nThis feature will be implemented next.`);
+        }
 
         // Logout function
         function logout() {
