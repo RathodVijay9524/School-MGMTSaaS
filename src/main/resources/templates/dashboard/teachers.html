@@ -500,9 +500,7 @@
             
             const roleColors = {
                 'ROLE_STUDENT': 'bg-blue-100 text-blue-800',
-                'ROLE_TEACHER': 'bg-green-100 text-green-800', 
-                'ROLE_ADMIN': 'bg-purple-100 text-purple-800',
-                'ROLE_SUPER_ADMIN': 'bg-red-100 text-red-800'
+                'ROLE_TEACHER': 'bg-green-100 text-green-800'
             };
             
             return teacher.roles.map(role => {
@@ -1224,14 +1222,6 @@
                     <label class="flex items-center space-x-3 cursor-pointer">
                         <input type="checkbox" value="ROLE_TEACHER" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" onchange="toggleRole('ROLE_TEACHER')">
                         <span class="text-sm font-medium text-gray-700">Teacher</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" value="ROLE_ADMIN" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" onchange="toggleRole('ROLE_ADMIN')">
-                        <span class="text-sm font-medium text-gray-700">Admin</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" value="ROLE_SUPER_ADMIN" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" onchange="toggleRole('ROLE_SUPER_ADMIN')">
-                        <span class="text-sm font-medium text-gray-700">Super Admin</span>
                     </label>
                 </div>
             </div>
