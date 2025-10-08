@@ -54,6 +54,7 @@ public class UserMasterApplication {
             Role studentRole = createAndSaveRole("ROLE_STUDENT");
             Role managerRole = createAndSaveRole("ROLE_MANAGER");
 
+
             // Add roles to sets
             Set<Role> adminRoles = new HashSet<>(Arrays.asList(adminRole));
             Set<Role> userRoles = new HashSet<>(Arrays.asList(superUserRole));

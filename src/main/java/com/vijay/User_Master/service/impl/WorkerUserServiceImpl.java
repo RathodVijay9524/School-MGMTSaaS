@@ -50,6 +50,35 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final SchoolClassRepository schoolClassRepository;
+    
+    /**
+     * Helper method to convert Worker entity to WorkerResponse with userId populated
+     */
+    private WorkerResponse convertToResponse(Worker worker) {
+        WorkerResponse response = mapper.map(worker, WorkerResponse.class);
+        if (worker.getUser() != null) {
+            response.setUserId(worker.getUser().getId());
+        }
+        return response;
+    }
+    
+    /**
+     * Helper method to convert Worker Page to PageableResponse with userId populated for each worker
+     */
+    private PageableResponse<WorkerResponse> convertPageToResponse(Page<Worker> page) {
+        List<WorkerResponse> dtoList = page.getContent().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+        
+        PageableResponse<WorkerResponse> response = new PageableResponse<>();
+        response.setContent(dtoList);
+        response.setPageNumber(page.getNumber());
+        response.setPageSize(page.getSize());
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+        response.setLastPage(page.isLast());
+        return response;
+    }
 
     @Override
     @Tool(name = "createWorker", description = "Create a new student or teacher with username, email, name and assigned roles (ROLE_STUDENT or ROLE_TEACHER)")
@@ -106,7 +135,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         Worker savedWorker = workerRepository.save(worker);
         log.info("Worker created successfully with ID: {}", savedWorker.getId());
         
-        return mapper.map(savedWorker, WorkerResponse.class);
+        return convertToResponse(savedWorker);
     }
 
     // find user by id ... for Worker Entity
@@ -115,7 +144,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
     public WorkerResponse findById(Long id) throws Exception {
         Worker worker = workerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Worker", "ID", id));
-        return mapper.map(worker, WorkerResponse.class);
+        return convertToResponse(worker);
     }
 
     // You can delete Item ... it saves at recycle bin.
@@ -181,7 +210,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
         Long loggedInUserId = loggedInUser.getId();
         Page<Worker> pages = workerRepository.findByOwner_Id(loggedInUserId, pageable);
-        return Helper.getPageableResponse(pages, WorkerResponse.class);
+        return convertPageToResponse(pages);
     }
 
     @Override
@@ -205,7 +234,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
             );
         };
         Page<Worker> workerPage = workerRepository.findAll(spec, pageable);
-        return Helper.getPageableResponse(workerPage, WorkerResponse.class);
+        return convertPageToResponse(workerPage);
     }
 
     @Override
@@ -217,7 +246,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         Sort sort = (sortDir.equalsIgnoreCase("desc")) ? (Sort.by(sortBy).descending()) : (Sort.by(sortBy).ascending());
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
         Page<Worker> allPages = workerRepository.findByCreatedByAndIsDeletedFalse(loggedInUserId, pageable);
-        return Helper.getPageableResponse(allPages, WorkerResponse.class);
+        return convertPageToResponse(allPages);
     }
 
 
@@ -257,7 +286,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         if (workerRepository.findByCreatedByAndIsDeletedTrue(loggedInUser.getId(), pageable).isEmpty()) {
             throw new ResourceNotFoundException("Recycle Bin", "Workers", "No deleted workers found for the current user.");
         }
-        return Helper.getPageableResponse(users, WorkerResponse.class);
+        return convertPageToResponse(users);
     }
 
     @Override
@@ -308,7 +337,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
 
         Page<Worker> workerPage = workerRepository.findByUser_Id(superUserId, pageable);
 
-        return Helper.getPageableResponse(workerPage, WorkerResponse.class);
+        return convertPageToResponse(workerPage);
     }
 
     @Override
@@ -323,7 +352,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
             default -> workerRepository.findByUser_Id(superUserId, pageable);
         };
 
-        return Helper.getPageableResponse(page, WorkerResponse.class);
+        return convertPageToResponse(page);
     }
 
     @Override
@@ -425,15 +454,7 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         Worker updatedWorker = workerRepository.save(existingWorker);
         log.info("Worker updated successfully with ID: {}", updatedWorker.getId());
         
-        WorkerResponse response = mapper.map(updatedWorker, WorkerResponse.class);
-        
-        // Set class information in response
-        if (updatedWorker.getCurrentClass() != null) {
-            response.setCurrentClassId(updatedWorker.getCurrentClass().getId());
-            response.setCurrentClassName(updatedWorker.getCurrentClass().getClassName());
-        }
-        
-        return response;
+        return convertToResponse(updatedWorker);
     }
 
 

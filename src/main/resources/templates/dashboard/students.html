@@ -1135,8 +1135,24 @@
             try {
                 const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
                 
-                const rolesArray = Array.from(selectedRoles);
-                const requestBody = { roles: rolesArray };
+                // Convert selected role names to array
+                const selectedRoleNames = Array.from(selectedRoles);
+
+                if (selectedRoleNames.length === 0) {
+                    alert('❌ No valid roles selected');
+                    return;
+                }
+
+                // Use the worker update endpoint to update roles
+                // This updates the worker's own roles, not the user's roles
+                const requestBody = {
+                    name: currentEditingStudent.name,
+                    username: currentEditingStudent.username,
+                    email: currentEditingStudent.email,
+                    phoNo: currentEditingStudent.phoNo,
+                    about: currentEditingStudent.about,
+                    roles: selectedRoleNames  // Role names as strings
+                };
                 
                 const response = await fetch(`/api/v1/workers/${currentEditingStudent.id}`, {
                     method: 'PUT',

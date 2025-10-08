@@ -30,6 +30,9 @@ public class WorkerResponse {
     private Set<Role> roles; // Roles are strings like "ROLE_ADMIN"
     private AccountStatus accountStatus;
     
+    // User ID (for role assignment - roles are assigned to users, not workers)
+    private Long userId;
+    
     // Class information
     private Long currentClassId;
     private String currentClassName;
