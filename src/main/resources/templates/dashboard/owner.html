@@ -115,15 +115,15 @@
         <!-- Navigation -->
         <nav class="mt-5 px-2">
             <div class="space-y-1">
-                <a href="#" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/owner" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-tachometer-alt text-primary-500 mr-3"></i>
                     Dashboard
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/students" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-users text-gray-400 mr-3"></i>
                     Students
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/teachers" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-chalkboard-teacher text-gray-400 mr-3"></i>
                     Teachers
                 </a>
@@ -245,7 +245,7 @@
         </div>
 
         <!-- Dashboard Content -->
-        <div class="p-6">
+        <div class="p-6" id="dashboardSection">
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white rounded-lg shadow card-hover p-6">
@@ -844,7 +844,13 @@
         // Navigation handling
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function(e) {
-                e.preventDefault();
+                const href = this.getAttribute('href');
+                console.log('Navigating to:', href);
+                
+                // Only prevent default for # links (non-navigational)
+                if (href === '#' || !href) {
+                    e.preventDefault();
+                }
                 
                 // Remove active class from all items
                 document.querySelectorAll('.nav-item').forEach(nav => {
@@ -856,9 +862,8 @@
                 this.classList.add('bg-primary-100', 'text-primary-700');
                 this.classList.remove('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
                 
-                // Handle navigation (you can add specific logic here)
-                const text = this.textContent.trim();
-                console.log('Navigating to:', text);
+                // For # links, don't navigate - let preventDefault handle it
+                // For actual URLs, allow normal browser navigation
             });
         });
 
