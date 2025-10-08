@@ -246,6 +246,7 @@
 
     <script>
         // State management
+        let teachers = [];
         let currentTab = 0;
         let currentPage = 0;
         let pageSize = 10;
@@ -390,7 +391,7 @@
 
                 // Filter only teachers (ROLE_TEACHER)
                 const allWorkers = result.data?.content || [];
-                const teachers = allWorkers.filter(worker => 
+                teachers = allWorkers.filter(worker => 
                     worker.roles && worker.roles.some(role => 
                         role.name === 'ROLE_TEACHER' || (typeof role.name === 'string' && role.name.includes('ROLE_TEACHER'))
                     )
