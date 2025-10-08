@@ -902,12 +902,19 @@
         document.getElementById('addStudentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+            console.log('Token check:', token ? 'Token exists' : 'No token found');
+            
             if (!token) {
-                alert('Please login first');
+                alert('⚠️ Session expired! Please login again.');
                 window.location.href = '/login';
                 return;
             }
+
+            // Disable submit button to prevent double submission
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
 
             const requestBody = {
                 name: document.getElementById('studentName').value,
@@ -920,7 +927,8 @@
                 isDeleted: false
             };
 
-            console.log('Creating student with data:', requestBody);
+            console.log('📝 Creating student with data:', requestBody);
+            console.log('🔑 Using token:', token.substring(0, 20) + '...');
 
             try {
                 const response = await fetch('/api/v1/workers', {
@@ -932,19 +940,39 @@
                     body: JSON.stringify(requestBody)
                 });
 
+                console.log('📡 Response status:', response.status);
                 const result = await response.json();
-                console.log('API Response:', result);
+                console.log('📦 API Response:', result);
+                console.log('📊 Response structure:', {
+                    status: response.status,
+                    responseStatus: result.responseStatus,
+                    statusField: result.status,
+                    message: result.message
+                });
 
-                if (response.ok && result.responseStatus === 'OK') {
-                    alert('✅ Student added successfully!');
+                // Check for success - handle both 200/201 and check response structure
+                if ((response.status === 200 || response.status === 201) && 
+                    (result.responseStatus === 'OK' || result.responseStatus === 'CREATED' || result.status === 'success')) {
+                    alert('✅ Student added successfully!\n\nUsername: ' + requestBody.username);
                     closeAddStudentModal();
                     loadDashboardData(); // Refresh dashboard stats
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('⚠️ Session expired! Please login again.');
+                    localStorage.removeItem('jwtToken');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
                 } else {
-                    alert('❌ Error: ' + (result.message || result.data || 'Failed to add student'));
+                    alert('❌ Error: ' + (result.message || result.data || JSON.stringify(result) || 'Failed to add student'));
                 }
             } catch (error) {
-                console.error('Error creating student:', error);
+                console.error('❌ Error creating student:', error);
                 alert('❌ Error: ' + error.message);
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Add Student';
             }
         });
 
@@ -953,12 +981,19 @@
         document.getElementById('addTeacherForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+            console.log('Token check:', token ? 'Token exists' : 'No token found');
+            
             if (!token) {
-                alert('Please login first');
+                alert('⚠️ Session expired! Please login again.');
                 window.location.href = '/login';
                 return;
             }
+
+            // Disable submit button to prevent double submission
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
 
             const requestBody = {
                 name: document.getElementById('teacherName').value,
@@ -971,7 +1006,8 @@
                 isDeleted: false
             };
 
-            console.log('Creating teacher with data:', requestBody);
+            console.log('📝 Creating teacher with data:', requestBody);
+            console.log('🔑 Using token:', token.substring(0, 20) + '...');
 
             try {
                 const response = await fetch('/api/v1/workers', {
@@ -983,19 +1019,39 @@
                     body: JSON.stringify(requestBody)
                 });
 
+                console.log('📡 Response status:', response.status);
                 const result = await response.json();
-                console.log('API Response:', result);
+                console.log('📦 API Response:', result);
+                console.log('📊 Response structure:', {
+                    status: response.status,
+                    responseStatus: result.responseStatus,
+                    statusField: result.status,
+                    message: result.message
+                });
 
-                if (response.ok && result.responseStatus === 'OK') {
-                    alert('✅ Teacher added successfully!');
+                // Check for success - handle both 200/201 and check response structure
+                if ((response.status === 200 || response.status === 201) && 
+                    (result.responseStatus === 'OK' || result.responseStatus === 'CREATED' || result.status === 'success')) {
+                    alert('✅ Teacher added successfully!\n\nUsername: ' + requestBody.username);
                     closeAddTeacherModal();
                     loadDashboardData(); // Refresh dashboard stats
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('⚠️ Session expired! Please login again.');
+                    localStorage.removeItem('jwtToken');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
                 } else {
-                    alert('❌ Error: ' + (result.message || result.data || 'Failed to add teacher'));
+                    alert('❌ Error: ' + (result.message || result.data || JSON.stringify(result) || 'Failed to add teacher'));
                 }
             } catch (error) {
-                console.error('Error creating teacher:', error);
+                console.error('❌ Error creating teacher:', error);
                 alert('❌ Error: ' + error.message);
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-chalkboard-teacher mr-2"></i>Add Teacher';
             }
         });
 
