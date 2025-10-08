@@ -390,7 +390,7 @@
                 const allWorkers = result.data?.content || [];
                 const students = allWorkers.filter(worker => 
                     worker.roles && worker.roles.some(role => 
-                        role.name === 'ROLE_STUDENT' || role.includes('ROLE_STUDENT')
+                        role.name === 'ROLE_STUDENT' || (typeof role.name === 'string' && role.name.includes('ROLE_STUDENT'))
                     )
                 );
 
