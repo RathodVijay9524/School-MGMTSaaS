@@ -500,7 +500,8 @@
             
             const roleColors = {
                 'ROLE_STUDENT': 'bg-blue-100 text-blue-800',
-                'ROLE_TEACHER': 'bg-green-100 text-green-800'
+                'ROLE_TEACHER': 'bg-green-100 text-green-800',
+                'ROLE_PARENT': 'bg-purple-100 text-purple-800'
             };
             
             return teacher.roles.map(role => {
@@ -1222,6 +1223,10 @@
                     <label class="flex items-center space-x-3 cursor-pointer">
                         <input type="checkbox" value="ROLE_TEACHER" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" onchange="toggleRole('ROLE_TEACHER')">
                         <span class="text-sm font-medium text-gray-700">Teacher</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" value="ROLE_PARENT" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500" onchange="toggleRole('ROLE_PARENT')">
+                        <span class="text-sm font-medium text-gray-700">Parent</span>
                     </label>
                 </div>
             </div>

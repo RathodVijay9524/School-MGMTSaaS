@@ -129,4 +129,33 @@ public class WebController {
         model.addAttribute("pageTitle", "Parent Management - School Management System");
         return "dashboard/parents";
     }
+
+    /**
+     * Role Management page - Super Admin dashboard
+     */
+    @GetMapping("/dashboard/role-management")
+    public String roleManagement(Model model) {
+        model.addAttribute("pageTitle", "Role Management - School Management System");
+        return "dashboard/role-management";
+    }
+
+    /**
+     * Super Admin New Dashboard - With sidebar navigation
+     */
+    @GetMapping("/dashboard/super-admin-new")
+    public String superAdminNew(Model model) {
+        model.addAttribute("pageTitle", "Super Admin Dashboard - School Management System");
+        return "dashboard/super-admin-new";
+    }
+
+    /**
+     * User Management page - Super Admin dashboard
+     */
+    @GetMapping("/dashboard/user-management")
+    public String userManagement(Model model) {
+        model.addAttribute("pageTitle", "User Management - School Management System");
+        return "dashboard/user-management";
+    }
+
+
 }

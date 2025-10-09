@@ -185,7 +185,7 @@
                         <span class="text-sm font-medium text-gray-700">Teacher</span>
                     </label>
                     <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" value="ROLE_NORMAL" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" onchange="toggleRole('ROLE_NORMAL')">
+                        <input type="checkbox" value="ROLE_PARENT" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500" onchange="toggleRole('ROLE_PARENT')">
                         <span class="text-sm font-medium text-gray-700">Parent</span>
                     </label>
                 </div>
@@ -393,11 +393,11 @@
                 const result = await response.json();
                 console.log('📦 API Response:', result);
 
-                // Filter only parents (ROLE_NORMAL)
+                // Filter only parents (ROLE_PARENT)
                 const allWorkers = result.data?.content || [];
                 parents = allWorkers.filter(worker => 
                     worker.roles && worker.roles.some(role => 
-                        role.name === 'ROLE_NORMAL' || (typeof role.name === 'string' && role.name.includes('ROLE_NORMAL'))
+                        role.name === 'ROLE_PARENT' || (typeof role.name === 'string' && role.name.includes('ROLE_PARENT'))
                     )
                 );
 
