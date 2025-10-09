@@ -103,6 +103,55 @@ public class WebDashboardController {
         return "dashboard/student";
     }
 
+    @GetMapping("/student/timetable")
+    public String studentTimetable(Model model) {
+        model.addAttribute("pageTitle", "My Timetable - Student Dashboard");
+        model.addAttribute("userRole", "STUDENT");
+        return "dashboard/student-timetable";
+    }
+
+    @GetMapping("/student/assignments")
+    public String studentAssignments(Model model) {
+        model.addAttribute("pageTitle", "My Assignments - Student Dashboard");
+        model.addAttribute("userRole", "STUDENT");
+        return "dashboard/student-assignments";
+    }
+
+    @GetMapping("/student/exams")
+    public String studentExams(Model model) {
+        model.addAttribute("pageTitle", "My Exams - Student Dashboard");
+        model.addAttribute("userRole", "STUDENT");
+        return "dashboard/student-exams";
+    }
+
+    @GetMapping("/student/grades")
+    public String studentGrades(Model model) {
+        model.addAttribute("pageTitle", "My Grades - Student Dashboard");
+        model.addAttribute("userRole", "STUDENT");
+        return "dashboard/student-grades";
+    }
+
+    @GetMapping("/student/attendance")
+    public String studentAttendance(Model model) {
+        model.addAttribute("pageTitle", "My Attendance - Student Dashboard");
+        model.addAttribute("userRole", "STUDENT");
+        return "dashboard/student-attendance";
+    }
+
+    @GetMapping("/student/subjects")
+    public String studentSubjects(Model model) {
+        model.addAttribute("pageTitle", "My Subjects - Student Dashboard");
+        model.addAttribute("userRole", "STUDENT");
+        return "dashboard/student-subjects";
+    }
+
+    @GetMapping("/student/fees")
+    public String studentFees(Model model) {
+        model.addAttribute("pageTitle", "My Fees - Student Dashboard");
+        model.addAttribute("userRole", "STUDENT");
+        return "dashboard/student-fees";
+    }
+
     /**
      * Parent Dashboard
      */
