@@ -3,6 +3,7 @@ package com.vijay.User_Master.controller;
 import com.vijay.User_Master.dto.SchoolClassRequest;
 import com.vijay.User_Master.dto.SchoolClassResponse;
 import com.vijay.User_Master.dto.PageableResponse;
+import jakarta.validation.Valid;
 import com.vijay.User_Master.service.SchoolClassService;
 import com.vijay.User_Master.Helper.CommonUtils;
 import com.vijay.User_Master.Helper.ExceptionUtil;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +26,8 @@ public class SchoolClassController {
     private final SchoolClassService schoolClassService;
     
     @PostMapping
-    public ResponseEntity<?> createClass(@RequestBody SchoolClassRequest request) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
+    public ResponseEntity<?> createClass(@Valid @RequestBody SchoolClassRequest request) {
         log.info("Creating class: {}", request.getClassName());
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         SchoolClassResponse response = schoolClassService.createClass(request, ownerId);
@@ -32,6 +35,7 @@ public class SchoolClassController {
     }
     
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getAllClasses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -44,6 +48,7 @@ public class SchoolClassController {
     }
     
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getClassById(@PathVariable Long id) {
         log.info("Getting class by ID: {}", id);
         Long ownerId = CommonUtils.getLoggedInUser().getId();
@@ -52,7 +57,8 @@ public class SchoolClassController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateClass(@PathVariable Long id, @RequestBody SchoolClassRequest request) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
+    public ResponseEntity<?> updateClass(@PathVariable Long id, @Valid @RequestBody SchoolClassRequest request) {
         log.info("Updating class: {}", id);
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         SchoolClassResponse response = schoolClassService.updateClass(id, request, ownerId);
@@ -60,6 +66,7 @@ public class SchoolClassController {
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
     public ResponseEntity<?> deleteClass(@PathVariable Long id) {
         log.info("Deleting class: {}", id);
         Long ownerId = CommonUtils.getLoggedInUser().getId();
@@ -68,6 +75,7 @@ public class SchoolClassController {
     }
     
     @GetMapping("/active")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getActiveClasses() {
         log.info("Getting active classes");
         Long ownerId = CommonUtils.getLoggedInUser().getId();

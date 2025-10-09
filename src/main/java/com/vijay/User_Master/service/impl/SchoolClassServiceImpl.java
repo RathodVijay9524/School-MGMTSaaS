@@ -40,10 +40,12 @@ public class SchoolClassServiceImpl implements SchoolClassService {
         
         SchoolClass schoolClass = SchoolClass.builder()
                 .className(request.getClassName())
-                .description(request.getDescription())
+                .section(request.getSection())
+                .classLevel(request.getClassLevel())
                 .capacity(request.getCapacity())
+                .roomNumber(request.getRoomNumber())
                 .academicYear(request.getAcademicYear())
-                .classLevel(1) // Set default class level
+                .description(request.getDescription())
                 .owner(owner)
                 .status(request.getStatus() != null ? SchoolClass.ClassStatus.valueOf(request.getStatus()) : SchoolClass.ClassStatus.ACTIVE)
                 .isActive(true)
@@ -89,9 +91,15 @@ public class SchoolClassServiceImpl implements SchoolClassService {
                 .orElseThrow(() -> new RuntimeException("Class not found"));
         
         schoolClass.setClassName(request.getClassName());
-        schoolClass.setDescription(request.getDescription());
+        schoolClass.setSection(request.getSection());
+        schoolClass.setClassLevel(request.getClassLevel());
         schoolClass.setCapacity(request.getCapacity());
+        schoolClass.setRoomNumber(request.getRoomNumber());
         schoolClass.setAcademicYear(request.getAcademicYear());
+        schoolClass.setDescription(request.getDescription());
+        if (request.getStatus() != null) {
+            schoolClass.setStatus(SchoolClass.ClassStatus.valueOf(request.getStatus()));
+        }
         
         SchoolClass updatedClass = schoolClassRepository.save(schoolClass);
         return convertToResponse(updatedClass);
@@ -118,9 +126,13 @@ public class SchoolClassServiceImpl implements SchoolClassService {
         return SchoolClassResponse.builder()
                 .id(schoolClass.getId())
                 .className(schoolClass.getClassName())
-                .description(schoolClass.getDescription())
+                .section(schoolClass.getSection())
+                .classLevel(schoolClass.getClassLevel())
                 .capacity(schoolClass.getCapacity())
+                .roomNumber(schoolClass.getRoomNumber())
                 .academicYear(schoolClass.getAcademicYear())
+                .description(schoolClass.getDescription())
+                .status(schoolClass.getStatus() != null ? schoolClass.getStatus().toString() : null)
                 .isActive(schoolClass.isActive())
                 .createdOn(schoolClass.getCreatedOn() != null ? 
                     schoolClass.getCreatedOn().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : 
