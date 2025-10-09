@@ -74,4 +74,12 @@ public class SchoolClassController {
         List<SchoolClassResponse> response = schoolClassService.getActiveClasses(ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
+    
+    @GetMapping("/teacher/{teacherId}")
+    public ResponseEntity<?> getClassesByTeacher(@PathVariable Long teacherId) {
+        log.info("Getting classes for teacher: {}", teacherId);
+        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        List<SchoolClassResponse> response = schoolClassService.getClassesByTeacher(teacherId, ownerId);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
 }

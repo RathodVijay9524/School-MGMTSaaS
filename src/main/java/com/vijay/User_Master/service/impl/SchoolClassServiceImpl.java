@@ -10,17 +10,20 @@ import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.SchoolClassService;
 import org.springframework.ai.tool.annotation.Tool;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SchoolClassServiceImpl implements SchoolClassService {
     
     private final SchoolClassRepository schoolClassRepository;
@@ -129,5 +132,21 @@ public class SchoolClassServiceImpl implements SchoolClassService {
                     schoolClass.getUpdatedOn().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : 
                     null)
                 .build();
+    }
+
+    @Override
+    public List<SchoolClassResponse> getClassesByTeacher(Long teacherId, Long ownerId) {
+        log.info("Getting classes for teacher: {} and owner: {}", teacherId, ownerId);
+        
+        List<SchoolClass> classes = schoolClassRepository.findByClassTeacher_IdAndIsDeletedFalse(teacherId);
+        
+        // Filter by owner (multi-tenancy)
+        classes = classes.stream()
+                .filter(schoolClass -> schoolClass.getOwner().getId().equals(ownerId))
+                .collect(Collectors.toList());
+        
+        return classes.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 }

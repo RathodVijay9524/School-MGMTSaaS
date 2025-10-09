@@ -13,4 +13,5 @@ public interface SchoolClassService {
     SchoolClassResponse updateClass(Long id, SchoolClassRequest request, Long ownerId);
     void deleteClass(Long id, Long ownerId);
     List<SchoolClassResponse> getActiveClasses(Long ownerId);
+    List<SchoolClassResponse> getClassesByTeacher(Long teacherId, Long ownerId);
 }

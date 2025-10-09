@@ -54,6 +54,46 @@ public class WebDashboardController {
     }
 
     /**
+     * Teacher Grades page
+     */
+    @GetMapping("/teacher/grades")
+    public String teacherGrades(Model model) {
+        model.addAttribute("pageTitle", "Grade Management - Teacher Dashboard");
+        model.addAttribute("userRole", "TEACHER");
+        return "dashboard/teacher-grades";
+    }
+
+    /**
+     * Teacher Timetable page
+     */
+    @GetMapping("/teacher/timetable")
+    public String teacherTimetable(Model model) {
+        model.addAttribute("pageTitle", "Timetable Management - Teacher Dashboard");
+        model.addAttribute("userRole", "TEACHER");
+        return "dashboard/teacher-timetable";
+    }
+
+    /**
+     * Teacher My Classes page
+     */
+    @GetMapping("/teacher/classes")
+    public String teacherClasses(Model model) {
+        model.addAttribute("pageTitle", "My Classes - Teacher Dashboard");
+        model.addAttribute("userRole", "TEACHER");
+        return "dashboard/teacher-classes";
+    }
+
+    /**
+     * Teacher Students page
+     */
+    @GetMapping("/teacher/students")
+    public String teacherStudents(Model model) {
+        model.addAttribute("pageTitle", "Students - Teacher Dashboard");
+        model.addAttribute("userRole", "TEACHER");
+        return "dashboard/teacher-students";
+    }
+
+    /**
      * Student Dashboard
      */
     @GetMapping("/student")

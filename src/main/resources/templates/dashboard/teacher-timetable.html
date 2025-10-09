@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable Management - Teacher Dashboard</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .sidebar-mobile {
+            transform: translateX(-100%);
+        }
+        .sidebar-mobile.open {
+            transform: translateX(0);
+        }
+        @media (min-width: 768px) {
+            .sidebar-mobile {
+                transform: translateX(0);
+            }
+        }
+        .time-slot {
+            min-height: 80px;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .time-slot:hover {
+            background-color: #f9fafb;
+        }
+        .period-card {
+            transition: all 0.2s;
+        }
+        .period-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Mobile Overlay -->
+    <div class="fixed inset-0 z-40 bg-black bg-opacity-50 hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition sidebar-mobile" id="sidebar">
+        <!-- Logo -->
+        <div class="flex items-center justify-between h-16 bg-primary-600 px-4">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                <span class="text-xl font-bold text-white">SchoolManager</span>
+            </div>
+            <!-- Mobile Close Button -->
+            <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-300">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chalkboard-teacher text-primary-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-900" id="userName">Teacher User</p>
+                    <p class="text-xs text-gray-500">Faculty Member</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="mt-5 px-2">
+            <div class="space-y-1">
+                <a href="/dashboard/teacher" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tachometer-alt text-gray-400 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-book text-gray-400 mr-3"></i>
+                    My Classes
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-users text-gray-400 mr-3"></i>
+                    Students
+                </a>
+                <a href="/dashboard/teacher/assignments" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tasks text-gray-400 mr-3"></i>
+                    Assignments
+                </a>
+                <a href="/dashboard/teacher/schedule-exam" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
+                    Schedule Exam
+                </a>
+                <a href="/dashboard/teacher/grades" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-chart-line text-gray-400 mr-3"></i>
+                    Grades
+                </a>
+                <a href="/dashboard/teacher/timetable" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-clock text-primary-500 mr-3"></i>
+                    Timetable
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-envelope text-gray-400 mr-3"></i>
+                    Messages
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="pl-0 md:pl-64" id="mainContent">
+        <!-- Top Navigation -->
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Mobile Menu Button & Page Title -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Mobile Menu Button -->
+                        <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        
+                        <!-- Page Title -->
+                        <div>
+                            <h1 class="text-2xl font-semibold text-gray-900">My Timetable</h1>
+                            <p class="text-sm text-gray-500">View and manage your weekly class schedule.</p>
+                        </div>
+                    </div>
+
+                    <!-- Top Right Actions -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Add Timetable Button -->
+                        <button onclick="openAddTimetableModal()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Schedule
+                        </button>
+
+                        <!-- User Menu -->
+                        <div class="relative" id="userMenuContainer">
+                            <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900" onclick="toggleUserDropdown()">
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-primary-600 text-sm"></i>
+                                </div>
+                                <span class="hidden md:block text-sm font-medium" id="userNameTop">Teacher</span>
+                                <i class="fas fa-chevron-down text-xs" id="dropdownChevron"></i>
+                            </button>
+                            
+                            <!-- Dropdown Menu -->
+                            <div class="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50 hidden" id="userDropdown">
+                                <!-- User Info -->
+                                <div class="px-4 py-3 border-b border-gray-200">
+                                    <p class="text-sm font-medium text-gray-900" id="dropdownUserName">Teacher</p>
+                                    <p class="text-xs text-gray-500" id="dropdownUserRole">Faculty Member</p>
+                                </div>
+                                
+                                <!-- Role Navigation -->
+                                <div class="py-2">
+                                    <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Switch Role</div>
+                                    <div id="roleNavigationItems">
+                                        <!-- Role items will be dynamically loaded here -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Divider -->
+                                <div class="border-t border-gray-200"></div>
+                                
+                                <!-- User Actions -->
+                                <div class="py-2">
+                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user-cog mr-3 text-gray-400"></i>
+                                        Profile Settings
+                                    </a>
+                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-cog mr-3 text-gray-400"></i>
+                                        Account Settings
+                                    </a>
+                                </div>
+                                
+                                <!-- Divider -->
+                                <div class="border-t border-gray-200"></div>
+                                
+                                <!-- Logout -->
+                                <div class="py-2">
+                                    <button onclick="logout()" class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <i class="fas fa-sign-out-alt mr-3"></i>
+                                        Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="p-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calendar-week text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Total Periods</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalPeriods">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chalkboard text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Classes</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalClasses">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-book-open text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Subjects</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalSubjects">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Hours/Week</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalHours">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Timetable -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-900">Weekly Schedule</h3>
+                        <div class="flex items-center space-x-4">
+                            <select id="viewType" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent" onchange="changeView()">
+                                <option value="weekly">Weekly View</option>
+                                <option value="list">List View</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="p-8 text-center">
+                    <div class="inline-flex items-center">
+                        <i class="fas fa-spinner fa-spin text-primary-600 text-xl mr-3"></i>
+                        <span class="text-gray-600">Loading timetable...</span>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="p-8 text-center hidden">
+                    <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-calendar-times text-gray-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No schedule found</h3>
+                    <p class="text-gray-500 mb-4">Get started by adding your first schedule.</p>
+                    <button onclick="openAddTimetableModal()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add Schedule
+                    </button>
+                </div>
+
+                <!-- Weekly View -->
+                <div id="weeklyView" class="hidden overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monday</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tuesday</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wednesday</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thursday</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Friday</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saturday</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weeklyTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Timetable will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- List View -->
+                <div id="listView" class="hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listViewTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- List will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Timetable Modal -->
+    <div id="addTimetableModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-900">Add Schedule</h3>
+                        <button onclick="closeAddTimetableModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <form id="addTimetableForm" class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Class *</label>
+                                <select id="classId" name="classId" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                    <option value="">Select Class</option>
+                                    <!-- Classes will be loaded here -->
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+                                <select id="subjectId" name="subjectId" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                    <option value="">Select Subject</option>
+                                    <!-- Subjects will be loaded here -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Day of Week *</label>
+                                <select id="dayOfWeek" name="dayOfWeek" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                    <option value="">Select Day</option>
+                                    <option value="MONDAY">Monday</option>
+                                    <option value="TUESDAY">Tuesday</option>
+                                    <option value="WEDNESDAY">Wednesday</option>
+                                    <option value="THURSDAY">Thursday</option>
+                                    <option value="FRIDAY">Friday</option>
+                                    <option value="SATURDAY">Saturday</option>
+                                    <option value="SUNDAY">Sunday</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Period Type *</label>
+                                <select id="periodType" name="periodType" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                    <option value="">Select Type</option>
+                                    <option value="LECTURE">Lecture</option>
+                                    <option value="PRACTICAL">Practical</option>
+                                    <option value="LAB">Lab</option>
+                                    <option value="BREAK">Break</option>
+                                    <option value="LUNCH">Lunch</option>
+                                    <option value="SPORTS">Sports</option>
+                                    <option value="ASSEMBLY">Assembly</option>
+                                    <option value="LIBRARY">Library</option>
+                                    <option value="STUDY_HALL">Study Hall</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
+                                <input type="time" id="startTime" name="startTime" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
+                                <input type="time" id="endTime" name="endTime" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Period Number</label>
+                                <input type="number" id="periodNumber" name="periodNumber" min="1" max="12"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                       placeholder="e.g., 1">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Room Number</label>
+                                <input type="text" id="roomNumber" name="roomNumber" maxlength="50"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                       placeholder="e.g., Room 101">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Academic Year *</label>
+                                <input type="text" id="academicYear" name="academicYear" required maxlength="20"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                       placeholder="e.g., 2024-2025">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Semester</label>
+                                <input type="text" id="semester" name="semester" maxlength="20"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                       placeholder="e.g., Fall 2024">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select id="status" name="status"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="INACTIVE">Inactive</option>
+                                    <option value="TEMPORARY">Temporary</option>
+                                    <option value="CANCELLED">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                            <textarea id="notes" name="notes" rows="2" maxlength="500"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                      placeholder="Additional notes"></textarea>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="isRecurring" name="isRecurring" checked
+                                   class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="isRecurring" class="ml-2 block text-sm text-gray-900">
+                                Recurring (repeats every week)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" onclick="closeAddTimetableModal()" 
+                                class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Schedule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let allTimetable = [];
+        let subjects = [];
+        let classes = [];
+        let currentTeacherId = null;
+        let currentView = 'weekly';
+
+        // Time slots for the weekly view
+        const timeSlots = [
+            '08:00', '09:00', '10:00', '11:00', '12:00', 
+            '13:00', '14:00', '15:00', '16:00', '17:00'
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            loadRoleNavigation();
+            loadSubjects();
+            loadClasses();
+            loadTimetable();
+            
+            // Event listeners
+            document.getElementById('addTimetableForm').addEventListener('submit', handleAddTimetable);
+        });
+
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.add('hidden');
+                if (window.innerWidth < 768) {
+                    mainContent.classList.remove('pl-64');
+                    mainContent.classList.add('pl-0');
+                }
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.remove('hidden');
+                if (window.innerWidth < 768) {
+                    mainContent.classList.remove('pl-0');
+                    mainContent.classList.add('pl-64');
+                }
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.add('hidden');
+                mainContent.classList.remove('pl-0');
+                mainContent.classList.add('md:pl-64');
+            } else {
+                if (!sidebar.classList.contains('open')) {
+                    overlay.classList.add('hidden');
+                    mainContent.classList.remove('pl-64');
+                    mainContent.classList.add('pl-0');
+                }
+            }
+        });
+
+        // Load timetable
+        async function loadTimetable() {
+            try {
+                showLoadingState();
+                
+                const token = localStorage.getItem('jwtToken');
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const teacherId = user.workerId || user.id;
+                
+                const response = await fetch(`/api/v1/timetables/teacher/${teacherId}/weekly`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    allTimetable = result || [];
+                    
+                    updateStats();
+                    displayTimetable();
+                } else {
+                    console.error('Failed to load timetable:', response.status);
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading timetable:', error);
+                showEmptyState();
+            }
+        }
+
+        // Load subjects
+        async function loadSubjects() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch('/api/v1/subjects?page=0&size=1000', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    subjects = result.data?.content || [];
+                    updateSubjectDropdown();
+                }
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+            }
+        }
+
+        // Load classes
+        async function loadClasses() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch('/api/v1/school-classes?page=0&size=1000', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    classes = result.data?.content || [];
+                    updateClassDropdown();
+                }
+            } catch (error) {
+                console.error('Error loading classes:', error);
+            }
+        }
+
+        // Update subject dropdown
+        function updateSubjectDropdown() {
+            const subjectSelect = document.getElementById('subjectId');
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = `${subject.subjectCode} - ${subject.subjectName}`;
+                subjectSelect.appendChild(option);
+            });
+        }
+
+        // Update class dropdown
+        function updateClassDropdown() {
+            const classSelect = document.getElementById('classId');
+            classSelect.innerHTML = '<option value="">Select Class</option>';
+            
+            classes.forEach(schoolClass => {
+                const option = document.createElement('option');
+                option.value = schoolClass.id;
+                option.textContent = `${schoolClass.className} ${schoolClass.section ? schoolClass.section : ''}`.trim();
+                classSelect.appendChild(option);
+            });
+        }
+
+        // Show loading state
+        function showLoadingState() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('weeklyView').classList.add('hidden');
+            document.getElementById('listView').classList.add('hidden');
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('weeklyView').classList.add('hidden');
+            document.getElementById('listView').classList.add('hidden');
+        }
+
+        // Display timetable
+        function displayTimetable() {
+            if (allTimetable.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            
+            if (currentView === 'weekly') {
+                displayWeeklyView();
+            } else {
+                displayListView();
+            }
+        }
+
+        // Display weekly view
+        function displayWeeklyView() {
+            document.getElementById('weeklyView').classList.remove('hidden');
+            document.getElementById('listView').classList.add('hidden');
+            
+            const tableBody = document.getElementById('weeklyTableBody');
+            const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+            
+            // Group timetable by time slots
+            const grouped = {};
+            timeSlots.forEach(slot => {
+                grouped[slot] = {};
+                days.forEach(day => {
+                    grouped[slot][day] = [];
+                });
+            });
+            
+            // Populate grouped data
+            allTimetable.forEach(entry => {
+                if (!entry.startTime) return;
+                const hour = entry.startTime.substring(0, 5); // Get HH:MM
+                const timeSlot = timeSlots.find(slot => hour >= slot) || timeSlots[0];
+                if (grouped[timeSlot] && grouped[timeSlot][entry.dayOfWeek]) {
+                    grouped[timeSlot][entry.dayOfWeek].push(entry);
+                }
+            });
+            
+            // Build table
+            tableBody.innerHTML = timeSlots.map(slot => `
+                <tr>
+                    <td class="px-4 py-2 text-sm font-medium text-gray-900 bg-gray-50 border-r">${slot}</td>
+                    ${days.map(day => {
+                        const entries = grouped[slot][day] || [];
+                        return `
+                            <td class="time-slot p-2" onclick="addScheduleForSlot('${day}', '${slot}')">
+                                ${entries.map(entry => `
+                                    <div class="period-card bg-${getPeriodColor(entry.periodType)}-50 border-l-4 border-${getPeriodColor(entry.periodType)}-400 p-2 mb-2 rounded cursor-pointer hover:shadow-md" onclick="event.stopPropagation(); viewTimetableEntry(${entry.id})">
+                                        <div class="text-xs font-semibold text-${getPeriodColor(entry.periodType)}-700">${entry.subjectName}</div>
+                                        <div class="text-xs text-gray-600">${entry.className}</div>
+                                        <div class="text-xs text-gray-500">${entry.startTime} - ${entry.endTime}</div>
+                                        ${entry.roomNumber ? `<div class="text-xs text-gray-500"><i class="fas fa-door-open"></i> ${entry.roomNumber}</div>` : ''}
+                                    </div>
+                                `).join('')}
+                            </td>
+                        `;
+                    }).join('')}
+                </tr>
+            `).join('');
+        }
+
+        // Display list view
+        function displayListView() {
+            document.getElementById('weeklyView').classList.add('hidden');
+            document.getElementById('listView').classList.remove('hidden');
+            
+            const tableBody = document.getElementById('listViewTableBody');
+            
+            // Sort by day and time
+            const sorted = [...allTimetable].sort((a, b) => {
+                const dayOrder = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+                const dayCompare = dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek);
+                if (dayCompare !== 0) return dayCompare;
+                return (a.startTime || '').localeCompare(b.startTime || '');
+            });
+            
+            tableBody.innerHTML = sorted.map(entry => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${entry.dayOfWeek}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${entry.startTime} - ${entry.endTime}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${entry.subjectName || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${entry.className || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${entry.roomNumber || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPeriodTypeBadgeClass(entry.periodType)}">
+                            ${entry.periodType || 'N/A'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(entry.status)}">
+                            ${entry.status || 'ACTIVE'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="editTimetableEntry(${entry.id})" class="text-primary-600 hover:text-primary-900" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="viewTimetableEntry(${entry.id})" class="text-green-600 hover:text-green-900" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="deleteTimetableEntry(${entry.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Get period color for visual distinction
+        function getPeriodColor(type) {
+            const colors = {
+                'LECTURE': 'blue',
+                'PRACTICAL': 'purple',
+                'LAB': 'indigo',
+                'BREAK': 'gray',
+                'LUNCH': 'yellow',
+                'SPORTS': 'green',
+                'ASSEMBLY': 'red',
+                'LIBRARY': 'teal',
+                'STUDY_HALL': 'orange'
+            };
+            return colors[type] || 'gray';
+        }
+
+        // Get period type badge class
+        function getPeriodTypeBadgeClass(type) {
+            switch (type) {
+                case 'LECTURE':
+                    return 'bg-blue-100 text-blue-800';
+                case 'PRACTICAL':
+                    return 'bg-purple-100 text-purple-800';
+                case 'LAB':
+                    return 'bg-indigo-100 text-indigo-800';
+                case 'BREAK':
+                case 'LUNCH':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'SPORTS':
+                    return 'bg-green-100 text-green-800';
+                case 'ASSEMBLY':
+                    return 'bg-red-100 text-red-800';
+                case 'LIBRARY':
+                    return 'bg-teal-100 text-teal-800';
+                case 'STUDY_HALL':
+                    return 'bg-orange-100 text-orange-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Get status badge class
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'ACTIVE':
+                    return 'bg-green-100 text-green-800';
+                case 'INACTIVE':
+                    return 'bg-gray-100 text-gray-800';
+                case 'TEMPORARY':
+                    return 'bg-blue-100 text-blue-800';
+                case 'CANCELLED':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Change view
+        function changeView() {
+            currentView = document.getElementById('viewType').value;
+            displayTimetable();
+        }
+
+        // Update stats
+        function updateStats() {
+            const uniqueClasses = new Set(allTimetable.map(t => t.classId)).size;
+            const uniqueSubjects = new Set(allTimetable.map(t => t.subjectId)).size;
+            
+            let totalHours = 0;
+            allTimetable.forEach(entry => {
+                if (entry.startTime && entry.endTime) {
+                    const start = new Date(`2000-01-01 ${entry.startTime}`);
+                    const end = new Date(`2000-01-01 ${entry.endTime}`);
+                    totalHours += (end - start) / (1000 * 60 * 60);
+                }
+            });
+            
+            document.getElementById('totalPeriods').textContent = allTimetable.length;
+            document.getElementById('totalClasses').textContent = uniqueClasses;
+            document.getElementById('totalSubjects').textContent = uniqueSubjects;
+            document.getElementById('totalHours').textContent = totalHours.toFixed(1);
+        }
+
+        // Modal functions
+        function openAddTimetableModal() {
+            document.getElementById('addTimetableModal').classList.remove('hidden');
+        }
+
+        function closeAddTimetableModal() {
+            document.getElementById('addTimetableModal').classList.add('hidden');
+            document.getElementById('addTimetableForm').reset();
+        }
+
+        // Add schedule for specific slot
+        function addScheduleForSlot(day, time) {
+            openAddTimetableModal();
+            document.getElementById('dayOfWeek').value = day;
+            document.getElementById('startTime').value = time;
+        }
+
+        // Handle add timetable form submission
+        async function handleAddTimetable(e) {
+            e.preventDefault();
+            
+            try {
+                const formData = new FormData(e.target);
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const teacherId = user.workerId || user.id;
+                
+                const timetableData = {
+                    classId: parseInt(formData.get('classId')),
+                    subjectId: parseInt(formData.get('subjectId')),
+                    teacherId: teacherId,
+                    dayOfWeek: formData.get('dayOfWeek'),
+                    startTime: formData.get('startTime'),
+                    endTime: formData.get('endTime'),
+                    periodNumber: formData.get('periodNumber') ? parseInt(formData.get('periodNumber')) : null,
+                    roomNumber: formData.get('roomNumber'),
+                    periodType: formData.get('periodType'),
+                    academicYear: formData.get('academicYear'),
+                    semester: formData.get('semester'),
+                    status: formData.get('status') || 'ACTIVE',
+                    notes: formData.get('notes'),
+                    isRecurring: formData.get('isRecurring') === 'on'
+                };
+
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch('/api/v1/timetables', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(timetableData)
+                });
+
+                if (response.ok) {
+                    closeAddTimetableModal();
+                    loadTimetable(); // Reload timetable
+                    showSuccessMessage('Schedule added successfully!');
+                } else {
+                    const errorData = await response.json();
+                    showErrorMessage(errorData.message || 'Failed to add schedule');
+                }
+            } catch (error) {
+                console.error('Error adding schedule:', error);
+                showErrorMessage('Network error. Please try again.');
+            }
+        }
+
+        // Timetable actions
+        function editTimetableEntry(id) {
+            console.log('Edit timetable entry:', id);
+            // TODO: Implement edit functionality
+        }
+
+        function viewTimetableEntry(id) {
+            console.log('View timetable entry:', id);
+            // TODO: Implement view functionality
+        }
+
+        function deleteTimetableEntry(id) {
+            if (confirm('Are you sure you want to delete this schedule?')) {
+                console.log('Delete timetable entry:', id);
+                // TODO: Implement delete functionality
+            }
+        }
+
+        // Utility functions
+        function showSuccessMessage(message) {
+            // TODO: Implement success message display
+            alert(message);
+        }
+
+        function showErrorMessage(message) {
+            // TODO: Implement error message display
+            alert(message);
+        }
+
+        // User dropdown
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            const chevron = document.getElementById('dropdownChevron');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                dropdown.classList.add('hidden');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('userMenuContainer');
+            if (container && !container.contains(event.target)) {
+                const dropdown = document.getElementById('userDropdown');
+                const chevron = document.getElementById('dropdownChevron');
+                dropdown.classList.add('hidden');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Load user info
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userNameTop').textContent = user.name;
+                document.getElementById('dropdownUserName').textContent = user.name;
+                
+                const roles = user.roles || [];
+                if (roles.length > 0) {
+                    const roleName = roles[0].name || roles[0];
+                    document.getElementById('dropdownUserRole').textContent = getRoleDisplayName(roleName);
+                }
+            }
+            
+            // Get teacher ID from user data
+            currentTeacherId = user.workerId || user.id;
+        }
+
+        // Load role navigation
+        function loadRoleNavigation() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const roles = user.roles || [];
+            const container = document.getElementById('roleNavigationItems');
+            
+            if (roles.length <= 1) {
+                container.innerHTML = '<div class="px-4 py-2 text-sm text-gray-500">No other roles available</div>';
+                return;
+            }
+            
+            const roleMap = {
+                'ROLE_ADMIN': { name: 'Application Owner', icon: 'fas fa-globe', color: 'text-purple-600', dashboard: '/dashboard/super-admin' },
+                'ROLE_SUPER_USER': { name: 'Super Administrator', icon: 'fas fa-crown', color: 'text-purple-500', dashboard: '/dashboard/owner' },
+                'ROLE_SUPER_ADMIN': { name: 'Application Owner', icon: 'fas fa-globe', color: 'text-purple-600', dashboard: '/dashboard/super-admin' },
+                'ROLE_NORMAL': { name: 'School Owner', icon: 'fas fa-school', color: 'text-blue-600', dashboard: '/dashboard/owner' },
+                'ROLE_TEACHER': { name: 'Teacher', icon: 'fas fa-chalkboard-teacher', color: 'text-green-600', dashboard: '/dashboard/teacher' },
+                'ROLE_STUDENT': { name: 'Student', icon: 'fas fa-user-graduate', color: 'text-indigo-600', dashboard: '/dashboard/student' },
+                'ROLE_PARENT': { name: 'Parent', icon: 'fas fa-user-friends', color: 'text-yellow-600', dashboard: '/dashboard/parent' },
+                'ROLE_MANAGER': { name: 'Manager', icon: 'fas fa-user-tie', color: 'text-blue-600', dashboard: '/dashboard/owner' },
+                'ROLE_LIBRARIAN': { name: 'Librarian', icon: 'fas fa-book-reader', color: 'text-teal-600', dashboard: '/dashboard/librarian' }
+            };
+            
+            const parsedRoles = roles.map(role => {
+                if (typeof role === 'string') {
+                    const nameMatch = role.match(/name=([^,]+)/);
+                    return nameMatch ? nameMatch[1] : role;
+                }
+                return role.name || role;
+            });
+            
+            const availableRoles = parsedRoles.filter(roleName => roleMap[roleName]);
+            
+            if (availableRoles.length <= 1) {
+                container.innerHTML = '<div class="px-4 py-2 text-sm text-gray-500">No other roles available</div>';
+                return;
+            }
+            
+            container.innerHTML = availableRoles.map(roleName => {
+                const roleInfo = roleMap[roleName];
+                return `
+                    <a href="${roleInfo.dashboard}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                        <i class="${roleInfo.icon} mr-3 ${roleInfo.color}"></i>
+                        <span>${roleInfo.name}</span>
+                        ${window.location.pathname === roleInfo.dashboard ? '<i class="fas fa-check ml-auto text-green-500"></i>' : ''}
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // Get role display name
+        function getRoleDisplayName(roleName) {
+            const roleMap = {
+                'ROLE_ADMIN': 'Application Owner',
+                'ROLE_SUPER_USER': 'Super Administrator', 
+                'ROLE_SUPER_ADMIN': 'Application Owner',
+                'ROLE_NORMAL': 'School Owner',
+                'ROLE_TEACHER': 'Teacher',
+                'ROLE_STUDENT': 'Student',
+                'ROLE_PARENT': 'Parent',
+                'ROLE_MANAGER': 'Manager',
+                'ROLE_LIBRARIAN': 'Librarian'
+            };
+            return roleMap[roleName] || roleName;
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Navigation handling
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                console.log('🔗 Navigation clicked:', href);
+                
+                // Only prevent default for # links (non-navigational)
+                if (href === '#' || !href) {
+                    console.log('⛔ Prevented navigation (empty or # link)');
+                    e.preventDefault();
+                    return; // Don't do anything for placeholder links
+                }
+                
+                // For real URLs, allow browser to navigate normally
+                console.log('✅ Allowing navigation to:', href);
+                // Don't call e.preventDefault() - let the browser navigate
+                
+                // Visual feedback only (won't persist after navigation)
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('bg-primary-100', 'text-primary-700');
+                    nav.classList.add('text-gray-600');
+                });
+                this.classList.add('bg-primary-100', 'text-primary-700');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Classes - Teacher Dashboard</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .sidebar-mobile {
+            transform: translateX(-100%);
+        }
+        .sidebar-mobile.open {
+            transform: translateX(0);
+        }
+        @media (min-width: 768px) {
+            .sidebar-mobile {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Mobile Overlay -->
+    <div class="fixed inset-0 z-40 bg-black bg-opacity-50 hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition sidebar-mobile" id="sidebar">
+        <!-- Logo -->
+        <div class="flex items-center justify-between h-16 bg-primary-600 px-4">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                <span class="text-xl font-bold text-white">SchoolManager</span>
+            </div>
+            <!-- Mobile Close Button -->
+            <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-300">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chalkboard-teacher text-primary-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-900" id="userName"><span id="dropdownUserName">Teacher User</span></p>
+                    <p class="text-xs text-gray-500" id="dropdownUserRole">Faculty Member</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="mt-5 px-2">
+            <div class="space-y-1">
+                <a href="/dashboard/teacher" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tachometer-alt text-gray-400 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="/dashboard/teacher/classes" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-book text-primary-500 mr-3"></i>
+                    My Classes
+                </a>
+                <a href="/dashboard/teacher/students" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-users text-gray-400 mr-3"></i>
+                    Students
+                </a>
+                <a href="/dashboard/teacher/assignments" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tasks text-gray-400 mr-3"></i>
+                    Assignments
+                </a>
+                <a href="/dashboard/teacher/schedule-exam" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
+                    Schedule Exam
+                </a>
+                <a href="/dashboard/teacher/grades" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-chart-line text-gray-400 mr-3"></i>
+                    Grades
+                </a>
+                <a href="/dashboard/teacher/timetable" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-clock text-gray-400 mr-3"></i>
+                    Timetable
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-comments text-gray-400 mr-3"></i>
+                    Messages
+                </a>
+            </div>
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="absolute bottom-0 w-full p-4">
+            <button onclick="logout()" class="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                <i class="fas fa-sign-out-alt mr-3"></i>
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="md:ml-64">
+        <!-- Top Bar -->
+        <div class="bg-green-500 h-1"></div>
+        
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <!-- Mobile menu button -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                    
+                    <div class="flex-1 flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">My Classes</h1>
+                            <p class="text-sm text-gray-600">Manage your assigned classes and students</p>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-600" id="userNameTop">Teacher</span>
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-primary-600 text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="p-4 sm:p-6 lg:p-8">
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-chalkboard-teacher text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Classes</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalClasses">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Students</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalStudents">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-book text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Subjects</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalSubjects">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-calendar-alt text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Active Classes</p>
+                            <p class="text-2xl font-bold text-gray-900" id="activeClasses">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classes Section -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-medium text-gray-900">My Classes</h2>
+                        <button onclick="loadMyClasses()" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Search and Filters -->
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="searchInput" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500" placeholder="Search classes by name, section, or room...">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="statusFilter" class="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500">
+                                <option value="">All Status</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                            <select id="academicYearFilter" class="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500">
+                                <option value="">All Academic Years</option>
+                                <option value="2024-2025">2024-2025</option>
+                                <option value="2023-2024">2023-2024</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Classes Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable('className')">
+                                    <div class="flex items-center">
+                                        Class Name
+                                        <i class="fas fa-sort ml-1"></i>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable('section')">
+                                    <div class="flex items-center">
+                                        Section
+                                        <i class="fas fa-sort ml-1"></i>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Year</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable('status')">
+                                    <div class="flex items-center">
+                                        Status
+                                        <i class="fas fa-sort ml-1"></i>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classesTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Loading State -->
+                            <tr id="classesLoadingState">
+                                <td colspan="7" class="px-6 py-12 text-center">
+                                    <div class="flex justify-center items-center">
+                                        <i class="fas fa-spinner fa-spin text-2xl text-primary-600 mr-3"></i>
+                                        <span class="text-lg text-gray-600">Loading classes...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="classesEmptyState" class="hidden px-6 py-12 text-center">
+                    <i class="fas fa-chalkboard-teacher text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No classes found</h3>
+                    <p class="text-gray-500">You are not assigned to any classes yet.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let currentTeacherId = null;
+        let classes = [];
+        let filteredClasses = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎓 My Classes page loaded');
+            initializePage();
+        });
+
+        // Initialize page
+        async function initializePage() {
+            try {
+                await loadUserInfo();
+                await loadMyClasses();
+                setupEventListeners();
+            } catch (error) {
+                console.error('❌ Error initializing page:', error);
+                showError('Failed to initialize page');
+            }
+        }
+
+        // Load user information
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                const userNameEl = document.getElementById('userName');
+                const userNameTopEl = document.getElementById('userNameTop');
+                const dropdownUserNameEl = document.getElementById('dropdownUserName');
+                
+                if (userNameEl) userNameEl.textContent = user.name;
+                if (userNameTopEl) userNameTopEl.textContent = user.name;
+                if (dropdownUserNameEl) dropdownUserNameEl.textContent = user.name;
+                
+                const roles = user.roles || [];
+                if (roles.length > 0) {
+                    const roleName = roles[0].name || roles[0];
+                    const dropdownUserRoleEl = document.getElementById('dropdownUserRole');
+                    if (dropdownUserRoleEl) {
+                        dropdownUserRoleEl.textContent = getRoleDisplayName(roleName);
+                    }
+                }
+            }
+            
+            // Get teacher ID from user data
+            currentTeacherId = user.workerId || user.id;
+        }
+
+        // Load classes
+        async function loadMyClasses() {
+            try {
+                console.log('📚 Loading classes...');
+                
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    console.error('❌ No authentication token found');
+                    return;
+                }
+
+                // Show loading state
+                showLoadingState();
+
+                const response = await fetch(`/api/v1/school-classes/teacher/${currentTeacherId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('📡 Response status:', response.status);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('📦 API Response:', result);
+                    
+                    if (result.status === 'success' && result.data) {
+                        classes = result.data;
+                        filteredClasses = [...classes];
+                        console.log('📚 Classes loaded:', classes.length);
+                        
+                        updateStatistics();
+                        displayClasses();
+                    } else {
+                        console.log('⚠️ No classes data received');
+                        classes = [];
+                        filteredClasses = [];
+                        showEmptyState();
+                    }
+                } else {
+                    console.error('❌ Failed to load classes:', response.status);
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('❌ Error loading classes:', error);
+                showEmptyState();
+            }
+        }
+
+        // Show loading state
+        function showLoadingState() {
+            const loadingEl = document.getElementById('classesLoadingState');
+            const emptyEl = document.getElementById('classesEmptyState');
+            
+            if (loadingEl) loadingEl.classList.remove('hidden');
+            if (emptyEl) emptyEl.classList.add('hidden');
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            const loadingEl = document.getElementById('classesLoadingState');
+            const emptyEl = document.getElementById('classesEmptyState');
+            
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (emptyEl) emptyEl.classList.remove('hidden');
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalClasses = classes.length;
+            const activeClasses = classes.filter(c => c.status === 'ACTIVE').length;
+            const totalStudents = classes.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+            const uniqueSubjects = new Set(classes.map(c => c.subject?.name).filter(Boolean)).size;
+
+            document.getElementById('totalClasses').textContent = totalClasses;
+            document.getElementById('activeClasses').textContent = activeClasses;
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('totalSubjects').textContent = uniqueSubjects;
+        }
+
+        // Display classes
+        function displayClasses() {
+            const tbody = document.getElementById('classesTableBody');
+            
+            if (filteredClasses.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            // Hide loading and empty states
+            document.getElementById('classesLoadingState').classList.add('hidden');
+            document.getElementById('classesEmptyState').classList.add('hidden');
+
+            tbody.innerHTML = filteredClasses.map(classItem => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${classItem.className || 'N/A'}</div>
+                        <div class="text-sm text-gray-500">${classItem.subject?.name || 'No Subject'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ${classItem.section || 'N/A'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${classItem.roomNumber || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${classItem.studentCount || 0}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${classItem.academicYear || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(classItem.status)}">
+                            ${classItem.status || 'UNKNOWN'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="viewClassDetails(${classItem.id})" class="text-primary-600 hover:text-primary-900" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="viewStudents(${classItem.id})" class="text-green-600 hover:text-green-900" title="View Students">
+                                <i class="fas fa-users"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Get status badge class
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'ACTIVE':
+                    return 'bg-green-100 text-green-800';
+                case 'INACTIVE':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterClasses);
+            }
+
+            // Filter functionality
+            const statusFilter = document.getElementById('statusFilter');
+            const academicYearFilter = document.getElementById('academicYearFilter');
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterClasses);
+            }
+            
+            if (academicYearFilter) {
+                academicYearFilter.addEventListener('change', filterClasses);
+            }
+        }
+
+        // Filter classes
+        function filterClasses() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const academicYearFilter = document.getElementById('academicYearFilter').value;
+
+            filteredClasses = classes.filter(classItem => {
+                const matchesSearch = !searchTerm || 
+                    (classItem.className && classItem.className.toLowerCase().includes(searchTerm)) ||
+                    (classItem.section && classItem.section.toLowerCase().includes(searchTerm)) ||
+                    (classItem.roomNumber && classItem.roomNumber.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = !statusFilter || classItem.status === statusFilter;
+                const matchesAcademicYear = !academicYearFilter || classItem.academicYear === academicYearFilter;
+
+                return matchesSearch && matchesStatus && matchesAcademicYear;
+            });
+
+            displayClasses();
+        }
+
+        // Sort table
+        function sortTable(column) {
+            console.log('🔄 Sorting by:', column);
+            // Implement sorting logic here
+        }
+
+        // View class details
+        function viewClassDetails(classId) {
+            console.log('👁️ Viewing class details for:', classId);
+            // Implement view details logic
+        }
+
+        // View students
+        function viewStudents(classId) {
+            console.log('👥 Viewing students for class:', classId);
+            // Navigate to students page with class filter
+            window.location.href = `/dashboard/teacher/students?classId=${classId}`;
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('sidebar-mobile');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Get role display name
+        function getRoleDisplayName(roleName) {
+            const roleMap = {
+                'ROLE_ADMIN': 'Application Owner',
+                'ROLE_SUPER_USER': 'Super Administrator', 
+                'ROLE_SUPER_ADMIN': 'Application Owner',
+                'ROLE_NORMAL': 'School Owner',
+                'ROLE_TEACHER': 'Teacher',
+                'ROLE_STUDENT': 'Student',
+                'ROLE_PARENT': 'Parent',
+                'ROLE_MANAGER': 'Manager',
+                'ROLE_LIBRARIAN': 'Librarian'
+            };
+            return roleMap[roleName] || roleName;
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Show error
+        function showError(message) {
+            console.error('❌ Error:', message);
+            // You can implement a toast notification here
+        }
+    </script>
+</body>
+</html>
