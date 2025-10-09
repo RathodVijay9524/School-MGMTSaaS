@@ -24,7 +24,7 @@ public class SchoolClassResponse {
     private Long classTeacherId;
     private String classTeacherName;
     private String academicYear;
-    private String status;
+    private SchoolClass.ClassStatus status;
     private boolean isActive; // Active status field
     private java.time.LocalDateTime createdOn; // Add createdOn field
     private java.time.LocalDateTime updatedOn; // Add updatedOn field

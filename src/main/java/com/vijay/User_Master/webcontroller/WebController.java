@@ -175,5 +175,23 @@ public class WebController {
         return "dashboard/subjects";
     }
 
+    /**
+     * Exam Management page - Owner dashboard
+     */
+    @GetMapping("/dashboard/exams")
+    public String examsManagement(Model model) {
+        model.addAttribute("pageTitle", "Exam Management - School Management System");
+        return "dashboard/exams";
+    }
+
+    /**
+     * Fee Management page - Owner dashboard
+     */
+    @GetMapping("/dashboard/fees")
+    public String feesManagement(Model model) {
+        model.addAttribute("pageTitle", "Fee Management - School Management System");
+        return "dashboard/fees";
+    }
+
 
 }

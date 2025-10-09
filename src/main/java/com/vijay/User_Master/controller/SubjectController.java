@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +28,6 @@ public class SubjectController {
     private final SubjectService subjectService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
     public ResponseEntity<?> createSubject(@Valid @RequestBody SubjectRequest request) {
         log.info("Creating subject: {}", request.getSubjectName());
         
@@ -40,7 +38,6 @@ public class SubjectController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
     public ResponseEntity<?> updateSubject(
             @PathVariable Long id, 
             @Valid @RequestBody SubjectRequest request) {
@@ -53,7 +50,6 @@ public class SubjectController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getSubjectById(@PathVariable Long id) {
         log.info("Getting subject: {}", id);
         
@@ -64,7 +60,6 @@ public class SubjectController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getAllSubjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -83,7 +78,6 @@ public class SubjectController {
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getAllActiveSubjects() {
         log.info("Getting all active subjects");
         
@@ -94,7 +88,6 @@ public class SubjectController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> searchSubjects(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
@@ -109,7 +102,6 @@ public class SubjectController {
     }
 
     @GetMapping("/department/{department}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getSubjectsByDepartment(@PathVariable String department) {
         log.info("Getting subjects by department: {}", department);
         
@@ -120,7 +112,6 @@ public class SubjectController {
     }
 
     @GetMapping("/type/{type}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER') or hasRole('TEACHER')")
     public ResponseEntity<?> getSubjectsByType(@PathVariable Subject.SubjectType type) {
         log.info("Getting subjects by type: {}", type);
         
@@ -131,7 +122,6 @@ public class SubjectController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
     public ResponseEntity<?> deleteSubject(@PathVariable Long id) {
         log.info("Deleting subject: {}", id);
         
@@ -142,7 +132,6 @@ public class SubjectController {
     }
 
     @PutMapping("/{id}/restore")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
     public ResponseEntity<?> restoreSubject(@PathVariable Long id) {
         log.info("Restoring subject: {}", id);
         
@@ -153,7 +142,6 @@ public class SubjectController {
     }
 
     @GetMapping("/deleted")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NORMAL') or hasRole('MANAGER')")
     public ResponseEntity<?> getDeletedSubjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
