@@ -63,5 +63,8 @@ public interface GradeRepository extends JpaRepository<Grade, Long> {
     Page<Grade> findByOwner_Id(Long ownerId, Pageable pageable);
     List<Grade> findByOwner_Id(Long ownerId);
     Optional<Grade> findByIdAndOwner_Id(Long id, Long ownerId);
+    
+    // Parent Portal queries
+    Page<Grade> findByStudent_IdAndOwner_IdAndIsPublishedTrue(Long studentId, Long ownerId, Pageable pageable);
 }
 

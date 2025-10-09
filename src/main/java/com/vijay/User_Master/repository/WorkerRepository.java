@@ -82,6 +82,34 @@ public interface WorkerRepository extends JpaRepository<Worker, Long>, JpaSpecif
     List<Worker> findByOwner_Id(Long ownerId);
     Page<Worker> findByOwner_Id(Long ownerId, Pageable pageable);
 
+    // Parent-Child relationship queries
+    // Find students by parent email (students have parent's email in parentEmail field)
+    @Query("SELECT w FROM Worker w JOIN w.roles r " +
+           "WHERE w.parentEmail = :parentEmail " +
+           "AND r.name = 'ROLE_STUDENT' " +
+           "AND w.isDeleted = false " +
+           "AND w.owner.id = :ownerId")
+    List<Worker> findChildrenByParentEmail(@Param("parentEmail") String parentEmail, 
+                                           @Param("ownerId") Long ownerId);
+    
+    // Find students by parent phone
+    @Query("SELECT w FROM Worker w JOIN w.roles r " +
+           "WHERE (w.parentPhone = :parentPhone OR w.fatherPhone = :parentPhone OR w.motherPhone = :parentPhone) " +
+           "AND r.name = 'ROLE_STUDENT' " +
+           "AND w.isDeleted = false " +
+           "AND w.owner.id = :ownerId")
+    List<Worker> findChildrenByParentPhone(@Param("parentPhone") String parentPhone, 
+                                           @Param("ownerId") Long ownerId);
+    
+    // Verify if a parent has access to a student
+    @Query("SELECT CASE WHEN COUNT(w) > 0 THEN true ELSE false END FROM Worker w JOIN w.roles r " +
+           "WHERE w.id = :studentId " +
+           "AND r.name = 'ROLE_STUDENT' " +
+           "AND w.parentEmail = :parentEmail " +
+           "AND w.isDeleted = false")
+    boolean verifyParentStudentRelationship(@Param("parentEmail") String parentEmail, 
+                                           @Param("studentId") Long studentId);
+
 }
 
 

@@ -103,5 +103,8 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
     
     // Multi-tenant aware existence checks
     boolean existsByExamCodeAndOwner_Id(String examCode, Long ownerId);
+    
+    // Parent Portal queries
+    long countBySchoolClass_IdAndOwner_IdAndExamDateAfterAndIsDeletedFalse(Long classId, Long ownerId, LocalDate date);
 }
 

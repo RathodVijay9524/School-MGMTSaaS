@@ -97,5 +97,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     Optional<Event> findByIdAndOwner_Id(Long id, Long ownerId);
     
     Optional<Event> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
+    
+    // Parent Portal queries
+    @Query("SELECT e FROM Event e WHERE e.owner.id = :ownerId AND e.startDateTime >= :startDateTime AND e.isDeleted = false")
+    Page<Event> findUpcomingEventsByOwner(@Param("ownerId") Long ownerId, @Param("startDateTime") LocalDateTime startDateTime, Pageable pageable);
 }
 

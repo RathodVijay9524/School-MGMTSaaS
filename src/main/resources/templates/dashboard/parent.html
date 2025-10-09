@@ -108,35 +108,35 @@
         <!-- Navigation -->
         <nav class="mt-5 px-2">
             <div class="space-y-1">
-                <a href="#" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-tachometer-alt text-primary-500 mr-3"></i>
                     Dashboard
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent/children" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-user-graduate text-gray-400 mr-3"></i>
                     My Children
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent/progress" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-chart-line text-gray-400 mr-3"></i>
                     Progress
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent/attendance" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-calendar-check text-gray-400 mr-3"></i>
                     Attendance
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent/assignments" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-clipboard-list text-gray-400 mr-3"></i>
                     Assignments
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent/exams" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
                     Exams
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent/fees" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-money-bill-wave text-gray-400 mr-3"></i>
                     Fees
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/parent/messages" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-comments text-gray-400 mr-3"></i>
                     Messages
                 </a>
@@ -735,26 +735,57 @@
             window.location.href = '/login';
         }
 
-        // Navigation handling
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
+        // Load parent dashboard with real backend API
+        async function loadParentDashboard() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const parentId = user.workerId || user.id;
                 
-                // Remove active class from all items
-                document.querySelectorAll('.nav-item').forEach(nav => {
-                    nav.classList.remove('bg-primary-100', 'text-primary-700');
-                    nav.classList.add('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+                console.log('👨‍👩‍👧‍👦 Loading parent dashboard for parent ID:', parentId);
+                
+                const response = await fetch(`/api/v1/parents/${parentId}/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
-                // Add active class to clicked item
-                this.classList.add('bg-primary-100', 'text-primary-700');
-                this.classList.remove('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
-                
-                // Handle navigation
-                const text = this.textContent.trim();
-                console.log('Navigating to:', text);
-            });
-        });
+                if (response.ok) {
+                    const apiData = await response.json();
+                    console.log('📦 Parent Dashboard API Response:', apiData);
+                    
+                    const data = apiData.data || apiData;
+                    updateDashboardStats(data);
+                    updateChildrenList(data.children || []);
+                } else {
+                    console.error('❌ Parent Dashboard API failed:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ Error loading parent dashboard:', error);
+            }
+        }
+        
+        // Update dashboard statistics
+        function updateDashboardStats(data) {
+            const summary = data.summary || {};
+            
+            // Update stats with null checks
+            const avgAttendanceEl = document.getElementById('avgAttendance');
+            const avgGPAEl = document.getElementById('avgGPA');
+            const pendingAssignmentsEl = document.getElementById('pendingAssignments');
+            const upcomingExamsEl = document.getElementById('upcomingExams');
+            
+            if (avgAttendanceEl) avgAttendanceEl.textContent = `${(summary.averageAttendance || 0).toFixed(1)}%`;
+            if (avgGPAEl) avgGPAEl.textContent = ((summary.averageAttendance || 0) / 25).toFixed(1);
+            if (pendingAssignmentsEl) pendingAssignmentsEl.textContent = summary.totalPendingAssignments || 0;
+            if (upcomingExamsEl) upcomingExamsEl.textContent = summary.upcomingExamsCount || 0;
+            
+            console.log('✅ Dashboard stats updated');
+        }
+
+        // Load parent dashboard data
+        loadParentDashboard();
     </script>
 </body>
 </html>

@@ -70,5 +70,10 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     
     // SECURITY: Find by ID and Owner (prevents cross-school access)
     Optional<Attendance> findByIdAndOwner_Id(Long id, Long ownerId);
+    
+    // Parent Portal queries
+    Page<Attendance> findByStudent_IdAndOwner_Id(Long studentId, Long ownerId, Pageable pageable);
+    long countByStudent_IdAndOwner_Id(Long studentId, Long ownerId);
+    long countByStudent_IdAndStatusAndOwner_Id(Long studentId, Attendance.AttendanceStatus status, Long ownerId);
 }
 

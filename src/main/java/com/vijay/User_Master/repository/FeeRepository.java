@@ -78,6 +78,10 @@ public interface FeeRepository extends JpaRepository<Fee, Long> {
     // Owner-based queries for student fees
     Page<Fee> findByOwner_IdAndStudent_IdAndIsDeletedFalse(Long ownerId, Long studentId, Pageable pageable);
     List<Fee> findByOwner_IdAndStudent_IdAndIsDeletedFalse(Long ownerId, Long studentId);
+    
+    // Parent Portal queries
+    boolean existsByStudent_IdAndOwner_IdAndDueDateBeforeAndPaymentStatusNot(
+            Long studentId, Long ownerId, LocalDate dueDate, Fee.PaymentStatus status);
 }
 
 

@@ -66,5 +66,8 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     Optional<Assignment> findByIdAndOwner_Id(Long id, Long ownerId);
     
     Optional<Assignment> findByIdAndOwner_IdAndIsDeletedFalse(Long id, Long ownerId);
+    
+    // Parent Portal queries
+    long countBySchoolClass_IdAndOwner_IdAndStatusAndIsDeletedFalse(Long classId, Long ownerId, Assignment.AssignmentStatus status);
 }
 

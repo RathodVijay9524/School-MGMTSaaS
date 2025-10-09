@@ -163,6 +163,58 @@ public class WebDashboardController {
     }
 
     /**
+     * Parent Portal Sub-Pages
+     */
+    @GetMapping("/parent/children")
+    public String parentChildren(Model model) {
+        model.addAttribute("pageTitle", "My Children - Parent Portal");
+        model.addAttribute("userRole", "PARENT");
+        return "dashboard/parent-children";
+    }
+
+    @GetMapping("/parent/progress")
+    public String parentProgress(Model model) {
+        model.addAttribute("pageTitle", "Academic Progress - Parent Portal");
+        model.addAttribute("userRole", "PARENT");
+        return "dashboard/parent-progress";
+    }
+
+    @GetMapping("/parent/attendance")
+    public String parentAttendance(Model model) {
+        model.addAttribute("pageTitle", "Attendance - Parent Portal");
+        model.addAttribute("userRole", "PARENT");
+        return "dashboard/parent-attendance";
+    }
+
+    @GetMapping("/parent/assignments")
+    public String parentAssignments(Model model) {
+        model.addAttribute("pageTitle", "Assignments - Parent Portal");
+        model.addAttribute("userRole", "PARENT");
+        return "dashboard/parent-assignments";
+    }
+
+    @GetMapping("/parent/exams")
+    public String parentExams(Model model) {
+        model.addAttribute("pageTitle", "Exams - Parent Portal");
+        model.addAttribute("userRole", "PARENT");
+        return "dashboard/parent-exams";
+    }
+
+    @GetMapping("/parent/fees")
+    public String parentFees(Model model) {
+        model.addAttribute("pageTitle", "Fees - Parent Portal");
+        model.addAttribute("userRole", "PARENT");
+        return "dashboard/parent-fees";
+    }
+
+    @GetMapping("/parent/messages")
+    public String parentMessages(Model model) {
+        model.addAttribute("pageTitle", "Messages - Parent Portal");
+        model.addAttribute("userRole", "PARENT");
+        return "dashboard/parent-messages";
+    }
+
+    /**
      * Librarian Dashboard
      */
     @GetMapping("/librarian")
