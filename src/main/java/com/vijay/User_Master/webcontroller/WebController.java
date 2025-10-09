@@ -157,5 +157,23 @@ public class WebController {
         return "dashboard/user-management";
     }
 
+    /**
+     * Class Management page - Owner dashboard
+     */
+    @GetMapping("/dashboard/classes")
+    public String classesManagement(Model model) {
+        model.addAttribute("pageTitle", "Class Management - School Management System");
+        return "dashboard/classes";
+    }
+
+    /**
+     * Subject Management page - Owner dashboard
+     */
+    @GetMapping("/dashboard/subjects")
+    public String subjectsManagement(Model model) {
+        model.addAttribute("pageTitle", "Subject Management - School Management System");
+        return "dashboard/subjects";
+    }
+
 
 }
