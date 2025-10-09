@@ -165,10 +165,10 @@
                         <!-- User Menu with Role Dropdown -->
                         <div class="relative" id="userMenuContainer">
                             <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900" onclick="toggleUserDropdown()">
-                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-user-graduate text-green-600 text-sm"></i>
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user-friends text-primary-600 text-sm"></i>
                                 </div>
-                                <span class="hidden md:block text-sm font-medium" id="studentNameTop">Student</span>
+                                <span class="hidden md:block text-sm font-medium" id="headerParentName">Parent</span>
                                 <i class="fas fa-chevron-down text-xs" id="dropdownChevron"></i>
                             </button>
                             
@@ -427,8 +427,8 @@
         function loadUserInfo() {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.name) {
-                const userNameEl = document.getElementById('studentName');
-                const userNameTopEl = document.getElementById('studentNameTop');
+                const userNameEl = document.getElementById('parentName');
+                const userNameTopEl = document.getElementById('headerParentName');
                 const dropdownUserNameEl = document.getElementById('dropdownUserName');
                 const dropdownUserRoleEl = document.getElementById('dropdownUserRole');
                 
