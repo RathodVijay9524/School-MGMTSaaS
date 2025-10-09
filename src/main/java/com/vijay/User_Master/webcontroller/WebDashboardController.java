@@ -34,6 +34,26 @@ public class WebDashboardController {
     }
 
     /**
+     * Teacher Assignment Management page
+     */
+    @GetMapping("/teacher/assignments")
+    public String teacherAssignments(Model model) {
+        model.addAttribute("pageTitle", "Assignment Management - Teacher Dashboard");
+        model.addAttribute("userRole", "TEACHER");
+        return "dashboard/teacher-assignments";
+    }
+
+    /**
+     * Teacher Schedule Exam page
+     */
+    @GetMapping("/teacher/schedule-exam")
+    public String teacherScheduleExam(Model model) {
+        model.addAttribute("pageTitle", "Schedule Exam - Teacher Dashboard");
+        model.addAttribute("userRole", "TEACHER");
+        return "dashboard/teacher-schedule-exam";
+    }
+
+    /**
      * Student Dashboard
      */
     @GetMapping("/student")

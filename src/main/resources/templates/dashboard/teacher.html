@@ -106,7 +106,7 @@
         <!-- Navigation -->
         <nav class="mt-5 px-2">
             <div class="space-y-1">
-                <a href="#" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/teacher" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-tachometer-alt text-primary-500 mr-3"></i>
                     Dashboard
                 </a>
@@ -118,13 +118,13 @@
                     <i class="fas fa-users text-gray-400 mr-3"></i>
                     Students
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/teacher/assignments" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-clipboard-list text-gray-400 mr-3"></i>
                     Assignments
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/teacher/schedule-exam" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
-                    Exams
+                    Schedule Exam
                 </a>
                 <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-chart-line text-gray-400 mr-3"></i>
@@ -705,21 +705,26 @@
         // Navigation handling
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function(e) {
-                e.preventDefault();
+                const href = this.getAttribute('href');
+                console.log('🔗 Navigation clicked:', href);
                 
-                // Remove active class from all items
+                // Only prevent default for # links (non-navigational)
+                if (href === '#' || !href) {
+                    console.log('⛔ Prevented navigation (empty or # link)');
+                    e.preventDefault();
+                    return; // Don't do anything for placeholder links
+                }
+                
+                // For real URLs, allow browser to navigate normally
+                console.log('✅ Allowing navigation to:', href);
+                // Don't call e.preventDefault() - let the browser navigate
+                
+                // Visual feedback only (won't persist after navigation)
                 document.querySelectorAll('.nav-item').forEach(nav => {
                     nav.classList.remove('bg-primary-100', 'text-primary-700');
-                    nav.classList.add('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+                    nav.classList.add('text-gray-600');
                 });
-                
-                // Add active class to clicked item
                 this.classList.add('bg-primary-100', 'text-primary-700');
-                this.classList.remove('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
-                
-                // Handle navigation
-                const text = this.textContent.trim();
-                console.log('Navigating to:', text);
             });
         });
     </script>
