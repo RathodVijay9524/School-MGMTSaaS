@@ -914,13 +914,20 @@
                 });
 
                 if (response.ok) {
-                    const grade = await response.json();
+                    const responseData = await response.json();
+                    console.log('📝 Edit grade API response:', responseData);
+                    
+                    // Extract the actual grade data from the wrapped response
+                    const grade = responseData.data || responseData;
+                    console.log('📝 Extracted grade data for edit:', grade);
                     
                     document.getElementById('addGradeModalTitle').textContent = 'Edit Grade';
                     document.getElementById('submitGradeBtn').innerHTML = '<i class="fas fa-save mr-2"></i>Update Grade';
                     
-                    document.getElementById('studentId').value = grade.studentId || '';
-                    document.getElementById('subjectId').value = grade.subjectId || '';
+                    // Load class first (we need to fetch the student's class)
+                    // For now, we'll populate the form and let the user select the class
+                    // Then students and subjects will filter automatically
+                    
                     document.getElementById('gradeType').value = grade.gradeType || '';
                     handleGradeTypeChange();
                     
@@ -939,6 +946,28 @@
                     document.getElementById('feedback').value = grade.feedback || '';
                     document.getElementById('remarks').value = grade.remarks || '';
                     document.getElementById('isPublished').checked = grade.isPublished || false;
+                    
+                    // We need to get the student's class to properly populate class dropdown
+                    // Then populate student and subject dropdowns
+                    const studentResponse = await fetch(`/api/v1/workers/${grade.studentId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (studentResponse.ok) {
+                        const studentData = await studentResponse.json();
+                        const student = studentData.data || studentData;
+                        
+                        if (student.currentClassId) {
+                            document.getElementById('classId').value = student.currentClassId;
+                            // Trigger the class change to load students and subjects
+                            await loadStudents();
+                            await loadSubjects();
+                            
+                            // Now set the student and subject after dropdowns are populated
+                            document.getElementById('studentId').value = grade.studentId || '';
+                            document.getElementById('subjectId').value = grade.subjectId || '';
+                        }
+                    }
                     
                     document.getElementById('addGradeForm').dataset.editingGradeId = id;
                     document.getElementById('addGradeModal').classList.remove('hidden');
