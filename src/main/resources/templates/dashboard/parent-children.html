@@ -587,14 +587,9 @@
 
         // View child details
         function viewChildDetails(childId) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const parentId = user.workerId || user.id;
-            
-            // Navigate to child overview (will create this page later)
-            alert(`Navigating to detailed view for child ID: ${childId}\n\nThis will show:\n- Complete attendance history\n- All grades and academic performance\n- Fee details and payment history\n- Assignments and exams\n- Teacher comments and notifications`);
-            
-            // TODO: Navigate to dedicated child overview page
-            // window.location.href = `/dashboard/parent/child/${childId}/overview`;
+            // For now, navigate to the main parent dashboard where they can see detailed information
+            // TODO: Create dedicated child overview page in future
+            window.location.href = '/dashboard/parent';
         }
 
         // Get performance color

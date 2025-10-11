@@ -237,49 +237,11 @@
             <!-- My Children -->
             <div class="mb-8">
                 <h2 class="text-xl font-semibold text-gray-900 mb-4">My Children</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="child-card text-white rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="text-lg font-semibold">Raj Kumar</h3>
-                                <p class="text-sm opacity-90">Class 10A • Roll No: 15</p>
-                            </div>
-                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user-graduate text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="text-center">
-                                <p class="text-2xl font-bold">85%</p>
-                                <p class="text-xs opacity-90">Attendance</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold">3.7</p>
-                                <p class="text-xs opacity-90">GPA</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="child-card text-white rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="text-lg font-semibold">Priya Kumar</h3>
-                                <p class="text-sm opacity-90">Class 8B • Roll No: 22</p>
-                            </div>
-                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user-graduate text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="text-center">
-                                <p class="text-2xl font-bold">92%</p>
-                                <p class="text-xs opacity-90">Attendance</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold">4.1</p>
-                                <p class="text-xs opacity-90">GPA</p>
-                            </div>
-                        </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="childrenContainer">
+                    <!-- Children will be loaded dynamically -->
+                    <div class="col-span-full text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-500">Loading children...</p>
                     </div>
                 </div>
             </div>
@@ -496,6 +458,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadParentDashboardData();
             loadUserInfo();
+            loadChildren();
             loadRoleNavigation();
         });
 
@@ -527,8 +490,26 @@
         // Load parent dashboard data
         async function loadParentDashboardData() {
             try {
-                const token = localStorage.getItem('jwtToken');
-                const response = await fetch('/api/v1/dashboard/parent', {
+                const token = localStorage.getItem('token') || localStorage.getItem('jwtToken');
+                if (!token) {
+                    console.error('No token found');
+                    return;
+                }
+
+                // Get parent ID from user data
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const parentId = user.id;
+                
+                if (!parentId) {
+                    console.error('No parent ID found');
+                    return;
+                }
+
+                console.log('👨‍👩‍👧‍👦 Loading parent dashboard for parent ID:', parentId);
+                console.log('👨‍👩‍👧‍👦 User data:', user);
+
+                // Use the logged-in user's ID directly (the controller will use the authenticated user's ID)
+                const response = await fetch(`/api/v1/parents/${parentId}/dashboard`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -537,9 +518,9 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    updateParentStats(data);
+                    updateParentStats(data.data);
                 } else {
-                    console.error('Parent Dashboard API failed:', response.status, response.statusText);
+                    console.error('❌ Parent Dashboard API failed:', response.status, response.statusText);
                     showErrorMessage('Failed to load parent dashboard data. Please refresh the page.');
                 }
             } catch (error) {
@@ -639,9 +620,122 @@
             `).join('');
         }
 
+        // Load children data from API
+        function loadChildren() {
+            const token = localStorage.getItem('token') || localStorage.getItem('jwtToken');
+            if (!token) {
+                console.error('No token found');
+                return;
+            }
+
+            // Get parent ID from user data
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const parentId = user.id;
+            
+            if (!parentId) {
+                console.error('No parent ID found');
+                return;
+            }
+
+            fetch(`/api/v1/parents/${parentId}/children`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('👨‍👩‍👧‍👦 Children API Response:', data);
+                const container = document.getElementById('childrenContainer');
+                if (data.data && data.data.length > 0) {
+                    container.innerHTML = '';
+                    data.data.forEach(child => {
+                        console.log('👶 Child object:', child);
+                        const childCard = `
+                            <div class="child-card text-white rounded-lg p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-lg font-semibold">${child.name || child.studentName || 'Unknown'}</h3>
+                                        <p class="text-sm opacity-90">${child.className || 'N/A'} • Roll No: ${child.rollNumber || 'N/A'}</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user-graduate text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="text-center">
+                                        <p class="text-2xl font-bold">${child.attendancePercentage || 0}%</p>
+                                        <p class="text-xs opacity-90">Attendance</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-2xl font-bold">${child.overallGrade || child.gpa || 'N/A'}</p>
+                                        <p class="text-xs opacity-90">GPA</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', childCard);
+                    });
+                } else {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <i class="fas fa-child text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-500">No children found</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading children:', error);
+                const container = document.getElementById('childrenContainer');
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+                        <p class="text-red-500">Error loading children data</p>
+                    </div>
+                `;
+            });
+        }
+
         // Load user info
         function loadUserInfo() {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            let user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            // If no user data in localStorage, fetch from API
+            if (!user.name || !user.id) {
+                const token = localStorage.getItem('jwtToken');
+                if (token) {
+                    fetch('/api/auth/current-user', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Handle both direct CustomUserDetails and wrapped responses
+                        if (data.data) {
+                            user = data.data;
+                        } else if (data.id) {
+                            user = data;
+                        }
+                        if (user && user.id) {
+                            localStorage.setItem('user', JSON.stringify(user));
+                            updateUserDisplay(user);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching user data:', error);
+                    });
+                }
+            } else {
+                updateUserDisplay(user);
+            }
+        }
+        
+        function updateUserDisplay(user) {
             if (user.name) {
                 document.getElementById('parentName').textContent = user.name;
                 document.getElementById('parentNameTop').textContent = user.name;

@@ -509,15 +509,19 @@
 
         async function loadAttendance() {
             try {
+                console.log('🔍 DEBUG: Starting loadAttendance()');
                 showLoadingState();
                 
                 const token = localStorage.getItem('jwtToken');
                 if (!token) {
                     throw new Error('No authentication token found');
                 }
+                console.log('🔍 DEBUG: Token exists:', !!token);
 
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 const studentId = user.workerId || user.id;
+                console.log('🔍 DEBUG: User:', user);
+                console.log('🔍 DEBUG: Student ID:', studentId);
 
                 console.log('📊 Loading attendance for student:', studentId);
 

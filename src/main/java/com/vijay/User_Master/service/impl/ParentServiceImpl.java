@@ -42,21 +42,25 @@ public class ParentServiceImpl implements ParentService {
     public ParentDashboardDTO getParentDashboard(Long parentId, Long ownerId) {
         log.info("Getting parent dashboard for parent ID: {}", parentId);
         
-        // Get parent
-        Worker parent = workerRepository.findByIdAndOwner_IdAndIsDeletedFalse(parentId, ownerId)
+        // Get parent worker first
+        Worker parent = workerRepository.findById(parentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parent", "id", parentId));
         
+        // Get the actual owner ID from the parent worker
+        Long actualOwnerId = parent.getOwner().getId();
+        log.info("Parent's owner ID: {}", actualOwnerId);
+        
         // Get all children
-        List<ChildSummaryDTO> children = getParentChildren(parentId, ownerId);
+        List<ChildSummaryDTO> children = getParentChildren(parentId, null);
         
         // Get aggregated statistics
-        ParentDashboardDTO.DashboardSummaryDTO summary = getAggregatedStatistics(parentId, ownerId);
+        ParentDashboardDTO.DashboardSummaryDTO summary = getAggregatedStatistics(parentId, actualOwnerId);
         
         // Get notifications (sample - can be enhanced)
         List<ParentDashboardDTO.ParentNotificationDTO> notifications = generateNotifications(children);
         
         // Get upcoming events
-        List<ParentDashboardDTO.EventSummaryDTO> events = getUpcomingEvents(ownerId);
+        List<ParentDashboardDTO.EventSummaryDTO> events = getUpcomingEvents(actualOwnerId);
         
         // Get pending items
         ParentDashboardDTO.PendingItemsDTO pendingItems = calculatePendingItems(children);
@@ -84,12 +88,16 @@ public class ParentServiceImpl implements ParentService {
     public List<ChildSummaryDTO> getParentChildren(Long parentId, Long ownerId) {
         log.info("Getting children for parent ID: {}", parentId);
         
-        // Get parent
-        Worker parent = workerRepository.findByIdAndOwner_IdAndIsDeletedFalse(parentId, ownerId)
+        // Get parent worker first
+        Worker parent = workerRepository.findById(parentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parent", "id", parentId));
         
+        // Get the actual owner ID from the parent worker
+        Long actualOwnerId = parent.getOwner().getId();
+        log.info("Parent's owner ID: {}", actualOwnerId);
+        
         // Find children by parent email
-        List<Worker> children = workerRepository.findChildrenByParentEmail(parent.getEmail(), ownerId);
+        List<Worker> children = workerRepository.findChildrenByParentEmail(parent.getEmail(), actualOwnerId);
         
         if (children.isEmpty()) {
             log.warn("No children found for parent email: {}", parent.getEmail());

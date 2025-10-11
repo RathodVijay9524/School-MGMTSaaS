@@ -2,10 +2,14 @@ package com.vijay.User_Master.controller;
 
 import com.vijay.User_Master.Helper.CommonUtils;
 import com.vijay.User_Master.Helper.ExceptionUtil;
+import com.vijay.User_Master.config.security.CustomUserDetails;
 import com.vijay.User_Master.dto.AssignmentRequest;
 import com.vijay.User_Master.dto.AssignmentResponse;
 import com.vijay.User_Master.dto.AssignmentStatistics;
 import com.vijay.User_Master.entity.Assignment;
+import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.repository.UserRepository;
+import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.service.AssignmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,6 +40,8 @@ import java.util.List;
 public class AssignmentController {
 
     private final AssignmentService assignmentService;
+    private final UserRepository userRepository;
+    private final WorkerRepository workerRepository;
 
     @PostMapping
     @Operation(summary = "Create a new assignment", description = "Create a new assignment for a class and subject")
@@ -94,7 +100,9 @@ public class AssignmentController {
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
         log.info("Getting assignments for class: {}", classId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        
+        // Get the correct owner ID - if logged in user is a worker, get their owner ID
+        Long ownerId = getCorrectOwnerId();
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
         Page<AssignmentResponse> response = assignmentService.getAssignmentsByClass(classId, ownerId, pageable);
@@ -221,5 +229,28 @@ public class AssignmentController {
         Long ownerId = CommonUtils.getLoggedInUser().getId();
         assignmentService.restoreAssignment(id, ownerId);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Get the correct owner ID for the logged-in user.
+     * If the logged-in user is a worker (like a parent), return their owner's ID.
+     * If the logged-in user is a direct owner, return their own ID.
+     */
+    private Long getCorrectOwnerId() {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long userId = loggedInUser.getId();
+        
+        // Check if the logged-in user is a worker
+        Worker worker = workerRepository.findById(userId).orElse(null);
+        if (worker != null && worker.getOwner() != null) {
+            // User is a worker, return their owner's ID
+            Long ownerId = worker.getOwner().getId();
+            log.info("Logged-in user is worker ID: {}, returning owner ID: {}", userId, ownerId);
+            return ownerId;
+        }
+        
+        // User is a direct owner, return their own ID
+        log.info("Logged-in user is direct owner ID: {}", userId);
+        return userId;
     }
 }

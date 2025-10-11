@@ -31,4 +31,8 @@ public class WorkerRequest {
     
     // Class assignment field
     private Long currentClassId;
+    
+    // Parent information fields
+    private String parentEmail;
+    private String parentPhone;
 }

@@ -2,10 +2,14 @@ package com.vijay.User_Master.controller;
 
 import com.vijay.User_Master.Helper.CommonUtils;
 import com.vijay.User_Master.Helper.ExceptionUtil;
+import com.vijay.User_Master.config.security.CustomUserDetails;
 import com.vijay.User_Master.dto.ExamRequest;
 import com.vijay.User_Master.dto.ExamResponse;
 import com.vijay.User_Master.dto.ExamStatistics;
 import com.vijay.User_Master.entity.Exam;
+import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.repository.UserRepository;
+import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.service.ExamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,6 +40,31 @@ import java.util.List;
 public class ExamController {
 
     private final ExamService examService;
+    private final UserRepository userRepository;
+    private final WorkerRepository workerRepository;
+
+    /**
+     * Get the correct owner ID for the logged-in user.
+     * If the logged-in user is a worker (like a parent), return their owner's ID.
+     * If the logged-in user is a direct owner, return their own ID.
+     */
+    private Long getCorrectOwnerId() {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long userId = loggedInUser.getId();
+        
+        // Check if the logged-in user is a worker
+        Worker worker = workerRepository.findById(userId).orElse(null);
+        if (worker != null && worker.getOwner() != null) {
+            // User is a worker, return their owner's ID
+            Long ownerId = worker.getOwner().getId();
+            log.info("Logged-in user is worker ID: {}, returning owner ID: {}", userId, ownerId);
+            return ownerId;
+        }
+        
+        // User is a direct owner, return their own ID
+        log.info("Logged-in user is direct owner ID: {}", userId);
+        return userId;
+    }
 
     @PostMapping
     @Operation(summary = "Create a new exam", description = "Create a new examination with scheduling and details")
@@ -77,7 +106,9 @@ public class ExamController {
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "examDate") String sortBy,
             @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDir) {
         log.info("Getting all exams - page: {}, size: {}", page, size);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        
+        // Get the correct owner ID - if logged in user is a worker, get their owner ID
+        Long ownerId = getCorrectOwnerId();
         
         Sort sort = sortDir.equalsIgnoreCase("desc") ? 
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
@@ -94,7 +125,9 @@ public class ExamController {
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
         log.info("Getting exams for class: {}", classId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        
+        // Get the correct owner ID - if logged in user is a worker, get their owner ID
+        Long ownerId = getCorrectOwnerId();
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("examDate").ascending());
         Page<ExamResponse> response = examService.getExamsByClass(classId, ownerId, pageable);

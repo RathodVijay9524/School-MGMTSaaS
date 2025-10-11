@@ -59,6 +59,9 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         if (worker.getUser() != null) {
             response.setUserId(worker.getUser().getId());
         }
+        // Explicitly set rollNumber and admissionNumber
+        response.setRollNumber(worker.getRollNumber());
+        response.setAdmissionNumber(worker.getAdmissionNumber());
         return response;
     }
     
@@ -420,6 +423,14 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         existingWorker.setEmail(request.getEmail());
         existingWorker.setPhoNo(request.getPhoNo());
         existingWorker.setAbout(request.getAbout());
+        
+        // Update parent information if provided
+        if (request.getParentEmail() != null) {
+            existingWorker.setParentEmail(request.getParentEmail());
+        }
+        if (request.getParentPhone() != null) {
+            existingWorker.setParentPhone(request.getParentPhone());
+        }
         
         // Update image name if provided
         if (request.getImageName() != null) {

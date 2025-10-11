@@ -514,6 +514,7 @@
 
         async function loadFees() {
             try {
+                console.log('🔍 DEBUG: Starting loadFees()');
                 showLoadingState();
                 
                 const token = localStorage.getItem('jwtToken');
@@ -522,9 +523,12 @@
                     showErrorState('Please login to view fees');
                     return;
                 }
+                console.log('🔍 DEBUG: Token exists:', !!token);
 
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 const studentId = user.workerId || user.id;
+                console.log('🔍 DEBUG: User:', user);
+                console.log('🔍 DEBUG: Student ID:', studentId);
 
                 console.log('💰 Loading fees for student:', studentId);
 
@@ -553,8 +557,10 @@
                 
                 const transformedFees = feesData.map(fee => ({
                     id: fee.id,
-                    type: fee.feeType || fee.type || 'TUITION',
-                    description: fee.description || fee.feeCategory || 'N/A',
+                    title: fee.feeType || fee.type || 'TUITION',
+                    description: fee.feeCategory || fee.remarks || 'Fee Payment',
+                    subject: fee.feeCategory || 'General',
+                    teacher: fee.semester || 'N/A',
                     dueDate: fee.dueDate || new Date().toISOString(),
                     totalAmount: fee.totalAmount || fee.amount || 0,
                     paidAmount: fee.paidAmount || fee.paid || 0,

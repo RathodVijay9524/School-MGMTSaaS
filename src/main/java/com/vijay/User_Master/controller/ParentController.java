@@ -39,10 +39,10 @@ public class ParentController {
     public ResponseEntity<?> getParentDashboard(@PathVariable Long parentId) {
         log.info("Getting parent dashboard for parent ID: {}", parentId);
         
-        // Get logged-in user's owner ID for multi-tenancy
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        // Get logged-in user's ID (this is the worker ID for parents)
+        Long loggedInParentId = CommonUtils.getLoggedInUser().getId();
         
-        ParentDashboardDTO response = parentService.getParentDashboard(parentId, ownerId);
+        ParentDashboardDTO response = parentService.getParentDashboard(loggedInParentId, null);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
 
@@ -57,9 +57,10 @@ public class ParentController {
     public ResponseEntity<?> getParentChildren(@PathVariable Long parentId) {
         log.info("Getting children list for parent ID: {}", parentId);
         
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        // Get logged-in user's ID (this is the worker ID for parents)
+        Long loggedInParentId = CommonUtils.getLoggedInUser().getId();
         
-        List<ChildSummaryDTO> response = parentService.getParentChildren(parentId, ownerId);
+        List<ChildSummaryDTO> response = parentService.getParentChildren(loggedInParentId, null);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
 

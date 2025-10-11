@@ -627,16 +627,30 @@
 
         // Load user info
         function loadUserInfo() {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.name) {
-                document.getElementById('studentName').textContent = user.name;
-                document.getElementById('studentNameTop').textContent = user.name;
-                document.getElementById('dropdownUserName').textContent = user.name;
-                
-                // Set current role display
-                const roles = user.roles || [];
-                if (roles.length > 0) {
-                    const roleName = roles[0].name || roles[0];
+            // Fetch real user data from API
+            fetch('/api/v1/dashboard/student', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.data && data.data.user) {
+                    const user = data.data.user;
+                    document.getElementById('studentName').textContent = user.name;
+                    document.getElementById('studentNameTop').textContent = user.name;
+                    document.getElementById('dropdownUserName').textContent = user.name;
+                    document.getElementById('studentClass').textContent = user.currentClassName || 'Not Assigned';
+                    
+                    // Store user data for later use
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    // Set current role display
+                    const roles = user.roles || [];
+                    if (roles.length > 0) {
+                        const roleName = roles[0].name || roles[0];
                     document.getElementById('dropdownUserRole').textContent = getRoleDisplayName(roleName);
                 }
             }

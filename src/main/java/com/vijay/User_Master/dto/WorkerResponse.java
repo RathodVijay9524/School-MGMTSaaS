@@ -36,6 +36,14 @@ public class WorkerResponse {
     // Class information
     private Long currentClassId;
     private String currentClassName;
+    
+    // Student-specific fields
+    private String rollNumber;
+    private String admissionNumber;
+    
+    // Parent information
+    private String parentEmail;
+    private String parentPhone;
 
     @AllArgsConstructor
     @NoArgsConstructor

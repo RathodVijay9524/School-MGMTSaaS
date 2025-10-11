@@ -147,7 +147,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     public Page<AssignmentResponse> getAssignmentsByClass(Long classId, Long ownerId, Pageable pageable) {
         log.info("Getting assignments for class: {} and owner: {}", classId, ownerId);
         
-        Page<Assignment> assignments = assignmentRepository.findBySchoolClass_IdAndIsDeletedFalse(classId, pageable);
+        Page<Assignment> assignments = assignmentRepository.findBySchoolClass_IdAndOwner_IdAndIsDeletedFalse(classId, ownerId, pageable);
         return assignments.map(this::convertToResponse);
     }
 
@@ -321,6 +321,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         long daysOverdue = isOverdue ? ChronoUnit.DAYS.between(assignment.getDueDate(), now) : 0;
         
         double submissionPercentage = assignment.getTotalStudents() != null && assignment.getTotalStudents() > 0 
+                && assignment.getSubmissionsCount() != null
                 ? (double) assignment.getSubmissionsCount() / assignment.getTotalStudents() * 100 
                 : 0.0;
         
@@ -341,7 +342,7 @@ public class AssignmentServiceImpl implements AssignmentService {
                 .status(assignment.getStatus())
                 .attachmentUrl(assignment.getAttachmentUrl())
                 .instructions(assignment.getInstructions())
-                .submissionsCount(assignment.getSubmissionsCount())
+                .submissionsCount(assignment.getSubmissionsCount() != null ? assignment.getSubmissionsCount() : 0)
                 .totalStudents(assignment.getTotalStudents())
                 .allowLateSubmission(assignment.isAllowLateSubmission())
                 .latePenaltyPercentage(assignment.getLatePenaltyPercentage())

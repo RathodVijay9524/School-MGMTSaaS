@@ -417,6 +417,33 @@
             }
         }
 
+        async function refreshUserData() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    console.warn('No token available for refreshing user data');
+                    return;
+                }
+                
+                const response = await fetch('/api/auth/current-user', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    console.log('🔄 User data refreshed from backend:', userData);
+                } else {
+                    console.warn('Failed to refresh user data:', response.status);
+                }
+            } catch (error) {
+                console.error('Error refreshing user data:', error);
+            }
+        }
+
         function loadUserInfo() {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.name) {
@@ -511,6 +538,7 @@
 
         async function loadTimetable() {
             try {
+                console.log('🔍 DEBUG: Starting loadTimetable()');
                 showLoadingState();
                 
                 const token = localStorage.getItem('jwtToken');
@@ -519,9 +547,15 @@
                     showErrorState('Please login to view timetable');
                     return;
                 }
+                console.log('🔍 DEBUG: Token exists:', !!token);
+
+                // Get fresh user data from backend to avoid cache issues
+                await refreshUserData();
 
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 const studentClassId = user.currentClassId || 1;
+                console.log('🔍 DEBUG: User:', user);
+                console.log('🔍 DEBUG: Student Class ID:', studentClassId);
 
                 console.log('📅 Loading timetable for class:', studentClassId);
 

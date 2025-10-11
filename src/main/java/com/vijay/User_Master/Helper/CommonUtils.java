@@ -2,9 +2,13 @@ package com.vijay.User_Master.Helper;
 
 import com.vijay.User_Master.config.security.CustomUserDetails;
 import com.vijay.User_Master.entity.User;
+import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.repository.WorkerRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 public class CommonUtils {
 

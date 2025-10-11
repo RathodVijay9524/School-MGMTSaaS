@@ -272,8 +272,8 @@ public class GradeServiceImpl implements GradeService {
             .feedback(grade.getFeedback())
             .remarks(grade.getRemarks())
             .isPublished(grade.isPublished())
-            .gradeTypeDisplay(grade.getGradeType().toString())
-            .statusDisplay(grade.getStatus().toString())
+            .gradeTypeDisplay(grade.getGradeType() != null ? grade.getGradeType().toString() : "N/A")
+            .statusDisplay(grade.getStatus() != null ? grade.getStatus().toString() : "PENDING")
             .isPassed(grade.getStatus() == Grade.GradeStatus.PASS)
             .build();
     }

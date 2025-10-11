@@ -5,7 +5,11 @@ import com.vijay.User_Master.dto.TimetableRequest;
 import com.vijay.User_Master.dto.TimetableResponse;
 import com.vijay.User_Master.dto.TimetableStatistics;
 import com.vijay.User_Master.entity.Timetable;
+import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.service.TimetableService;
+import com.vijay.User_Master.config.security.CustomUserDetails;
+import com.vijay.User_Master.repository.UserRepository;
+import com.vijay.User_Master.repository.WorkerRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,13 +39,15 @@ import java.util.List;
 public class TimetableController {
 
     private final TimetableService timetableService;
+    private final UserRepository userRepository;
+    private final WorkerRepository workerRepository;
 
     @PostMapping
     @Operation(summary = "Create a new timetable entry", description = "Create a new schedule entry for a class, subject, and teacher")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<TimetableResponse> createTimetable(@Valid @RequestBody TimetableRequest request) {
         log.info("Creating timetable entry for class: {} and teacher: {}", request.getClassId(), request.getTeacherId());
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         TimetableResponse response = timetableService.createTimetable(request, ownerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -53,7 +59,7 @@ public class TimetableController {
             @Parameter(description = "Timetable ID") @PathVariable Long id,
             @Valid @RequestBody TimetableRequest request) {
         log.info("Updating timetable entry: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         TimetableResponse response = timetableService.updateTimetable(id, request, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -63,7 +69,7 @@ public class TimetableController {
     public ResponseEntity<TimetableResponse> getTimetableById(
             @Parameter(description = "Timetable ID") @PathVariable Long id) {
         log.info("Getting timetable entry: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         TimetableResponse response = timetableService.getTimetableById(id, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -76,7 +82,7 @@ public class TimetableController {
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "dayOfWeek") String sortBy,
             @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDir) {
         log.info("Getting all timetable entries - page: {}, size: {}", page, size);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         
         Sort sort = sortDir.equalsIgnoreCase("desc") ? 
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
@@ -91,7 +97,7 @@ public class TimetableController {
     public ResponseEntity<List<TimetableResponse>> getTimetablesByClass(
             @Parameter(description = "Class ID") @PathVariable Long classId) {
         log.info("Getting timetable entries for class: {}", classId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesByClass(classId, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -101,7 +107,7 @@ public class TimetableController {
     public ResponseEntity<List<TimetableResponse>> getWeeklyTimetableForClass(
             @Parameter(description = "Class ID") @PathVariable Long classId) {
         log.info("Getting weekly timetable for class: {}", classId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getWeeklyTimetableForClass(classId, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -112,7 +118,7 @@ public class TimetableController {
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Day of week") @PathVariable Timetable.DayOfWeek dayOfWeek) {
         log.info("Getting timetable entries for class: {} on day: {}", classId, dayOfWeek);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesByClassAndDay(classId, dayOfWeek, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -122,7 +128,7 @@ public class TimetableController {
     public ResponseEntity<List<TimetableResponse>> getTimetablesByTeacher(
             @Parameter(description = "Teacher ID") @PathVariable Long teacherId) {
         log.info("Getting timetable entries for teacher: {}", teacherId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesByTeacher(teacherId, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -132,7 +138,7 @@ public class TimetableController {
     public ResponseEntity<List<TimetableResponse>> getWeeklyTimetableForTeacher(
             @Parameter(description = "Teacher ID") @PathVariable Long teacherId) {
         log.info("Getting weekly timetable for teacher: {}", teacherId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getWeeklyTimetableForTeacher(teacherId, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -143,7 +149,7 @@ public class TimetableController {
             @Parameter(description = "Teacher ID") @PathVariable Long teacherId,
             @Parameter(description = "Day of week") @PathVariable Timetable.DayOfWeek dayOfWeek) {
         log.info("Getting timetable entries for teacher: {} on day: {}", teacherId, dayOfWeek);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesByTeacherAndDay(teacherId, dayOfWeek, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -153,7 +159,7 @@ public class TimetableController {
     public ResponseEntity<List<TimetableResponse>> getTimetablesBySubject(
             @Parameter(description = "Subject ID") @PathVariable Long subjectId) {
         log.info("Getting timetable entries for subject: {}", subjectId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesBySubject(subjectId, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -163,7 +169,7 @@ public class TimetableController {
     public ResponseEntity<List<TimetableResponse>> getTimetablesByDay(
             @Parameter(description = "Day of week") @PathVariable Timetable.DayOfWeek dayOfWeek) {
         log.info("Getting timetable entries for day: {}", dayOfWeek);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesByDay(dayOfWeek, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -175,7 +181,7 @@ public class TimetableController {
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
         log.info("Getting timetable entries with status: {}", status);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("dayOfWeek", "startTime").ascending());
         Page<TimetableResponse> response = timetableService.getTimetablesByStatus(status, ownerId, pageable);
@@ -188,7 +194,7 @@ public class TimetableController {
             @Parameter(description = "Academic year") @PathVariable String academicYear,
             @Parameter(description = "Semester") @PathVariable String semester) {
         log.info("Getting timetable entries for academic year: {} and semester: {}", academicYear, semester);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesByAcademicYearAndSemester(academicYear, semester, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -201,7 +207,7 @@ public class TimetableController {
             @Parameter(description = "Start time (HH:mm)") @RequestParam LocalTime startTime,
             @Parameter(description = "End time (HH:mm)") @RequestParam LocalTime endTime) {
         log.info("Checking time conflicts for teacher: {} on {} at {}-{}", teacherId, dayOfWeek, startTime, endTime);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.checkTeacherTimeConflicts(teacherId, dayOfWeek, startTime, endTime, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -211,7 +217,7 @@ public class TimetableController {
     public ResponseEntity<List<TimetableResponse>> getTimetablesByRoom(
             @Parameter(description = "Room number") @PathVariable String roomNumber) {
         log.info("Getting timetable entries for room: {}", roomNumber);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<TimetableResponse> response = timetableService.getTimetablesByRoom(roomNumber, ownerId);
         return ResponseEntity.ok(response);
     }
@@ -223,7 +229,7 @@ public class TimetableController {
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
         log.info("Searching timetable entries with keyword: {}", keyword);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("dayOfWeek", "startTime").ascending());
         Page<TimetableResponse> response = timetableService.searchTimetables(keyword, ownerId, pageable);
@@ -234,7 +240,7 @@ public class TimetableController {
     @Operation(summary = "Get timetable statistics", description = "Get comprehensive statistics about timetable entries")
     public ResponseEntity<TimetableStatistics> getTimetableStatistics() {
         log.info("Getting timetable statistics");
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         TimetableStatistics response = timetableService.getTimetableStatistics(ownerId);
         return ResponseEntity.ok(response);
     }
@@ -245,7 +251,7 @@ public class TimetableController {
     public ResponseEntity<Void> deleteTimetable(
             @Parameter(description = "Timetable ID") @PathVariable Long id) {
         log.info("Deleting timetable entry: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         timetableService.deleteTimetable(id, ownerId);
         return ResponseEntity.noContent().build();
     }
@@ -256,8 +262,31 @@ public class TimetableController {
     public ResponseEntity<Void> restoreTimetable(
             @Parameter(description = "Timetable ID") @PathVariable Long id) {
         log.info("Restoring timetable entry: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         timetableService.restoreTimetable(id, ownerId);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Get the correct owner ID for the logged-in user.
+     * If the logged-in user is a worker (like a student), return their owner's ID.
+     * If the logged-in user is a direct owner, return their own ID.
+     */
+    private Long getCorrectOwnerId() {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long userId = loggedInUser.getId();
+        
+        // Check if the logged-in user is a worker
+        Worker worker = workerRepository.findById(userId).orElse(null);
+        if (worker != null && worker.getOwner() != null) {
+            // User is a worker, return their owner's ID
+            Long ownerId = worker.getOwner().getId();
+            log.info("Logged-in user is worker ID: {}, returning owner ID: {}", userId, ownerId);
+            return ownerId;
+        }
+        
+        // User is a direct owner, return their own ID
+        log.info("Logged-in user is direct owner ID: {}", userId);
+        return userId;
     }
 }

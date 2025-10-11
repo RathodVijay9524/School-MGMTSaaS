@@ -48,12 +48,24 @@
         
         /* Simple fix: Ensure content sections are properly hidden/shown */
         .content-section.hidden {
-            display: none !important;
+            display: none;
         }
         
         .content-section:not(.hidden) {
             display: block !important;
         }
+        
+        /* FORCE inline styles to always win */
+        .content-section[style*="display: block"] {
+            display: block !important;
+        }
+        
+        /* FORCE hide with !important inline styles */
+        .content-section[style*="display: none"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
         
         @media (min-width: 768px) {
             .sidebar-mobile {
@@ -716,64 +728,75 @@
         }
 
         // Show different sections
-        function showSection(section) {
-            console.log('🎯 showSection called with:', section);
+    function showSection(section) {
+        console.log('🎯 showSection called with:', section);
 
-            // Hide all sections
-            const allSections = document.querySelectorAll('.content-section');
-            console.log('🎯 Found sections:', allSections.length);
-            allSections.forEach(el => {
-                console.log('🎯 Hiding section:', el.id, 'classes:', el.className);
-                el.classList.add('hidden');
-            });
+        // IMMEDIATELY hide all sections with highest priority
+        const allSections = document.querySelectorAll('.content-section');
+        console.log('🎯 Found sections:', allSections.length);
+        allSections.forEach(el => {
+            console.log('🎯 Hiding section:', el.id, 'classes:', el.className);
+            // Force hide with highest priority
+            el.style.display = 'none !important';
+            el.classList.add('hidden');
+            // Double-ensure with visibility
+            el.style.visibility = 'hidden';
+        });
 
-            // Remove active class from all nav items
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('active', 'bg-primary-100', 'text-primary-700');
-                el.classList.add('text-gray-600');
-            });
+        // Remove active class from all nav items
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.classList.remove('active', 'bg-primary-100', 'text-primary-700');
+            el.classList.add('text-gray-600');
+        });
 
-            // Show selected section
-            if (section === 'overview') {
-                const overviewSection = document.getElementById('overviewSection');
-                console.log('🎯 Showing overview section:', !!overviewSection);
-                overviewSection.classList.remove('hidden');
-                overviewSection.style.display = 'block'; // Force show
-                document.getElementById('pageTitle').textContent = 'Dashboard Overview';
-                document.getElementById('pageSubtitle').textContent = 'System-wide analytics and management';
-                document.querySelector('[data-section="overview"]').classList.add('active');
-            } else if (section === 'users') {
-                const usersSection = document.getElementById('usersSection');
-                console.log('🎯 Showing users section:', !!usersSection);
-                usersSection.classList.remove('hidden');
-                document.getElementById('pageTitle').textContent = 'User Management';
-                document.getElementById('pageSubtitle').textContent = 'Manage all system users';
-                document.querySelector('[data-section="users"]').classList.add('active');
-                // Load users when section is shown
-                setTimeout(() => {
-                    loadUsers();
-                    setupEventListeners();
-                }, 100);
-            } else if (section === 'roles') {
-                const rolesSection = document.getElementById('rolesSection');
-                console.log('🎯 Showing roles section:', !!rolesSection);
-                console.log('🎯 Roles section classes before:', rolesSection.className);
-                rolesSection.classList.remove('hidden');
-                console.log('🎯 Roles section classes after:', rolesSection.className);
-                document.getElementById('pageTitle').textContent = 'Role Management';
-                document.getElementById('pageSubtitle').textContent = 'Configure user roles and permissions';
-                document.querySelector('[data-section="roles"]').classList.add('active');
-                // Load roles when section is shown
-                setTimeout(() => {
-                    loadRoles();
-                }, 100);
-            }
-
-            // Close sidebar on mobile after selection
-            if (window.innerWidth < 768) {
-                toggleSidebar();
-            }
+        // Show selected section
+        if (section === 'overview') {
+            const overviewSection = document.getElementById('overviewSection');
+            console.log('🎯 Showing overview section:', !!overviewSection);
+            overviewSection.style.display = 'block !important';
+            overviewSection.style.visibility = 'visible';
+            overviewSection.classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'Dashboard Overview';
+            document.getElementById('pageSubtitle').textContent = 'System-wide analytics and management';
+            document.querySelector('[data-section="overview"]').classList.add('active');
+        } else if (section === 'users') {
+            const usersSection = document.getElementById('usersSection');
+            console.log('🎯 Showing users section:', !!usersSection);
+            usersSection.style.display = 'block !important';
+            usersSection.style.visibility = 'visible';
+            usersSection.classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'User Management';
+            document.getElementById('pageSubtitle').textContent = 'Manage all system users';
+            document.querySelector('[data-section="users"]').classList.add('active');
+            // Load users when section is shown
+            setTimeout(() => {
+                loadUsers();
+                setupEventListeners();
+            }, 100);
+        } else if (section === 'roles') {
+            const rolesSection = document.getElementById('rolesSection');
+            console.log('🎯 Showing roles section:', !!rolesSection);
+            console.log('🎯 Roles section classes before:', rolesSection.className);
+            // Force show with highest priority
+            rolesSection.style.display = 'block !important';
+            rolesSection.style.visibility = 'visible';
+            rolesSection.classList.remove('hidden');
+            console.log('🎯 Roles section classes after:', rolesSection.className);
+            console.log('🎯 Roles section style.display:', rolesSection.style.display);
+            document.getElementById('pageTitle').textContent = 'Role Management';
+            document.getElementById('pageSubtitle').textContent = 'Configure user roles and permissions';
+            document.querySelector('[data-section="roles"]').classList.add('active');
+            // Load roles when section is shown
+            setTimeout(() => {
+                loadRoles();
+            }, 100);
         }
+
+        // Close sidebar on mobile after selection
+        if (window.innerWidth < 768) {
+            toggleSidebar();
+        }
+    }
 
         // Load user info
         function loadUserInfo() {
@@ -1706,7 +1729,6 @@
                 console.log('🎯 Showing empty state');
                 emptyState.classList.remove('hidden');
                 emptyState.style.display = 'block';
-                rolesTable.classList.add('hidden');
                 rolesTable.style.display = 'none';
                 return;
             }
@@ -1717,37 +1739,10 @@
             emptyState.classList.add('hidden');
             emptyState.style.display = 'none';
             
-            // Show roles table
+            // Show roles table - simple approach
             rolesTable.classList.remove('hidden');
             
-            console.log('🎯 After showing table:');
-            console.log('  - rolesTable.className:', rolesTable.className);
-            console.log('  - rolesTable.style.display:', rolesTable.style.display);
-            console.log('  - computed display:', window.getComputedStyle(rolesTable).display);
-            console.log('  - computed visibility:', window.getComputedStyle(rolesTable).visibility);
-            
-            // DEBUGGING: Check if table content is actually there
-            const table = rolesTable.querySelector('table');
-            const tbody = rolesTable.querySelector('tbody');
-            const rows = rolesTable.querySelectorAll('tr');
-            console.log('🎯 DOM Debug:');
-            console.log('  - Table element:', !!table);
-            console.log('  - Tbody element:', !!tbody);
-            console.log('  - Row count:', rows.length);
-            console.log('  - Tbody innerHTML length:', tbody ? tbody.innerHTML.length : 'N/A');
-            console.log('  - Table parent display:', window.getComputedStyle(table?.parentElement).display);
-            
-            // FORCE table to be visible by checking parent elements
-            let parent = rolesTable.parentElement;
-            while (parent && parent !== document.body) {
-                const computedStyle = window.getComputedStyle(parent);
-                console.log(`  - Parent ${parent.tagName} display:`, computedStyle.display);
-                if (computedStyle.display === 'none') {
-                    console.log('🚨 FOUND HIDDEN PARENT!', parent);
-                    parent.style.display = 'block';
-                }
-                parent = parent.parentElement;
-            }
+            console.log('🎯 Table should be visible now');
 
             tableBody.innerHTML = rolesToDisplay.map(role => `
                 <tr class="hover:bg-gray-50">
@@ -1782,16 +1777,16 @@
             
             // TEMPORARY: Add a visible test element to confirm table is there
             const testDiv = document.createElement('div');
-            testDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999; font-weight: bold;';
-            testDiv.textContent = `✅ TABLE HAS ${tableBody.children.length} ROWS!`;
+            testDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999; font-weight: bold; border: 3px solid yellow;';
+            testDiv.textContent = `✅ TABLE HAS ${tableBody.children.length} ROWS! DISPLAY: ${window.getComputedStyle(rolesTable).display}`;
             document.body.appendChild(testDiv);
             
-            // Remove test element after 3 seconds
+            // Remove test element after 5 seconds
             setTimeout(() => {
                 if (testDiv.parentNode) {
                     testDiv.parentNode.removeChild(testDiv);
                 }
-            }, 3000);
+            }, 5000);
             
             console.log('🎯 displayRoles completed');
         }

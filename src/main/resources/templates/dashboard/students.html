@@ -249,7 +249,7 @@
         let students = [];
         let currentTab = 0;
         let currentPage = 0;
-        let pageSize = 10;
+        let pageSize = 100;
         let currentFilters = {};
         let searchKeyword = '';
         let currentEditingStudent = null;
@@ -392,12 +392,24 @@
                 // Filter only students (ROLE_STUDENT)
                 const allWorkers = result.data?.content || [];
                 students = allWorkers.filter(worker => 
-                    worker.roles && worker.roles.some(role => 
-                        role.name === 'ROLE_STUDENT' || (typeof role.name === 'string' && role.name.includes('ROLE_STUDENT'))
-                    )
+                    worker.roles && worker.roles.some(role => {
+                        // Handle both object and string role formats
+                        const roleName = typeof role === 'string' ? role : role.name;
+                        return roleName === 'ROLE_STUDENT' || roleName.includes('ROLE_STUDENT');
+                    })
                 );
 
                 console.log(`✅ Found ${students.length} students out of ${allWorkers.length} workers`);
+                console.log('🔍 Debug - First 3 workers roles:', allWorkers.slice(0, 3).map(w => ({name: w.name, roles: w.roles})));
+                if (students.length > 0) {
+                    console.log('🎓 First student:', students[0]);
+                } else {
+                    console.log('❌ No students found - checking role structure...');
+                    const workersWithRoles = allWorkers.filter(w => w.roles && w.roles.length > 0);
+                    if (workersWithRoles.length > 0) {
+                        console.log('📋 Sample role structure:', workersWithRoles[0].roles);
+                    }
+                }
 
                 // Display students
                 displayStudents(students, result.data);
@@ -710,9 +722,11 @@
                 const result = await response.json();
                 const allWorkers = result.data?.content || [];
                 const students = allWorkers.filter(worker => 
-                    worker.roles && worker.roles.some(role => 
-                        role.name === 'ROLE_STUDENT' || role.includes('ROLE_STUDENT')
-                    )
+                    worker.roles && worker.roles.some(role => {
+                        // Handle both object and string role formats
+                        const roleName = typeof role === 'string' ? role : role.name;
+                        return roleName === 'ROLE_STUDENT' || roleName.includes('ROLE_STUDENT');
+                    })
                 );
                 return result.data?.totalElements || 0; // Return total count from actual query
             } catch (error) {

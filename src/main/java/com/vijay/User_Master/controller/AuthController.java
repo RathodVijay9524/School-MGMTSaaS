@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.CompletableFuture;
-
+// /api/auth/login
 @RestController
 @RequestMapping("/api/auth")
 @AllArgsConstructor

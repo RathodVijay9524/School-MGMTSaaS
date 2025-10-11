@@ -18,6 +18,9 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     // Find by class
     Page<Assignment> findBySchoolClass_IdAndIsDeletedFalse(Long classId, Pageable pageable);
     
+    // Find by class and owner (multi-tenant)
+    Page<Assignment> findBySchoolClass_IdAndOwner_IdAndIsDeletedFalse(Long classId, Long ownerId, Pageable pageable);
+    
     // Find by subject
     List<Assignment> findBySubject_IdAndIsDeletedFalse(Long subjectId);
     

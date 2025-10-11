@@ -327,7 +327,7 @@
         // Global variables
         let parents = [];
         let currentPage = 0;
-        let pageSize = 10;
+        let pageSize = 100;
         let currentTab = 0;
         let currentFilters = {
             isDeleted: undefined,
@@ -396,12 +396,24 @@
                 // Filter only parents (ROLE_PARENT)
                 const allWorkers = result.data?.content || [];
                 parents = allWorkers.filter(worker => 
-                    worker.roles && worker.roles.some(role => 
-                        role.name === 'ROLE_PARENT' || (typeof role.name === 'string' && role.name.includes('ROLE_PARENT'))
-                    )
+                    worker.roles && worker.roles.some(role => {
+                        // Handle both object and string role formats
+                        const roleName = typeof role === 'string' ? role : role.name;
+                        return roleName === 'ROLE_PARENT' || roleName.includes('ROLE_PARENT');
+                    })
                 );
 
                 console.log(`✅ Found ${parents.length} parents out of ${allWorkers.length} workers`);
+                console.log('🔍 Debug - First 3 workers roles:', allWorkers.slice(0, 3).map(w => ({name: w.name, roles: w.roles})));
+                if (parents.length > 0) {
+                    console.log('👨‍👩‍👧‍👦 First parent:', parents[0]);
+                } else {
+                    console.log('❌ No parents found - checking role structure...');
+                    const workersWithRoles = allWorkers.filter(w => w.roles && w.roles.length > 0);
+                    if (workersWithRoles.length > 0) {
+                        console.log('📋 Sample role structure:', workersWithRoles[0].roles);
+                    }
+                }
 
                 // Update stats
                 updateStats();

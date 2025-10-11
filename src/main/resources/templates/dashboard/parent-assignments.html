@@ -512,31 +512,91 @@
                 showLoadingState();
                 
                 const token = localStorage.getItem('jwtToken');
+                console.log('🔍 DEBUG: Starting loadAssignments()');
+                console.log('🔍 DEBUG: Token exists:', !!token);
+                
                 if (!token) {
                     throw new Error('No authentication token found');
                 }
 
-                // Get student's class ID from user data
+                // Get parent ID and fetch children to get their class IDs
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
-                const studentClassId = user.currentClassId || 1; // Default to class 1 if not available
+                const parentId = user.id;
                 
-                // Call the real API to get assignments for the student's class
-                const response = await fetch(`/api/v1/assignments/class/${studentClassId}`, {
+                console.log('🔍 DEBUG: User:', user);
+                console.log('🔍 DEBUG: Parent ID:', parentId);
+                
+                // First, get the children to find their class IDs
+                const childrenResponse = await fetch(`/api/v1/parents/${parentId}/children`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                console.log('🔍 DEBUG: Children response status:', childrenResponse.status);
+                
+                if (!childrenResponse.ok) {
+                    const errorText = await childrenResponse.text();
+                    console.error('❌ DEBUG: Children API Error:', errorText);
+                    throw new Error(`Failed to fetch children: ${childrenResponse.status}`);
                 }
                 
-                const result = await response.json();
-                const apiAssignments = result.data ? result.data.content || result.data : [];
+                const childrenData = await childrenResponse.json();
+                console.log('🔍 DEBUG: Children data:', childrenData);
+                
+                const children = childrenData.data || [];
+                console.log('🔍 DEBUG: Children array:', children);
+                
+                if (children.length === 0) {
+                    console.warn('⚠️ DEBUG: No children found');
+                    throw new Error('No children found');
+                }
+                
+                // Get assignments for all children's classes
+                let allAssignments = [];
+                console.log('🔍 DEBUG: Fetching assignments for', children.length, 'children');
+                
+                for (const child of children) {
+                    console.log('🔍 DEBUG: Child:', child.name, 'Class ID:', child.classId);
+                    
+                    if (child.classId) {
+                        const url = `/api/v1/assignments/class/${child.classId}`;
+                        console.log('🔍 DEBUG: Fetching from URL:', url);
+                        
+                        const response = await fetch(url, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        console.log('🔍 DEBUG: Response status:', response.status, response.statusText);
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            console.log('🔍 DEBUG: API Response:', result);
+                            
+                            // Extract assignments from the page response
+                            // The API returns a Page object with 'content' array directly, not wrapped in 'data'
+                            const classAssignments = result.content || [];
+                            console.log('🔍 DEBUG: Extracted assignments:', classAssignments.length, 'assignments');
+                            console.log('🔍 DEBUG: Assignment details:', classAssignments);
+                            
+                            allAssignments = allAssignments.concat(classAssignments);
+                        } else {
+                            const errorText = await response.text();
+                            console.error('❌ DEBUG: API Error:', response.status, errorText);
+                        }
+                    } else {
+                        console.warn('⚠️ DEBUG: Child has no class ID');
+                    }
+                }
+                
+                console.log('🔍 DEBUG: Total assignments fetched:', allAssignments.length);
                 
                 // Transform API data to match our expected format
-                const transformedAssignments = apiAssignments.map(assignment => ({
+                const transformedAssignments = allAssignments.map(assignment => ({
                     id: assignment.assignmentId || assignment.id,
                     title: assignment.title,
                     description: assignment.description,
