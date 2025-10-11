@@ -953,19 +953,51 @@
                 });
 
                 if (response.ok) {
-                    const attendance = await response.json();
+                    const responseData = await response.json();
+                    console.log('📝 Edit attendance API response:', responseData);
+                    
+                    // Extract the actual attendance data from the wrapped response
+                    const attendance = responseData.data || responseData;
+                    console.log('📝 Extracted attendance data for edit:', attendance);
                     
                     // Update modal title
                     document.getElementById('addAttendanceModalTitle').textContent = 'Edit Attendance';
                     document.getElementById('submitAttendanceBtn').innerHTML = '<i class="fas fa-save mr-2"></i>Update Attendance';
                     
-                    // Set form data
-                    document.getElementById('studentId').value = attendance.studentId || '';
-                    document.getElementById('classId').value = attendance.classId || '';
+                    // We need to get the student's class to properly populate class dropdown
+                    // Then populate student and subject dropdowns
+                    const studentResponse = await fetch(`/api/v1/workers/${attendance.studentId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (studentResponse.ok) {
+                        const studentData = await studentResponse.json();
+                        const student = studentData.data || studentData;
+                        console.log('📝 Student data for edit:', student);
+                        
+                        if (student.currentClassId) {
+                            console.log('📝 Setting class ID:', student.currentClassId);
+                            document.getElementById('classId').value = student.currentClassId;
+                            
+                            // Trigger the class change to load students and subjects
+                            console.log('📝 Loading students and subjects for class:', student.currentClassId);
+                            await loadStudents(student.currentClassId);
+                            await loadSubjects(student.currentClassId);
+                            
+                            // Wait a bit for dropdowns to populate, then set values
+                            setTimeout(() => {
+                                console.log('📝 Setting student ID:', attendance.studentId);
+                                document.getElementById('studentId').value = attendance.studentId || '';
+                                console.log('📝 Setting subject ID:', attendance.subjectId);
+                                document.getElementById('subjectId').value = attendance.subjectId || '';
+                            }, 100);
+                        }
+                    }
+                    
+                    // Set other form data
                     document.getElementById('attendanceDate').value = attendance.attendanceDate || '';
                     document.getElementById('status').value = attendance.status || '';
                     document.getElementById('session').value = attendance.session || 'FULL_DAY';
-                    document.getElementById('subjectId').value = attendance.subjectId || '';
                     document.getElementById('checkInTime').value = attendance.checkInTime || '';
                     document.getElementById('checkOutTime').value = attendance.checkOutTime || '';
                     document.getElementById('remarks').value = attendance.remarks || '';
