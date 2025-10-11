@@ -420,7 +420,9 @@
                     totalPages = data.totalPages || 0;
                     applyFilters();
                 } else {
-                    console.error('Failed to load assignments');
+                    console.error('Failed to load assignments:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('Error details:', errorText);
                 }
             } catch (error) {
                 console.error('Error loading assignments:', error);
@@ -537,6 +539,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Classes loaded:', data);
                     const classes = data.content || [];
                     
                     [document.getElementById('classId'), document.getElementById('classFilter')].forEach(select => {
@@ -547,6 +550,10 @@
                             if (currentValue) select.value = currentValue;
                         }
                     });
+                } else {
+                    console.error('Failed to load classes:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('Classes error details:', errorText);
                 }
             } catch (error) {
                 console.error('Error loading classes:', error);
@@ -562,6 +569,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Subjects loaded:', data);
                     const subjects = data.content || [];
                     
                     [document.getElementById('subjectId'), document.getElementById('subjectFilter')].forEach(select => {
@@ -572,6 +580,10 @@
                             if (currentValue) select.value = currentValue;
                         }
                     });
+                } else {
+                    console.error('Failed to load subjects:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('Subjects error details:', errorText);
                 }
             } catch (error) {
                 console.error('Error loading subjects:', error);
@@ -587,13 +599,19 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Workers loaded:', data);
                     const teachers = (data.content || []).filter(w => 
                         w.roles && w.roles.some(r => r.name === 'ROLE_TEACHER' || r.includes('TEACHER'))
                     );
+                    console.log('Filtered teachers:', teachers.length);
                     
                     const teacherSelect = document.getElementById('teacherId');
                     teacherSelect.innerHTML = '<option value="">Select Teacher</option>' + 
                         teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                } else {
+                    console.error('Failed to load teachers:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('Teachers error details:', errorText);
                 }
             } catch (error) {
                 console.error('Error loading teachers:', error);
