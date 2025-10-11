@@ -433,6 +433,8 @@
         async function loadDashboardData() {
             try {
                 const token = localStorage.getItem('jwtToken');
+                console.log('📊 Loading dashboard data...');
+                
                 const response = await fetch('/api/v1/dashboard/school-owner', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -440,12 +442,19 @@
                     }
                 });
 
+                console.log('📊 Dashboard API response status:', response.status);
+
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('📊 Dashboard API response data:', data);
                     updateDashboardStats(data);
+                } else {
+                    console.error('📊 Dashboard API error:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('📊 Dashboard API error details:', errorText);
                 }
             } catch (error) {
-                console.error('Error loading dashboard data:', error);
+                console.error('📊 Error loading dashboard data:', error);
             }
         }
 
@@ -537,14 +546,30 @@
 
         // Update dashboard statistics
         function updateDashboardStats(data) {
+            console.log('📊 Dashboard data received:', data);
+            
             let students = 0, teachers = 0, classes = 0, revenue = 0;
             
-            if (data && data.quickStats) {
-                students = data.quickStats.totalStudents || 0;
-                teachers = data.quickStats.totalTeachers || 0;
-                classes = data.quickStats.totalClasses || 0;
-                revenue = data.quickStats.totalRevenue || 0;
+            // Handle both wrapped and direct data structures
+            if (data) {
+                if (data.quickStats) {
+                    // Data is wrapped in quickStats
+                    students = data.quickStats.totalStudents || 0;
+                    teachers = data.quickStats.totalTeachers || 0;
+                    classes = data.quickStats.totalClasses || 0;
+                    revenue = data.quickStats.totalFeesCollected || data.quickStats.totalRevenue || 0;
+                    console.log('📊 Using quickStats data:', data.quickStats);
+                } else {
+                    // Data is directly in the response
+                    students = data.totalStudents || 0;
+                    teachers = data.totalTeachers || 0;
+                    classes = data.totalClasses || 0;
+                    revenue = data.totalFeeCollected || data.totalRevenue || 0;
+                    console.log('📊 Using direct data:', { students, teachers, classes, revenue });
+                }
             }
+            
+            console.log('📊 Final stats:', { students, teachers, classes, revenue });
             
             document.getElementById('totalStudents').textContent = students;
             document.getElementById('totalTeachers').textContent = teachers;
