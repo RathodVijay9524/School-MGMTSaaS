@@ -406,12 +406,41 @@
 
         async function initializePage() {
             try {
+                // First refresh user data to get latest class ID
+                await refreshUserData();
                 loadUserInfo();
                 await loadAttendance();
                 setupEventListeners();
             } catch (error) {
                 console.error('❌ Error initializing page:', error);
                 showErrorState('Failed to initialize page');
+            }
+        }
+
+        async function refreshUserData() {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    console.warn('No token available for refreshing user data');
+                    return;
+                }
+                
+                const response = await fetch('/api/auth/current-user', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    console.log('🔄 User data refreshed from backend:', userData);
+                } else {
+                    console.warn('Failed to refresh user data:', response.status);
+                }
+            } catch (error) {
+                console.error('Error refreshing user data:', error);
             }
         }
 

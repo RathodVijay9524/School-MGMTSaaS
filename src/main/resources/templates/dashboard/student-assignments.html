@@ -406,6 +406,8 @@
 
         async function initializePage() {
             try {
+                // First refresh user data to get latest class ID
+                await refreshUserData();
                 loadUserInfo();
                 await loadAssignments();
                 setupEventListeners();
