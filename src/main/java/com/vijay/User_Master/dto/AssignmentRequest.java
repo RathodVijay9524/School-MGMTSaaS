@@ -38,11 +38,10 @@ public class AssignmentRequest {
     private Assignment.AssignmentType assignmentType;
 
     @NotNull(message = "Assigned date is required")
-    @FutureOrPresent(message = "Assigned date cannot be in the past")
     private LocalDateTime assignedDate;
 
     @NotNull(message = "Due date is required")
-    @Future(message = "Due date must be in the future")
+    @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDateTime dueDate;
 
     @DecimalMin(value = "0.0", message = "Total marks must be positive")
