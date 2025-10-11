@@ -700,7 +700,7 @@
         }
 
         // Load students
-        async function loadStudents() {
+        async function loadStudents(classId = null) {
             const token = localStorage.getItem('jwtToken');
             try {
                 const response = await fetch('/api/v1/workers?page=0&size=1000', {
@@ -710,9 +710,14 @@
                 if (response.ok) {
                     const data = await response.json();
                     const workers = data.data?.content || data.content || [];
-                    const students = workers.filter(w => 
+                    let students = workers.filter(w => 
                         w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.name?.includes('STUDENT'))
                     );
+                    
+                    // Filter students by class if classId is provided
+                    if (classId) {
+                        students = students.filter(s => s.currentClassId == classId);
+                    }
                     
                     const studentSelect = document.getElementById('studentId');
                     studentSelect.innerHTML = '<option value="">Select Student</option>' + 
@@ -723,21 +728,28 @@
             }
         }
 
-        // Load subjects
-        async function loadSubjects() {
+        // Load subjects - optionally filter by class
+        async function loadSubjects(classId = null) {
             const token = localStorage.getItem('jwtToken');
             try {
-                const response = await fetch('/api/v1/subjects?page=0&size=100', {
+                // If classId is provided, fetch subjects for that class; otherwise fetch all subjects
+                const url = classId ? `/api/v1/subjects/class/${classId}` : '/api/v1/subjects?page=0&size=100';
+                const response = await fetch(url, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const subjects = data.data?.content || data.content || [];
+                    // For class-specific endpoint, data is a direct array; for paginated, it's in content
+                    const subjects = Array.isArray(data.data) ? data.data : (data.data?.content || data.content || []);
                     
                     const subjectSelect = document.getElementById('subjectId');
-                    subjectSelect.innerHTML = '<option value="">Select Subject</option>' + 
-                        subjects.map(s => `<option value="${s.id}">${s.subjectName}</option>`).join('');
+                    if (classId) {
+                        subjectSelect.innerHTML = '<option value="">Select Subject</option>' + 
+                            subjects.map(s => `<option value="${s.id}">${s.subjectName}</option>`).join('');
+                    } else {
+                        subjectSelect.innerHTML = '<option value="">Select Class First</option>';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading subjects:', error);
@@ -1131,12 +1143,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUserInfo();
             loadClasses();
-            loadStudents();
-            loadSubjects();
             loadAttendance();
             
             // Set today's date as default
             document.getElementById('dateFilter').valueAsDate = new Date();
+            
+            // Add event listener for class selection
+            document.getElementById('classId').addEventListener('change', function() {
+                const classId = this.value;
+                loadStudents(classId);
+                loadSubjects(classId);
+            });
         });
     </script>
 </body>
