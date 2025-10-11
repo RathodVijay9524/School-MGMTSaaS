@@ -1,5 +1,6 @@
 package com.vijay.User_Master.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vijay.User_Master.entity.Grade;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -57,6 +58,7 @@ public class GradeRequest {
     @Size(max = 500, message = "Remarks must not exceed 500 characters")
     private String remarks;
     
+    @JsonProperty("isPublished")
     private boolean isPublished;
 }
 

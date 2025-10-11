@@ -1,5 +1,6 @@
 package com.vijay.User_Master.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vijay.User_Master.entity.Grade;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,11 +38,15 @@ public class GradeResponse {
     private String gradedByTeacherName;
     private String feedback;
     private String remarks;
+    
+    @JsonProperty("isPublished")
     private boolean isPublished;
     
     // Computed fields
     private String gradeTypeDisplay;
     private String statusDisplay;
+    
+    @JsonProperty("isPassed")
     private boolean isPassed;
 }
 
