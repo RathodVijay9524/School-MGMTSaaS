@@ -584,14 +584,19 @@
 
         async function loadSubjects() {
             const token = localStorage.getItem('jwtToken');
+            console.log('🔍 Loading subjects...');
             try {
                 const response = await fetch('/api/v1/subjects?page=0&size=100', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
+                console.log('📊 Subjects response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
-                    const subjects = data.content || [];
+                    console.log('📋 Subjects data:', data);
+                    const subjects = data.data?.content || data.content || [];
+                    console.log('📝 Subjects array:', subjects);
                     
                     [document.getElementById('subjectId'), document.getElementById('subjectFilter')].forEach(select => {
                         if (select) {
@@ -599,55 +604,76 @@
                             const firstOption = select.id === 'subjectFilter' ? '<option value="">All Subjects</option>' : '<option value="">Select Subject</option>';
                             select.innerHTML = firstOption + subjects.map(s => `<option value="${s.id}">${s.subjectName}</option>`).join('');
                             if (currentValue) select.value = currentValue;
+                            console.log('✅ Populated subjects dropdown:', select.id);
                         }
                     });
+                } else {
+                    console.error('❌ Subjects API error:', response.status, response.statusText);
                 }
             } catch (error) {
-                console.error('Error loading subjects:', error);
+                console.error('💥 Error loading subjects:', error);
             }
         }
 
         async function loadStudents() {
             const token = localStorage.getItem('jwtToken');
+            console.log('🔍 Loading students...');
             try {
                 const response = await fetch('/api/v1/workers?page=0&size=1000', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
+                console.log('📊 Students response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
-                    const students = (data.content || []).filter(w => 
-                        w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.includes('STUDENT'))
+                    console.log('📋 Workers data:', data);
+                    const workers = data.data?.content || data.content || [];
+                    const students = workers.filter(w => 
+                        w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.name?.includes('STUDENT'))
                     );
+                    console.log('👥 Students array:', students);
                     
                     const studentSelect = document.getElementById('studentId');
                     studentSelect.innerHTML = '<option value="">Select Student</option>' + 
                         students.map(s => `<option value="${s.id}">${s.name}${s.admissionNumber ? ' - ' + s.admissionNumber : ''}</option>`).join('');
+                    console.log('✅ Populated students dropdown');
+                } else {
+                    console.error('❌ Students API error:', response.status, response.statusText);
                 }
             } catch (error) {
-                console.error('Error loading students:', error);
+                console.error('💥 Error loading students:', error);
             }
         }
 
         async function loadTeachers() {
             const token = localStorage.getItem('jwtToken');
+            console.log('🔍 Loading teachers...');
             try {
                 const response = await fetch('/api/v1/workers?page=0&size=1000', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
+                console.log('📊 Teachers response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
-                    const teachers = (data.content || []).filter(w => 
-                        w.roles && w.roles.some(r => r.name === 'ROLE_TEACHER' || r.includes('TEACHER'))
+                    console.log('📋 Workers data for teachers:', data);
+                    const workers = data.data?.content || data.content || [];
+                    const teachers = workers.filter(w => 
+                        w.roles && w.roles.some(r => r.name === 'ROLE_TEACHER' || r.name?.includes('TEACHER'))
                     );
+                    console.log('👨‍🏫 Teachers array:', teachers);
                     
                     const teacherSelect = document.getElementById('gradedByTeacherId');
                     teacherSelect.innerHTML = '<option value="">Select Teacher</option>' + 
                         teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                    console.log('✅ Populated teachers dropdown');
+                } else {
+                    console.error('❌ Teachers API error:', response.status, response.statusText);
                 }
             } catch (error) {
-                console.error('Error loading teachers:', error);
+                console.error('💥 Error loading teachers:', error);
             }
         }
 
@@ -990,6 +1016,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                alert('⚠️ No JWT token found! Please login first.');
+                window.location.href = '/login';
+                return;
+            }
+            
+            console.log('✅ Token found, loading data...');
             loadUserInfo();
             loadSubjects();
             loadStudents();

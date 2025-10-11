@@ -549,8 +549,8 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    allAttendance = data.content || [];
-                    totalPages = data.totalPages || 0;
+                    allAttendance = data.data?.content || data.content || [];
+                    totalPages = data.data?.totalPages || data.totalPages || 0;
                     
                     applyFilters();
                 } else {
@@ -682,7 +682,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const classes = data.content || [];
+                    const classes = data.data?.content || data.content || [];
                     
                     const classSelects = [document.getElementById('classId'), document.getElementById('classFilter'), document.getElementById('bulkClassId')];
                     classSelects.forEach(select => {
@@ -709,8 +709,9 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const students = (data.content || []).filter(w => 
-                        w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.includes('STUDENT'))
+                    const workers = data.data?.content || data.content || [];
+                    const students = workers.filter(w => 
+                        w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.name?.includes('STUDENT'))
                     );
                     
                     const studentSelect = document.getElementById('studentId');
@@ -732,7 +733,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const subjects = data.content || [];
+                    const subjects = data.data?.content || data.content || [];
                     
                     const subjectSelect = document.getElementById('subjectId');
                     subjectSelect.innerHTML = '<option value="">Select Subject</option>' + 
@@ -764,8 +765,9 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const allStudents = (data.content || []).filter(w => 
-                        w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.includes('STUDENT'))
+                    const workers = data.data?.content || data.content || [];
+                    const allStudents = workers.filter(w => 
+                        w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.name?.includes('STUDENT'))
                     );
                     
                     const classStudents = allStudents.filter(s => {

@@ -416,8 +416,8 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    allAssignments = data.content || [];
-                    totalPages = data.totalPages || 0;
+                    allAssignments = data.data?.content || data.content || [];
+                    totalPages = data.data?.totalPages || data.totalPages || 0;
                     applyFilters();
                 } else {
                     console.error('Failed to load assignments:', response.status, response.statusText);
@@ -540,7 +540,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Classes loaded:', data);
-                    const classes = data.content || [];
+                    const classes = data.data?.content || data.content || [];
                     
                     [document.getElementById('classId'), document.getElementById('classFilter')].forEach(select => {
                         if (select) {
@@ -570,7 +570,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Subjects loaded:', data);
-                    const subjects = data.content || [];
+                    const subjects = data.data?.content || data.content || [];
                     
                     [document.getElementById('subjectId'), document.getElementById('subjectFilter')].forEach(select => {
                         if (select) {
@@ -600,8 +600,9 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Workers loaded:', data);
-                    const teachers = (data.content || []).filter(w => 
-                        w.roles && w.roles.some(r => r.name === 'ROLE_TEACHER' || r.includes('TEACHER'))
+                    const workers = data.data?.content || data.content || [];
+                    const teachers = workers.filter(w => 
+                        w.roles && w.roles.some(r => r.name === 'ROLE_TEACHER' || r.name?.includes('TEACHER'))
                     );
                     console.log('Filtered teachers:', teachers.length);
                     
@@ -880,6 +881,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                alert('⚠️ No JWT token found! Please login first.');
+                window.location.href = '/login';
+                return;
+            }
+            
+            console.log('✅ Token found, loading data...');
             loadUserInfo();
             loadClasses();
             loadSubjects();
