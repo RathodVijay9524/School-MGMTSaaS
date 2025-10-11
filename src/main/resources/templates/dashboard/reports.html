@@ -680,20 +680,188 @@
             console.log('Attendance chart - using placeholder data (API integration pending)');
         }
 
-        // Initialize charts
-        function initializeCharts() {
-            // Student Distribution Chart
+        // Initialize charts with dynamic data
+        async function initializeCharts() {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+
+            try {
+                // Fetch all required data in parallel
+                const [classesData, feesData, examsData, studentsData] = await Promise.all([
+                    fetch('/api/v1/classes?page=0&size=100', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(res => res.ok ? res.json() : { content: [] }),
+                    fetch('/api/v1/fees?page=0&size=1000', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(res => res.ok ? res.json() : { content: [] }),
+                    fetch('/api/v1/exams?page=0&size=100', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(res => res.ok ? res.json() : { content: [] }),
+                    fetch('/api/v1/workers?page=0&size=1000', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(res => res.ok ? res.json() : { content: [] })
+                ]);
+
+                // Process data for charts
+                updateStudentDistributionChart(classesData, studentsData);
+                updateFeeCollectionChart(feesData);
+                updateExamPerformanceChart(examsData);
+                updateAttendanceChart();
+                
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+                // Initialize with empty data if API fails
+                initializeEmptyCharts();
+            }
+        }
+
+        // Update Student Distribution Chart with real data
+        function updateStudentDistributionChart(classesData, studentsData) {
+            const classes = classesData.content || [];
+            const students = studentsData.content || [];
+            
+            // Count students per class
+            const classStudentCount = {};
+            classes.forEach(cls => {
+                classStudentCount[cls.id] = {
+                    name: cls.className + (cls.section ? ` - ${cls.section}` : ''),
+                    count: 0
+                };
+            });
+            
+            students.forEach(student => {
+                const classId = student.currentClassId || student.currentClass?.id;
+                if (classId && classStudentCount[classId]) {
+                    classStudentCount[classId].count++;
+                }
+            });
+            
+            const labels = Object.values(classStudentCount).map(c => c.name);
+            const data = Object.values(classStudentCount).map(c => c.count);
+            
             const studentCtx = document.getElementById('studentDistributionChart').getContext('2d');
             studentChart = new Chart(studentCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6'],
+                    labels: labels.length > 0 ? labels : ['No Classes'],
                     datasets: [{
                         label: 'Number of Students',
-                        data: [30, 35, 28, 32, 40, 25],
+                        data: data.length > 0 ? data : [0],
                         backgroundColor: 'rgba(59, 130, 246, 0.5)',
                         borderColor: 'rgba(59, 130, 246, 1)',
                         borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update Fee Collection Chart with real data
+        function updateFeeCollectionChart(feesData) {
+            const fees = feesData.content || [];
+            
+            // Count fees by payment status
+            const statusCounts = {
+                PAID: 0,
+                PARTIAL: 0,
+                PENDING: 0,
+                OVERDUE: 0,
+                CANCELLED: 0,
+                REFUNDED: 0
+            };
+            
+            fees.forEach(fee => {
+                if (statusCounts.hasOwnProperty(fee.paymentStatus)) {
+                    statusCounts[fee.paymentStatus]++;
+                }
+            });
+            
+            const feeCtx = document.getElementById('feeCollectionChart').getContext('2d');
+            feeChart = new Chart(feeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Paid', 'Partial', 'Pending', 'Overdue', 'Cancelled', 'Refunded'],
+                    datasets: [{
+                        data: [
+                            statusCounts.PAID,
+                            statusCounts.PARTIAL,
+                            statusCounts.PENDING,
+                            statusCounts.OVERDUE,
+                            statusCounts.CANCELLED,
+                            statusCounts.REFUNDED
+                        ],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.5)',
+                            'rgba(251, 191, 36, 0.5)',
+                            'rgba(59, 130, 246, 0.5)',
+                            'rgba(239, 68, 68, 0.5)',
+                            'rgba(107, 114, 128, 0.5)',
+                            'rgba(139, 92, 246, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(251, 191, 36, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(107, 114, 128, 1)',
+                            'rgba(139, 92, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        }
+
+        // Update Exam Performance Chart with real data
+        function updateExamPerformanceChart(examsData) {
+            const exams = examsData.content || [];
+            
+            // Group exams by type and calculate average marks
+            const examsByType = {};
+            exams.forEach(exam => {
+                if (!examsByType[exam.examType]) {
+                    examsByType[exam.examType] = {
+                        totalMarks: 0,
+                        count: 0
+                    };
+                }
+                examsByType[exam.examType].totalMarks += exam.totalMarks || 0;
+                examsByType[exam.examType].count++;
+            });
+            
+            const labels = Object.keys(examsByType);
+            const avgMarks = labels.map(type => {
+                const data = examsByType[type];
+                return data.count > 0 ? (data.totalMarks / data.count) : 0;
+            });
+            
+            const examCtx = document.getElementById('examPerformanceChart').getContext('2d');
+            examChart = new Chart(examCtx, {
+                type: 'line',
+                data: {
+                    labels: labels.length > 0 ? labels : ['No Exams'],
+                    datasets: [{
+                        label: 'Average Total Marks',
+                        data: avgMarks.length > 0 ? avgMarks : [0],
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
                     }]
                 },
                 options: {
@@ -706,62 +874,10 @@
                     }
                 }
             });
+        }
 
-            // Fee Collection Chart
-            const feeCtx = document.getElementById('feeCollectionChart').getContext('2d');
-            feeChart = new Chart(feeCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Paid', 'Pending', 'Overdue'],
-                    datasets: [{
-                        data: [65, 25, 10],
-                        backgroundColor: [
-                            'rgba(34, 197, 94, 0.5)',
-                            'rgba(251, 191, 36, 0.5)',
-                            'rgba(239, 68, 68, 0.5)'
-                        ],
-                        borderColor: [
-                            'rgba(34, 197, 94, 1)',
-                            'rgba(251, 191, 36, 1)',
-                            'rgba(239, 68, 68, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true
-                }
-            });
-
-            // Exam Performance Chart
-            const examCtx = document.getElementById('examPerformanceChart').getContext('2d');
-            examChart = new Chart(examCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Term 1', 'Term 2', 'Term 3', 'Final'],
-                    datasets: [{
-                        label: 'Average Score (%)',
-                        data: [72, 75, 78, 80],
-                        borderColor: 'rgba(139, 92, 246, 1)',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    }
-                }
-            });
-
-            // Attendance Chart
+        // Update Attendance Chart (placeholder - requires attendance API)
+        function updateAttendanceChart() {
             const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
             attendanceChart = new Chart(attendanceCtx, {
                 type: 'line',
@@ -789,19 +905,87 @@
             });
         }
 
+        // Initialize empty charts as fallback
+        function initializeEmptyCharts() {
+            const studentCtx = document.getElementById('studentDistributionChart').getContext('2d');
+            studentChart = new Chart(studentCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        label: 'Number of Students',
+                        data: [0],
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            const feeCtx = document.getElementById('feeCollectionChart').getContext('2d');
+            feeChart = new Chart(feeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['rgba(107, 114, 128, 0.5)'],
+                        borderColor: ['rgba(107, 114, 128, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            const examCtx = document.getElementById('examPerformanceChart').getContext('2d');
+            examChart = new Chart(examCtx, {
+                type: 'line',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        label: 'Average Marks',
+                        data: [0],
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+            });
+
+            updateAttendanceChart();
+        }
+
         // Switch report type
         function switchReportType() {
             const reportType = document.getElementById('reportType').value;
             console.log('Switching to report type:', reportType);
-            // In a real implementation, this would load different data
             generateReport();
         }
 
-        // Generate report
-        function generateReport() {
-            console.log('Generating report...');
-            loadDashboardData();
-            // In a real implementation, this would fetch specific report data
+        // Generate report - Refresh all data
+        async function generateReport() {
+            console.log('Refreshing report data...');
+            
+            // Destroy existing charts
+            if (studentChart) studentChart.destroy();
+            if (feeChart) feeChart.destroy();
+            if (examChart) examChart.destroy();
+            if (attendanceChart) attendanceChart.destroy();
+            
+            // Reload dashboard stats
+            await loadDashboardData();
+            
+            // Reinitialize charts with fresh data
+            await initializeCharts();
+            
+            console.log('Report data refreshed successfully!');
         }
 
         // Export report
