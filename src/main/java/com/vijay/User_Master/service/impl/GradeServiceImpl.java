@@ -93,9 +93,6 @@ public class GradeServiceImpl implements GradeService {
             ? request.getLetterGrade() 
             : calculateLetterGrade(percentage);
         
-        // Calculate grade point (assuming 4.0 scale)
-        Double gradePoint = calculateGradePoint(percentage);
-        
         // Determine pass/fail status
         Grade.GradeStatus status = percentage >= (subject.getPassingMarks() * 100.0 / subject.getTotalMarks())
             ? Grade.GradeStatus.PASS 
@@ -112,14 +109,19 @@ public class GradeServiceImpl implements GradeService {
             .subject(subject)
             .exam(exam)
             .assignment(assignment)
+            .gradeType(request.getGradeType())
             .gradedBy(gradedBy)
             .marksObtained(request.getMarksObtained())
             .totalMarks(request.getTotalMarks())
             .percentage(percentage)
             .letterGrade(letterGrade)
+            .status(status)
+            .gradeDate(request.getGradeDate())
             .semester(request.getSemester())
             .academicYear(request.getAcademicYear())
+            .feedback(request.getFeedback())
             .remarks(request.getRemarks())
+            .isPublished(request.isPublished())
             .owner(owner) // Set the owner for multi-tenancy
             .build();
         Grade savedGrade = gradeRepository.save(grade);
@@ -141,19 +143,62 @@ public class GradeServiceImpl implements GradeService {
             throw new BadApiRequestException("Marks obtained cannot exceed total marks");
         }
         
+        // Update entity references
+        Worker student = workerRepository.findById(request.getStudentId())
+            .orElseThrow(() -> new ResourceNotFoundException("Student", "id", request.getStudentId()));
+        Subject subject = subjectRepository.findById(request.getSubjectId())
+            .orElseThrow(() -> new ResourceNotFoundException("Subject", "id", request.getSubjectId()));
+        
+        Exam exam = null;
+        if (request.getExamId() != null) {
+            exam = examRepository.findById(request.getExamId())
+                .orElseThrow(() -> new ResourceNotFoundException("Exam", "id", request.getExamId()));
+        }
+        
+        Assignment assignment = null;
+        if (request.getAssignmentId() != null) {
+            assignment = assignmentRepository.findById(request.getAssignmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment", "id", request.getAssignmentId()));
+        }
+        
+        Worker gradedBy = null;
+        if (request.getGradedByTeacherId() != null) {
+            gradedBy = workerRepository.findById(request.getGradedByTeacherId())
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher", "id", request.getGradedByTeacherId()));
+        }
+        
         // Calculate percentage
         Double percentage = (request.getMarksObtained() / request.getTotalMarks()) * 100.0;
-        String letterGrade = calculateLetterGrade(percentage);
+        String letterGrade = request.getLetterGrade() != null 
+            ? request.getLetterGrade() 
+            : calculateLetterGrade(percentage);
         
+        // Determine pass/fail status
+        Grade.GradeStatus status = percentage >= (subject.getPassingMarks() * 100.0 / subject.getTotalMarks())
+            ? Grade.GradeStatus.PASS 
+            : Grade.GradeStatus.FAIL;
+        
+        // Update all fields
+        grade.setStudent(student);
+        grade.setSubject(subject);
+        grade.setExam(exam);
+        grade.setAssignment(assignment);
+        grade.setGradeType(request.getGradeType());  // CRITICAL!
+        grade.setGradedBy(gradedBy);
         grade.setMarksObtained(request.getMarksObtained());
         grade.setTotalMarks(request.getTotalMarks());
         grade.setPercentage(percentage);
         grade.setLetterGrade(letterGrade);
+        grade.setStatus(status);
+        grade.setGradeDate(request.getGradeDate());
+        grade.setSemester(request.getSemester());
+        grade.setAcademicYear(request.getAcademicYear());
         grade.setFeedback(request.getFeedback());
         grade.setRemarks(request.getRemarks());
         grade.setPublished(request.isPublished());
         
         Grade updated = gradeRepository.save(grade);
+        log.info("Grade updated successfully with ID: {}", updated.getId());
         return mapToResponse(updated);
     }
 

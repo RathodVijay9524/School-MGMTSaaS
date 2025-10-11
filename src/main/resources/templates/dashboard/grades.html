@@ -457,11 +457,13 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    allGrades = data.content || [];
-                    totalPages = data.totalPages || 0;
+                    console.log('📊 Grades API response:', data);
+                    allGrades = data.data?.content || data.content || [];
+                    totalPages = data.data?.totalPages || data.totalPages || 0;
+                    console.log('📋 Loaded grades:', allGrades.length, 'records');
                     applyFilters();
                 } else {
-                    console.error('Failed to load grades');
+                    console.error('Failed to load grades:', response.status, response.statusText);
                 }
             } catch (error) {
                 console.error('Error loading grades:', error);
@@ -823,28 +825,56 @@
             const formData = new FormData(form);
             const editingId = form.dataset.editingGradeId;
             
+            // Validation
+            const gradeType = formData.get('gradeType');
+            if (!gradeType || gradeType === '') {
+                alert('❌ Please select a Grade Type');
+                return;
+            }
+            
+            const studentId = formData.get('studentId');
+            if (!studentId || studentId === '') {
+                alert('❌ Please select a Student');
+                return;
+            }
+            
+            const subjectId = formData.get('subjectId');
+            if (!subjectId || subjectId === '') {
+                alert('❌ Please select a Subject');
+                return;
+            }
+            
             const marksObtained = parseFloat(formData.get('marksObtained'));
             const totalMarks = parseFloat(formData.get('totalMarks'));
+            
+            if (isNaN(marksObtained) || isNaN(totalMarks)) {
+                alert('❌ Please enter valid marks');
+                return;
+            }
+            
             const percentage = (marksObtained / totalMarks * 100);
             
             const gradeData = {
-                studentId: parseInt(formData.get('studentId')),
-                subjectId: parseInt(formData.get('subjectId')),
+                studentId: parseInt(studentId),
+                subjectId: parseInt(subjectId),
                 examId: formData.get('examId') ? parseInt(formData.get('examId')) : null,
                 assignmentId: formData.get('assignmentId') ? parseInt(formData.get('assignmentId')) : null,
-                gradeType: formData.get('gradeType'),
+                gradeType: gradeType,
                 marksObtained: marksObtained,
                 totalMarks: totalMarks,
                 letterGrade: formData.get('letterGrade') || null,
                 status: percentage >= 40 ? 'PASS' : 'FAIL',
-                semester: formData.get('semester'),
-                academicYear: formData.get('academicYear'),
+                semester: formData.get('semester') || null,
+                academicYear: formData.get('academicYear') || null,
                 gradeDate: formData.get('gradeDate'),
                 gradedByTeacherId: formData.get('gradedByTeacherId') ? parseInt(formData.get('gradedByTeacherId')) : null,
                 feedback: formData.get('feedback') || null,
                 remarks: formData.get('remarks') || null,
                 isPublished: formData.get('isPublished') === 'on'
             };
+            
+            console.log('📝 Submitting grade data:', gradeData);
+            console.log('📝 Grade Type value:', gradeType);
 
             const token = localStorage.getItem('jwtToken');
             const url = editingId ? `/api/v1/grades/${editingId}` : '/api/v1/grades';
