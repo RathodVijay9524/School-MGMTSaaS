@@ -476,7 +476,7 @@
         async function loadClasses() {
             try {
                 const token = localStorage.getItem('jwtToken');
-                const response = await fetch('/api/v1/classes?page=0&size=1000', {
+                const response = await fetch('/api/v1/school-classes?page=0&size=1000', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -688,7 +688,7 @@
             try {
                 // Fetch all required data in parallel
                 const [classesData, feesData, examsData, studentsData] = await Promise.all([
-                    fetch('/api/v1/classes?page=0&size=100', {
+                    fetch('/api/v1/school-classes?page=0&size=100', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }).then(res => res.ok ? res.json() : { content: [] }),
                     fetch('/api/v1/fees?page=0&size=1000', {

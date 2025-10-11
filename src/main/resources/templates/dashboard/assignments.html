@@ -531,7 +531,7 @@
         async function loadClasses() {
             const token = localStorage.getItem('jwtToken');
             try {
-                const response = await fetch('/api/v1/classes?page=0&size=100', {
+                const response = await fetch('/api/v1/school-classes?page=0&size=100', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
