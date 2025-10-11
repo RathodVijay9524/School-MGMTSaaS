@@ -54,6 +54,7 @@ public class GradeServiceImpl implements GradeService {
     @Tool(name = "createGrade", description = "Create a new grade for a student with marks, percentage, letter grade and academic details")
     public GradeResponse createGrade(GradeRequest request) {
         log.info("Creating grade for student ID: {}", request.getStudentId());
+        log.info("Grade request - isPublished: {}", request.isPublished());
         
         // Validate marks
         if (request.getMarksObtained() > request.getTotalMarks()) {

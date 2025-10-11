@@ -875,6 +875,8 @@
             
             console.log('📝 Submitting grade data:', gradeData);
             console.log('📝 Grade Type value:', gradeType);
+            console.log('📝 isPublished checkbox value:', formData.get('isPublished'));
+            console.log('📝 isPublished boolean value:', gradeData.isPublished);
 
             const token = localStorage.getItem('jwtToken');
             const url = editingId ? `/api/v1/grades/${editingId}` : '/api/v1/grades';
