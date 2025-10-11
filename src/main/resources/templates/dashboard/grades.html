@@ -957,7 +957,12 @@
                 });
 
                 if (response.ok) {
-                    const grade = await response.json();
+                    const responseData = await response.json();
+                    console.log('📊 Grade details API response:', responseData);
+                    
+                    // Extract the actual grade data from the wrapped response
+                    const grade = responseData.data || responseData;
+                    console.log('📊 Extracted grade data:', grade);
                     
                     document.getElementById('viewGradeContent').innerHTML = `
                         <div class="grid grid-cols-2 gap-6">
