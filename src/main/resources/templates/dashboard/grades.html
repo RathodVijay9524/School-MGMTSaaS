@@ -956,16 +956,24 @@
                     if (studentResponse.ok) {
                         const studentData = await studentResponse.json();
                         const student = studentData.data || studentData;
+                        console.log('📝 Student data for edit:', student);
                         
                         if (student.currentClassId) {
+                            console.log('📝 Setting class ID:', student.currentClassId);
                             document.getElementById('classId').value = student.currentClassId;
-                            // Trigger the class change to load students and subjects
-                            await loadStudents();
-                            await loadSubjects();
                             
-                            // Now set the student and subject after dropdowns are populated
-                            document.getElementById('studentId').value = grade.studentId || '';
-                            document.getElementById('subjectId').value = grade.subjectId || '';
+                            // Trigger the class change to load students and subjects
+                            console.log('📝 Loading students and subjects for class:', student.currentClassId);
+                            await loadStudents(student.currentClassId);
+                            await loadSubjects(student.currentClassId);
+                            
+                            // Wait a bit for dropdowns to populate, then set values
+                            setTimeout(() => {
+                                console.log('📝 Setting student ID:', grade.studentId);
+                                document.getElementById('studentId').value = grade.studentId || '';
+                                console.log('📝 Setting subject ID:', grade.subjectId);
+                                document.getElementById('subjectId').value = grade.subjectId || '';
+                            }, 100);
                         }
                     }
                     
