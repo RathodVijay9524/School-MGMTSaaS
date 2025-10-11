@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grades Management - School Management</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        console.warn = function(message) {
+            if (message.includes('tailwindcss.com should not be used in production')) return;
+            console.log(message);
+        };
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .sidebar-transition { transition: all 0.3s ease; }
+        .sidebar-mobile { transform: translateX(-100%); }
+        .sidebar-mobile.open { transform: translateX(0); }
+        @media (min-width: 768px) { .sidebar-mobile { transform: translateX(0); } }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="fixed inset-0 z-40 bg-black bg-opacity-50 hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition sidebar-mobile" id="sidebar">
+        <div class="flex items-center justify-between h-16 bg-primary-600 px-4">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                <span class="text-xl font-bold text-white">SchoolManager</span>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-white hover:bg-primary-700">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-primary-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-900" id="userName">Admin User</p>
+                    <p class="text-xs text-gray-500">School Owner</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="mt-5 px-2">
+            <div class="space-y-1">
+                <a href="/dashboard/owner" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tachometer-alt text-gray-400 mr-3"></i>Dashboard
+                </a>
+                <a href="/dashboard/students" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-users text-gray-400 mr-3"></i>Students
+                </a>
+                <a href="/dashboard/teachers" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-chalkboard-teacher text-gray-400 mr-3"></i>Teachers
+                </a>
+                <a href="/dashboard/parents" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-users-cog text-gray-400 mr-3"></i>Parents
+                </a>
+                <a href="/dashboard/classes" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-book text-gray-400 mr-3"></i>Classes
+                </a>
+                <a href="/dashboard/subjects" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-clipboard-list text-gray-400 mr-3"></i>Subjects
+                </a>
+                <a href="/dashboard/attendance" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-calendar-check text-gray-400 mr-3"></i>Attendance
+                </a>
+                <a href="/dashboard/assignments" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-tasks text-gray-400 mr-3"></i>Assignments
+                </a>
+                <a href="/dashboard/grades" class="nav-item bg-primary-100 text-primary-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-medal text-primary-500 mr-3"></i>Grades
+                </a>
+                <a href="/dashboard/exams" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-file-alt text-gray-400 mr-3"></i>Exams
+                </a>
+                <a href="/dashboard/fees" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-money-bill-wave text-gray-400 mr-3"></i>Fees
+                </a>
+                <a href="/dashboard/reports" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-chart-line text-gray-400 mr-3"></i>Reports
+                </a>
+                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                    <i class="fas fa-cog text-gray-400 mr-3"></i>Settings
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="pl-0 md:pl-64" id="mainContent">
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-2xl font-semibold text-gray-900">Grades Management</h1>
+                            <p class="text-sm text-gray-500">Track student performance and grades</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <button onclick="openAddGradeModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Grade
+                        </button>
+                        <div class="relative" id="userMenuContainer">
+                            <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900" onclick="toggleUserDropdown()">
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-primary-600 text-sm"></i>
+                                </div>
+                                <span class="hidden md:block text-sm font-medium" id="userNameTop">Admin</span>
+                                <i class="fas fa-chevron-down text-xs" id="dropdownChevron"></i>
+                            </button>
+                            
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50 hidden" id="userDropdown">
+                                <div class="py-2">
+                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user-cog mr-3 text-gray-400"></i>Profile
+                                    </a>
+                                    <button onclick="logout()" class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <i class="fas fa-sign-out-alt mr-3"></i>Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="p-6">
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <select id="subjectFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" onchange="applyFilters()">
+                            <option value="">All Subjects</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade Type</label>
+                        <select id="gradeTypeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" onchange="applyFilters()">
+                            <option value="">All Types</option>
+                            <option value="EXAM">Exam</option>
+                            <option value="ASSIGNMENT">Assignment</option>
+                            <option value="QUIZ">Quiz</option>
+                            <option value="PROJECT">Project</option>
+                            <option value="PRACTICAL">Practical</option>
+                            <option value="MIDTERM">Midterm</option>
+                            <option value="FINAL">Final</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" onchange="applyFilters()">
+                            <option value="">All Status</option>
+                            <option value="PASS">Pass</option>
+                            <option value="FAIL">Fail</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="RETEST_REQUIRED">Retest Required</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Academic Year</label>
+                        <select id="academicYearFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" onchange="applyFilters()">
+                            <option value="">All Years</option>
+                            <option value="2024-2025">2024-2025</option>
+                            <option value="2023-2024">2023-2024</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <input type="text" id="searchInput" placeholder="Student name..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" oninput="applyFilters()">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="loadGrades()" class="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-sm text-gray-500">Total Grades</div>
+                    <div class="text-2xl font-bold text-gray-900" id="totalCount">0</div>
+                </div>
+                <div class="bg-green-50 rounded-lg shadow p-4">
+                    <div class="text-sm text-green-700">Pass</div>
+                    <div class="text-2xl font-bold text-green-600" id="passCount">0</div>
+                </div>
+                <div class="bg-red-50 rounded-lg shadow p-4">
+                    <div class="text-sm text-red-700">Fail</div>
+                    <div class="text-2xl font-bold text-red-600" id="failCount">0</div>
+                </div>
+                <div class="bg-blue-50 rounded-lg shadow p-4">
+                    <div class="text-sm text-blue-700">Pending</div>
+                    <div class="text-2xl font-bold text-blue-600" id="pendingCount">0</div>
+                </div>
+                <div class="bg-purple-50 rounded-lg shadow p-4">
+                    <div class="text-sm text-purple-700">Avg. Percentage</div>
+                    <div class="text-2xl font-bold text-purple-600" id="avgPercentage">0%</div>
+                </div>
+            </div>
+
+            <!-- Grades Table -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marks</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Percentage</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="gradesTableBody">
+                            <tr>
+                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Loading grades...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalRecords">0</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="previousPage()" id="prevBtn" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</button>
+                            <span class="px-4 py-2 text-sm text-gray-700">Page <span id="currentPage">1</span></span>
+                            <button onclick="nextPage()" id="nextBtn" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Grade Modal -->
+    <div id="addGradeModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900" id="addGradeModalTitle">Add Grade</h2>
+                    <p class="text-sm text-gray-600">Enter student grade information</p>
+                </div>
+                <button onclick="closeAddGradeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="addGradeForm" class="p-6" onsubmit="handleAddGrade(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Student *</label>
+                        <select id="studentId" name="studentId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+                        <select id="subjectId" name="subjectId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade Type *</label>
+                        <select id="gradeType" name="gradeType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" onchange="handleGradeTypeChange()">
+                            <option value="">Select Type</option>
+                            <option value="EXAM">Exam</option>
+                            <option value="ASSIGNMENT">Assignment</option>
+                            <option value="QUIZ">Quiz</option>
+                            <option value="PROJECT">Project</option>
+                            <option value="PRACTICAL">Practical</option>
+                            <option value="MIDTERM">Midterm</option>
+                            <option value="FINAL">Final</option>
+                        </select>
+                    </div>
+                    <div id="examFieldDiv" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Exam</label>
+                        <select id="examId" name="examId" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="">Select Exam (Optional)</option>
+                        </select>
+                    </div>
+                    <div id="assignmentFieldDiv" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Assignment</label>
+                        <select id="assignmentId" name="assignmentId" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="">Select Assignment (Optional)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Marks Obtained *</label>
+                        <input type="number" id="marksObtained" name="marksObtained" required min="0" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="75" oninput="calculatePercentage()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Total Marks *</label>
+                        <input type="number" id="totalMarks" name="totalMarks" required min="1" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="100" oninput="calculatePercentage()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Percentage</label>
+                        <input type="text" id="percentage" name="percentage" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" placeholder="Auto-calculated">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Letter Grade</label>
+                        <input type="text" id="letterGrade" name="letterGrade" maxlength="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="A+">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Academic Year *</label>
+                        <input type="text" id="academicYear" name="academicYear" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="2024-2025" value="2024-2025">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Semester *</label>
+                        <select id="semester" name="semester" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade Date *</label>
+                        <input type="date" id="gradeDate" name="gradeDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Graded By Teacher</label>
+                        <select id="gradedByTeacherId" name="gradedByTeacherId" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="">Select Teacher</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Feedback</label>
+                        <textarea id="feedback" name="feedback" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Feedback for student..."></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+                        <textarea id="remarks" name="remarks" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Additional remarks..."></textarea>
+                    </div>
+                    <div class="flex items-center md:col-span-2">
+                        <input type="checkbox" id="isPublished" name="isPublished" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="isPublished" class="ml-2 block text-sm text-gray-700">Publish grade to student</label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t">
+                    <button type="button" onclick="closeAddGradeModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" id="submitGradeBtn" class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                        <i class="fas fa-plus mr-2"></i>Add Grade
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Grade Modal -->
+    <div id="viewGradeModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+            <div class="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4 flex justify-between items-center rounded-t-lg">
+                <h2 class="text-2xl font-bold text-white">Grade Details</h2>
+                <button onclick="closeViewGradeModal()" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="viewGradeContent" class="p-6 max-h-[80vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        let totalPages = 0;
+        let allGrades = [];
+        let filteredGrades = [];
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('hidden');
+        }
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            const chevron = document.getElementById('dropdownChevron');
+            dropdown.classList.toggle('hidden');
+            chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('userMenuContainer');
+            if (container && !container.contains(event.target)) {
+                document.getElementById('userDropdown').classList.add('hidden');
+                document.getElementById('dropdownChevron').style.transform = 'rotate(0deg)';
+            }
+        });
+
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userNameTop').textContent = user.name;
+            }
+        }
+
+        async function loadGrades() {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/v1/grades?page=${currentPage}&size=50`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    allGrades = data.content || [];
+                    totalPages = data.totalPages || 0;
+                    applyFilters();
+                } else {
+                    console.error('Failed to load grades');
+                }
+            } catch (error) {
+                console.error('Error loading grades:', error);
+            }
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const subjectFilter = document.getElementById('subjectFilter').value;
+            const gradeTypeFilter = document.getElementById('gradeTypeFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const academicYearFilter = document.getElementById('academicYearFilter').value;
+            
+            filteredGrades = allGrades.filter(grade => {
+                const matchesSearch = !searchTerm || 
+                    (grade.studentName && grade.studentName.toLowerCase().includes(searchTerm));
+                const matchesSubject = !subjectFilter || grade.subjectId == subjectFilter;
+                const matchesType = !gradeTypeFilter || grade.gradeType === gradeTypeFilter;
+                const matchesStatus = !statusFilter || grade.status === statusFilter;
+                const matchesYear = !academicYearFilter || grade.academicYear === academicYearFilter;
+                
+                return matchesSearch && matchesSubject && matchesType && matchesStatus && matchesYear;
+            });
+            
+            displayGrades();
+            updateStatistics();
+        }
+
+        function displayGrades() {
+            const tbody = document.getElementById('gradesTableBody');
+            
+            if (filteredGrades.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-2"></i>
+                            <p>No grades found</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredGrades.map(grade => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${grade.studentName || 'N/A'}</div>
+                        <div class="text-xs text-gray-500">${grade.admissionNumber || ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${grade.subjectName || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${grade.gradeType || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span class="font-semibold">${grade.marksObtained || 0}</span> / ${grade.totalMarks || 0}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex items-center">
+                            <span class="font-medium ${getPercentageColor(grade.percentage)}">${(grade.percentage || 0).toFixed(1)}%</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 py-1 text-sm font-bold rounded ${getGradeBadgeClass(grade.letterGrade)}">${grade.letterGrade || '-'}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(grade.status)}">
+                            ${grade.status || 'PENDING'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <button onclick="viewGrade(${grade.id})" class="text-primary-600 hover:text-primary-900" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="editGrade(${grade.id})" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteGrade(${grade.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('showingFrom').textContent = filteredGrades.length > 0 ? 1 : 0;
+            document.getElementById('showingTo').textContent = filteredGrades.length;
+            document.getElementById('totalRecords').textContent = filteredGrades.length;
+            document.getElementById('currentPage').textContent = currentPage + 1;
+        }
+
+        function updateStatistics() {
+            const total = filteredGrades.length;
+            const pass = filteredGrades.filter(g => g.status === 'PASS').length;
+            const fail = filteredGrades.filter(g => g.status === 'FAIL').length;
+            const pending = filteredGrades.filter(g => g.status === 'PENDING' || !g.status).length;
+            
+            const avgPerc = total > 0 ? 
+                (filteredGrades.reduce((sum, g) => sum + (g.percentage || 0), 0) / total).toFixed(1) : 0;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('passCount').textContent = pass;
+            document.getElementById('failCount').textContent = fail;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('avgPercentage').textContent = avgPerc + '%';
+        }
+
+        function getPercentageColor(percentage) {
+            if (!percentage) return 'text-gray-600';
+            if (percentage >= 90) return 'text-green-600';
+            if (percentage >= 75) return 'text-blue-600';
+            if (percentage >= 60) return 'text-yellow-600';
+            if (percentage >= 40) return 'text-orange-600';
+            return 'text-red-600';
+        }
+
+        function getGradeBadgeClass(letter) {
+            if (!letter) return 'bg-gray-100 text-gray-800';
+            if (letter.startsWith('A')) return 'bg-green-100 text-green-800';
+            if (letter.startsWith('B')) return 'bg-blue-100 text-blue-800';
+            if (letter.startsWith('C')) return 'bg-yellow-100 text-yellow-800';
+            if (letter.startsWith('D')) return 'bg-orange-100 text-orange-800';
+            return 'bg-red-100 text-red-800';
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'PASS': return 'bg-green-100 text-green-800';
+                case 'FAIL': return 'bg-red-100 text-red-800';
+                case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+                case 'RETEST_REQUIRED': return 'bg-orange-100 text-orange-800';
+                case 'INCOMPLETE': return 'bg-gray-100 text-gray-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        async function loadSubjects() {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch('/api/v1/subjects?page=0&size=100', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const subjects = data.content || [];
+                    
+                    [document.getElementById('subjectId'), document.getElementById('subjectFilter')].forEach(select => {
+                        if (select) {
+                            const currentValue = select.value;
+                            const firstOption = select.id === 'subjectFilter' ? '<option value="">All Subjects</option>' : '<option value="">Select Subject</option>';
+                            select.innerHTML = firstOption + subjects.map(s => `<option value="${s.id}">${s.subjectName}</option>`).join('');
+                            if (currentValue) select.value = currentValue;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+            }
+        }
+
+        async function loadStudents() {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch('/api/v1/workers?page=0&size=1000', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const students = (data.content || []).filter(w => 
+                        w.roles && w.roles.some(r => r.name === 'ROLE_STUDENT' || r.includes('STUDENT'))
+                    );
+                    
+                    const studentSelect = document.getElementById('studentId');
+                    studentSelect.innerHTML = '<option value="">Select Student</option>' + 
+                        students.map(s => `<option value="${s.id}">${s.name}${s.admissionNumber ? ' - ' + s.admissionNumber : ''}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
+        }
+
+        async function loadTeachers() {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch('/api/v1/workers?page=0&size=1000', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const teachers = (data.content || []).filter(w => 
+                        w.roles && w.roles.some(r => r.name === 'ROLE_TEACHER' || r.includes('TEACHER'))
+                    );
+                    
+                    const teacherSelect = document.getElementById('gradedByTeacherId');
+                    teacherSelect.innerHTML = '<option value="">Select Teacher</option>' + 
+                        teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Error loading teachers:', error);
+            }
+        }
+
+        async function loadExams() {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch('/api/v1/exams?page=0&size=100', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const exams = data.content || [];
+                    
+                    const examSelect = document.getElementById('examId');
+                    examSelect.innerHTML = '<option value="">Select Exam (Optional)</option>' + 
+                        exams.map(e => `<option value="${e.id}">${e.examName}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Error loading exams:', error);
+            }
+        }
+
+        async function loadAssignments() {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch('/api/v1/assignments?page=0&size=100', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const assignments = data.content || [];
+                    
+                    const assignmentSelect = document.getElementById('assignmentId');
+                    assignmentSelect.innerHTML = '<option value="">Select Assignment (Optional)</option>' + 
+                        assignments.map(a => `<option value="${a.id}">${a.title}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+            }
+        }
+
+        function handleGradeTypeChange() {
+            const gradeType = document.getElementById('gradeType').value;
+            const examDiv = document.getElementById('examFieldDiv');
+            const assignmentDiv = document.getElementById('assignmentFieldDiv');
+            
+            examDiv.classList.add('hidden');
+            assignmentDiv.classList.add('hidden');
+            
+            if (['EXAM', 'MIDTERM', 'FINAL', 'UNIT_TEST'].includes(gradeType)) {
+                examDiv.classList.remove('hidden');
+            } else if (['ASSIGNMENT', 'PROJECT', 'QUIZ'].includes(gradeType)) {
+                assignmentDiv.classList.remove('hidden');
+            }
+        }
+
+        function calculatePercentage() {
+            const marksObtained = parseFloat(document.getElementById('marksObtained').value) || 0;
+            const totalMarks = parseFloat(document.getElementById('totalMarks').value) || 1;
+            const percentage = (marksObtained / totalMarks * 100).toFixed(2);
+            document.getElementById('percentage').value = percentage + '%';
+            
+            // Auto-calculate letter grade
+            let letterGrade = 'F';
+            if (percentage >= 90) letterGrade = 'A+';
+            else if (percentage >= 85) letterGrade = 'A';
+            else if (percentage >= 80) letterGrade = 'A-';
+            else if (percentage >= 75) letterGrade = 'B+';
+            else if (percentage >= 70) letterGrade = 'B';
+            else if (percentage >= 65) letterGrade = 'B-';
+            else if (percentage >= 60) letterGrade = 'C+';
+            else if (percentage >= 55) letterGrade = 'C';
+            else if (percentage >= 50) letterGrade = 'C-';
+            else if (percentage >= 40) letterGrade = 'D';
+            
+            document.getElementById('letterGrade').value = letterGrade;
+        }
+
+        async function handleAddGrade(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const editingId = form.dataset.editingGradeId;
+            
+            const marksObtained = parseFloat(formData.get('marksObtained'));
+            const totalMarks = parseFloat(formData.get('totalMarks'));
+            const percentage = (marksObtained / totalMarks * 100);
+            
+            const gradeData = {
+                studentId: parseInt(formData.get('studentId')),
+                subjectId: parseInt(formData.get('subjectId')),
+                examId: formData.get('examId') ? parseInt(formData.get('examId')) : null,
+                assignmentId: formData.get('assignmentId') ? parseInt(formData.get('assignmentId')) : null,
+                gradeType: formData.get('gradeType'),
+                marksObtained: marksObtained,
+                totalMarks: totalMarks,
+                letterGrade: formData.get('letterGrade') || null,
+                status: percentage >= 40 ? 'PASS' : 'FAIL',
+                semester: formData.get('semester'),
+                academicYear: formData.get('academicYear'),
+                gradeDate: formData.get('gradeDate'),
+                gradedByTeacherId: formData.get('gradedByTeacherId') ? parseInt(formData.get('gradedByTeacherId')) : null,
+                feedback: formData.get('feedback') || null,
+                remarks: formData.get('remarks') || null,
+                isPublished: formData.get('isPublished') === 'on'
+            };
+
+            const token = localStorage.getItem('jwtToken');
+            const url = editingId ? `/api/v1/grades/${editingId}` : '/api/v1/grades';
+            const method = editingId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gradeData)
+                });
+
+                if (response.ok) {
+                    alert(`✅ Grade ${editingId ? 'updated' : 'added'} successfully!`);
+                    closeAddGradeModal();
+                    loadGrades();
+                } else {
+                    const error = await response.text();
+                    alert('❌ Error: ' + error);
+                }
+            } catch (error) {
+                console.error('Error saving grade:', error);
+                alert('❌ Failed to save grade');
+            }
+        }
+
+        async function editGrade(id) {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch(`/api/v1/grades/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const grade = await response.json();
+                    
+                    document.getElementById('addGradeModalTitle').textContent = 'Edit Grade';
+                    document.getElementById('submitGradeBtn').innerHTML = '<i class="fas fa-save mr-2"></i>Update Grade';
+                    
+                    document.getElementById('studentId').value = grade.studentId || '';
+                    document.getElementById('subjectId').value = grade.subjectId || '';
+                    document.getElementById('gradeType').value = grade.gradeType || '';
+                    handleGradeTypeChange();
+                    
+                    if (grade.examId) document.getElementById('examId').value = grade.examId;
+                    if (grade.assignmentId) document.getElementById('assignmentId').value = grade.assignmentId;
+                    
+                    document.getElementById('marksObtained').value = grade.marksObtained || '';
+                    document.getElementById('totalMarks').value = grade.totalMarks || '';
+                    calculatePercentage();
+                    
+                    document.getElementById('letterGrade').value = grade.letterGrade || '';
+                    document.getElementById('academicYear').value = grade.academicYear || '';
+                    document.getElementById('semester').value = grade.semester || '';
+                    document.getElementById('gradeDate').value = grade.gradeDate || '';
+                    if (grade.gradedByTeacherId) document.getElementById('gradedByTeacherId').value = grade.gradedByTeacherId;
+                    document.getElementById('feedback').value = grade.feedback || '';
+                    document.getElementById('remarks').value = grade.remarks || '';
+                    document.getElementById('isPublished').checked = grade.isPublished || false;
+                    
+                    document.getElementById('addGradeForm').dataset.editingGradeId = id;
+                    document.getElementById('addGradeModal').classList.remove('hidden');
+                } else {
+                    alert('❌ Failed to load grade');
+                }
+            } catch (error) {
+                console.error('Error loading grade:', error);
+                alert('❌ Error loading grade');
+            }
+        }
+
+        async function viewGrade(id) {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch(`/api/v1/grades/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const grade = await response.json();
+                    
+                    document.getElementById('viewGradeContent').innerHTML = `
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Student</label>
+                                <p class="text-gray-900 font-medium">${grade.studentName || 'N/A'}</p>
+                                <p class="text-xs text-gray-500">${grade.admissionNumber || ''}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                                <p class="text-gray-900">${grade.subjectName || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Grade Type</label>
+                                <p class="text-gray-900">${grade.gradeType || 'N/A'}</p>
+                            </div>
+                            ${grade.examName ? `<div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Exam</label>
+                                <p class="text-gray-900">${grade.examName}</p>
+                            </div>` : ''}
+                            ${grade.assignmentTitle ? `<div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Assignment</label>
+                                <p class="text-gray-900">${grade.assignmentTitle}</p>
+                            </div>` : ''}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Marks Obtained</label>
+                                <p class="text-gray-900 font-semibold text-lg">${grade.marksObtained || 0} / ${grade.totalMarks || 0}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Percentage</label>
+                                <p class="${getPercentageColor(grade.percentage)} font-bold text-lg">${(grade.percentage || 0).toFixed(1)}%</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Letter Grade</label>
+                                <span class="px-3 py-1 text-lg font-bold rounded ${getGradeBadgeClass(grade.letterGrade)}">${grade.letterGrade || '-'}</span>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(grade.status)}">
+                                    ${grade.status || 'PENDING'}
+                                </span>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                                <p class="text-gray-900">${grade.academicYear || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+                                <p class="text-gray-900">${grade.semester || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Grade Date</label>
+                                <p class="text-gray-900">${grade.gradeDate ? new Date(grade.gradeDate).toLocaleDateString() : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Graded By</label>
+                                <p class="text-gray-900">${grade.gradedByTeacherName || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Published</label>
+                                <p class="text-gray-900">${grade.isPublished ? '✅ Yes' : '❌ No'}</p>
+                            </div>
+                            ${grade.feedback ? `
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Feedback</label>
+                                <p class="text-gray-900 bg-blue-50 p-3 rounded">${grade.feedback}</p>
+                            </div>` : ''}
+                            ${grade.remarks ? `
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                                <p class="text-gray-900">${grade.remarks}</p>
+                            </div>` : ''}
+                        </div>
+                    `;
+                    
+                    document.getElementById('viewGradeModal').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error viewing grade:', error);
+                alert('❌ Error loading grade details');
+            }
+        }
+
+        async function deleteGrade(id) {
+            if (!confirm('Are you sure you want to delete this grade?')) return;
+
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch(`/api/v1/grades/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Grade deleted successfully!');
+                    loadGrades();
+                } else {
+                    alert('❌ Failed to delete grade');
+                }
+            } catch (error) {
+                console.error('Error deleting grade:', error);
+                alert('❌ Error deleting grade');
+            }
+        }
+
+        function openAddGradeModal() {
+            document.getElementById('addGradeModalTitle').textContent = 'Add Grade';
+            document.getElementById('submitGradeBtn').innerHTML = '<i class="fas fa-plus mr-2"></i>Add Grade';
+            document.getElementById('addGradeForm').reset();
+            
+            // Set default date to today
+            document.getElementById('gradeDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('academicYear').value = '2024-2025';
+            
+            delete document.getElementById('addGradeForm').dataset.editingGradeId;
+            document.getElementById('addGradeModal').classList.remove('hidden');
+        }
+
+        function closeAddGradeModal() {
+            document.getElementById('addGradeModal').classList.add('hidden');
+            document.getElementById('addGradeForm').reset();
+            delete document.getElementById('addGradeForm').dataset.editingGradeId;
+        }
+
+        function closeViewGradeModal() {
+            document.getElementById('viewGradeModal').classList.add('hidden');
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadGrades();
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                loadGrades();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            loadSubjects();
+            loadStudents();
+            loadTeachers();
+            loadExams();
+            loadAssignments();
+            loadGrades();
+        });
+    </script>
+</body>
+</html>
+

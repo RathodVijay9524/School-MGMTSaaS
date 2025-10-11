@@ -34,6 +34,36 @@ public class WebDashboardController {
     }
 
     /**
+     * Attendance Management Page
+     */
+    @GetMapping("/attendance")
+    public String attendance(Model model) {
+        model.addAttribute("pageTitle", "Attendance Management - School Management");
+        model.addAttribute("userRole", "OWNER");
+        return "dashboard/attendance";
+    }
+
+    /**
+     * Assignments Management Page
+     */
+    @GetMapping("/assignments")
+    public String assignments(Model model) {
+        model.addAttribute("pageTitle", "Assignments Management - School Management");
+        model.addAttribute("userRole", "OWNER");
+        return "dashboard/assignments";
+    }
+
+    /**
+     * Grades Management Page
+     */
+    @GetMapping("/grades")
+    public String grades(Model model) {
+        model.addAttribute("pageTitle", "Grades Management - School Management");
+        model.addAttribute("userRole", "OWNER");
+        return "dashboard/grades";
+    }
+
+    /**
      * Teacher Dashboard
      */
     @GetMapping("/teacher")
