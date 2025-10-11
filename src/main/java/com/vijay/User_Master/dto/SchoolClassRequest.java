@@ -11,8 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SchoolClassRequest {
     private String className;
-    private String description;
+    private String section;
+    private Integer classLevel;
     private Integer capacity;
+    private String roomNumber;
     private String academicYear;
-    private String status; // Add status field
+    private String description;
+    private String status;
 }

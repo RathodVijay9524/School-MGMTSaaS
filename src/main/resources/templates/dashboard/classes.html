@@ -117,15 +117,15 @@
                     <i class="fas fa-clipboard-list text-gray-400 mr-3"></i>
                     Subjects
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/exams" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
                     Exams
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/fees" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-money-bill-wave text-gray-400 mr-3"></i>
                     Fees
                 </a>
-                <a href="#" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <a href="/dashboard/reports" class="nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                     <i class="fas fa-chart-line text-gray-400 mr-3"></i>
                     Reports
                 </a>
@@ -361,7 +361,7 @@
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-gray-900">Add New Class</h3>
+                        <h3 id="addClassModalTitle" class="text-lg font-medium text-gray-900">Add New Class</h3>
                         <button onclick="closeAddClassModal()" class="text-gray-400 hover:text-gray-600">
                             <i class="fas fa-times text-xl"></i>
                         </button>
@@ -413,6 +413,15 @@
                         </div>
                         
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select id="status" name="status"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
                             <textarea id="description" name="description" rows="3"
                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -425,13 +434,83 @@
                                 class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium">
                             Cancel
                         </button>
-                        <button type="submit" 
+                        <button type="submit" id="submitClassBtn"
                                 class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
                             <i class="fas fa-plus mr-2"></i>
-                            Add Class
+                            Create Class
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Subjects Modal -->
+    <div id="assignSubjectsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 id="assignSubjectsModalTitle" class="text-lg font-medium text-gray-900">Assign Subjects to Class</h3>
+                        <button onclick="closeAssignSubjectsModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <!-- Current Class Display -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm font-medium text-gray-700 mb-1">Class Information</p>
+                            <p id="currentClassInfo" class="text-gray-900 font-semibold">Loading...</p>
+                        </div>
+
+                        <!-- Current Subjects -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Subjects</label>
+                            <div id="currentSubjectsList" class="bg-blue-50 rounded-lg p-3 text-sm text-blue-800">
+                                <div class="flex items-center">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                                    Loading subjects...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Subjects -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Available Subjects</label>
+                            <div class="max-h-60 overflow-y-auto border border-gray-300 rounded-lg">
+                                <div id="availableSubjectsList" class="p-3">
+                                    <div class="flex items-center text-gray-500">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                                        Loading available subjects...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Subjects Summary -->
+                        <div id="selectedSubjectsSummary" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Selected for Assignment</label>
+                            <div id="selectedSubjectsList" class="bg-green-50 rounded-lg p-3 text-sm text-green-800">
+                                <!-- Selected subjects will be listed here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" onclick="closeAssignSubjectsModal()" 
+                                class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="assignSelectedSubjects()" 
+                                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium">
+                            <i class="fas fa-plus mr-2"></i>
+                            Assign Selected Subjects
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -440,6 +519,9 @@
         // Global variables
         let allClasses = [];
         let filteredClasses = [];
+        let currentAssigningClass = null;
+        let availableSubjects = [];
+        let selectedSubjects = [];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -588,6 +670,9 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
+                            <button onclick="openAssignSubjectsModal(${schoolClass.id})" class="text-purple-600 hover:text-purple-900" title="Assign Subjects">
+                                <i class="fas fa-clipboard-list"></i>
+                            </button>
                             <button onclick="editClass(${schoolClass.id})" class="text-primary-600 hover:text-primary-900" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -651,9 +736,14 @@
         function closeAddClassModal() {
             document.getElementById('addClassModal').classList.add('hidden');
             document.getElementById('addClassForm').reset();
+            
+            // Reset form to "Add Class" mode
+            document.getElementById('addClassModalTitle').textContent = 'Add New Class';
+            document.getElementById('submitClassBtn').textContent = 'Create Class';
+            document.getElementById('addClassForm').dataset.editingClassId = '';
         }
 
-        // Handle add class form submission
+        // Handle add/edit class form submission
         async function handleAddClass(e) {
             e.preventDefault();
             
@@ -667,12 +757,29 @@
                     roomNumber: formData.get('roomNumber'),
                     academicYear: formData.get('academicYear'),
                     description: formData.get('description'),
-                    status: 'ACTIVE'
+                    status: formData.get('status') || 'ACTIVE'
                 };
+                
+                console.log('Frontend - Form data being sent:', classData);
+                console.log('Frontend - Status from form:', formData.get('status'));
 
                 const token = localStorage.getItem('jwtToken');
-                const response = await fetch('/api/v1/school-classes', {
-                    method: 'POST',
+                const editingClassId = e.target.dataset.editingClassId;
+                
+                let response;
+                let url = '/api/v1/school-classes';
+                let method = 'POST';
+                let successMessage = 'Class created successfully!';
+                
+                // If editing, change to PUT method
+                if (editingClassId) {
+                    url = `/api/v1/school-classes/${editingClassId}`;
+                    method = 'PUT';
+                    successMessage = 'Class updated successfully!';
+                }
+
+                response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -683,32 +790,205 @@
                 if (response.ok) {
                     closeAddClassModal();
                     loadClasses(); // Reload classes
-                    showSuccessMessage('Class created successfully!');
+                    showSuccessMessage(successMessage);
                 } else {
                     const errorData = await response.json();
-                    showErrorMessage(errorData.message || 'Failed to create class');
+                    showErrorMessage(errorData.message || `Failed to ${editingClassId ? 'update' : 'create'} class`);
                 }
             } catch (error) {
-                console.error('Error creating class:', error);
+                console.error(`Error ${editingClassId ? 'updating' : 'creating'} class:`, error);
                 showErrorMessage('Network error. Please try again.');
             }
         }
 
         // Class actions
-        function editClass(classId) {
+        // Edit Class Function
+        async function editClass(classId) {
             console.log('Edit class:', classId);
-            // TODO: Implement edit functionality
+            
+            try {
+                // Find the class in current classes array
+                const schoolClass = allClasses.find(c => c.id === classId);
+                if (!schoolClass) {
+                    alert('Class not found');
+                    return;
+                }
+
+                // Pre-fill ALL form fields with existing data
+                document.getElementById('className').value = schoolClass.className || '';
+                document.getElementById('section').value = schoolClass.section || '';
+                document.getElementById('classLevel').value = schoolClass.classLevel || 1;
+                document.getElementById('capacity').value = schoolClass.capacity || 30;
+                document.getElementById('roomNumber').value = schoolClass.roomNumber || '';
+                document.getElementById('academicYear').value = schoolClass.academicYear || new Date().getFullYear();
+                document.getElementById('status').value = schoolClass.status || 'ACTIVE';
+                document.getElementById('description').value = schoolClass.description || '';
+                
+                // Show the modal
+                document.getElementById('addClassModal').classList.remove('hidden');
+                document.getElementById('addClassModalTitle').textContent = 'Edit Class';
+                document.getElementById('submitClassBtn').textContent = 'Update Class';
+                
+                // Store the class ID for update
+                document.getElementById('addClassForm').dataset.editingClassId = classId;
+                
+            } catch (error) {
+                console.error('Error preparing edit:', error);
+                alert('Error loading class for editing');
+            }
         }
 
-        function viewClass(classId) {
+        // View Class Function
+        async function viewClass(classId) {
             console.log('View class:', classId);
-            // TODO: Implement view functionality
+            
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch(`/api/v1/school-classes/${classId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('View class response status:', response.status);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('View class API result:', result);
+                    const schoolClass = result.data;
+                    
+                    if (!schoolClass) {
+                        alert('No class data received');
+                        return;
+                    }
+                    
+                    // Create view modal content
+                    const viewContent = `
+                        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-lg font-medium text-gray-900">Class Details</h3>
+                                    <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-times text-xl"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="px-6 py-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Class Name</label>
+                                        <p class="text-gray-900 font-semibold">${schoolClass.className || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                                        <p class="text-gray-900">${schoolClass.section || 'No Section'}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Class Level</label>
+                                        <p class="text-gray-900">${schoolClass.classLevel || 'Not Set'}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                                        <p class="text-gray-900">${schoolClass.capacity || 0} students</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
+                                        <p class="text-gray-900">${schoolClass.roomNumber || 'Not Set'}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                                        <p class="text-gray-900">${schoolClass.academicYear || 'Not Set'}</p>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <p class="text-gray-900">${schoolClass.description || 'No description'}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${schoolClass.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                            ${schoolClass.status === 'ACTIVE' ? 'Active' : (schoolClass.status || 'Unknown')}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Created</label>
+                                        <p class="text-gray-900">${schoolClass.createdOn ? new Date(schoolClass.createdOn).toLocaleDateString() : 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Show modal
+                    showViewModal(viewContent);
+                    
+                } else {
+                    const errorText = await response.text();
+                    console.error('Failed to load class details:', response.status, errorText);
+                    alert(`Failed to load class details: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error loading class:', error);
+                alert('Error loading class details: ' + error.message);
+            }
         }
 
-        function deleteClass(classId) {
-            if (confirm('Are you sure you want to delete this class?')) {
+        // Delete Class Function
+        async function deleteClass(classId) {
+            if (confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
                 console.log('Delete class:', classId);
-                // TODO: Implement delete functionality
+                
+                try {
+                    const token = localStorage.getItem('jwtToken');
+                    const response = await fetch(`/api/v1/school-classes/${classId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert('✅ Class deleted successfully');
+                        loadClasses(); // Reload the classes list
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to delete class: ${error.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting class:', error);
+                    alert('❌ Error deleting class. Please try again.');
+                }
+            }
+        }
+
+        // View Modal Functions
+        function showViewModal(content) {
+            // Remove existing modal if any
+            const existingModal = document.getElementById('viewModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'viewModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+            modal.innerHTML = content;
+            document.body.appendChild(modal);
+            
+            // Add click outside to close
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeViewModal();
+                }
+            });
+        }
+
+        function closeViewModal() {
+            const modal = document.getElementById('viewModal');
+            if (modal) {
+                modal.remove();
             }
         }
 
@@ -836,6 +1116,213 @@
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
             window.location.href = '/login';
+        }
+
+        // ==================== SUBJECT ASSIGNMENT FUNCTIONS ====================
+
+        // Open Assign Subjects Modal
+        async function openAssignSubjectsModal(classId) {
+            console.log('📚 Opening assign subjects modal for class:', classId);
+            
+            // Find class in current classes array
+            const schoolClass = allClasses.find(c => c.id === classId);
+            if (!schoolClass) {
+                alert('Class not found');
+                return;
+            }
+
+            currentAssigningClass = schoolClass;
+            selectedSubjects = [];
+            
+            // Update modal title and class info
+            document.getElementById('assignSubjectsModalTitle').textContent = `Assign Subjects - ${schoolClass.className}`;
+            document.getElementById('currentClassInfo').textContent = `${schoolClass.className} ${schoolClass.section ? '- ' + schoolClass.section : ''} (Level ${schoolClass.classLevel || 'N/A'})`;
+
+            // Load available subjects and current class subjects
+            await Promise.all([
+                loadAvailableSubjects(classId),
+                loadCurrentClassSubjects(classId)
+            ]);
+            
+            // Show modal
+            document.getElementById('assignSubjectsModal').classList.remove('hidden');
+        }
+
+        // Close Assign Subjects Modal
+        function closeAssignSubjectsModal() {
+            document.getElementById('assignSubjectsModal').classList.add('hidden');
+            currentAssigningClass = null;
+            selectedSubjects = [];
+            document.getElementById('selectedSubjectsSummary').classList.add('hidden');
+        }
+
+        // Load Available Subjects
+        async function loadAvailableSubjects(classId) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                
+                // Get all subjects
+                const allSubjectsResponse = await fetch('/api/v1/subjects?page=0&size=100', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // Get current class subjects
+                const currentSubjectsResponse = await fetch(`/api/v1/subjects/class/${classId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (allSubjectsResponse.ok && currentSubjectsResponse.ok) {
+                    const allSubjectsResult = await allSubjectsResponse.json();
+                    const currentSubjectsResult = await currentSubjectsResponse.json();
+                    
+                    const allSubjects = allSubjectsResult.data?.content || [];
+                    const currentSubjects = currentSubjectsResult.data || [];
+                    
+                    // Filter out subjects that are already assigned to this class
+                    const currentSubjectIds = currentSubjects.map(s => s.id);
+                    availableSubjects = allSubjects.filter(subject => !currentSubjectIds.includes(subject.id));
+                    
+                    // Populate available subjects list
+                    const subjectsList = document.getElementById('availableSubjectsList');
+                    if (availableSubjects.length > 0) {
+                        subjectsList.innerHTML = availableSubjects.map(subject => `
+                            <label class="flex items-center p-2 hover:bg-gray-50 cursor-pointer rounded">
+                                <input type="checkbox" 
+                                       value="${subject.id}" 
+                                       class="mr-3 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                       onchange="toggleSubjectSelection(${subject.id}, '${subject.subjectName}')">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900">${subject.subjectName}</div>
+                                    <div class="text-sm text-gray-500">${subject.subjectCode || 'No Code'} • ${subject.credits || 0} credits</div>
+                                </div>
+                            </label>
+                        `).join('');
+                    } else {
+                        subjectsList.innerHTML = '<div class="text-gray-500 text-center py-4">All subjects are already assigned to this class</div>';
+                    }
+                } else {
+                    console.error('Failed to load subjects');
+                    document.getElementById('availableSubjectsList').innerHTML = '<div class="text-red-500 text-center py-4">Failed to load subjects</div>';
+                }
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                document.getElementById('availableSubjectsList').innerHTML = '<div class="text-red-500 text-center py-4">Error loading subjects</div>';
+            }
+        }
+
+        // Load Current Class Subjects (if any)
+        async function loadCurrentClassSubjects(classId) {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const response = await fetch(`/api/v1/subjects/class/${classId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const currentSubjectsList = document.getElementById('currentSubjectsList');
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    const currentSubjects = result.data || [];
+                    
+                    if (currentSubjects.length > 0) {
+                        currentSubjectsList.innerHTML = currentSubjects.map(subject => 
+                            `<span class="inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-xs mr-2 mb-2">${subject.subjectName}</span>`
+                        ).join('');
+                    } else {
+                        currentSubjectsList.innerHTML = '<div class="text-gray-500">No subjects currently assigned to this class</div>';
+                    }
+                } else {
+                    console.error('Failed to load current class subjects:', response.status);
+                    currentSubjectsList.innerHTML = '<div class="text-red-500">Error loading current subjects</div>';
+                }
+            } catch (error) {
+                console.error('Error loading current class subjects:', error);
+                document.getElementById('currentSubjectsList').innerHTML = '<div class="text-red-500">Error loading current subjects</div>';
+            }
+        }
+
+        // Toggle Subject Selection
+        function toggleSubjectSelection(subjectId, subjectName) {
+            const index = selectedSubjects.findIndex(s => s.id === subjectId);
+            
+            if (index > -1) {
+                // Remove from selection
+                selectedSubjects.splice(index, 1);
+            } else {
+                // Add to selection
+                selectedSubjects.push({ id: subjectId, name: subjectName });
+            }
+            
+            updateSelectedSubjectsDisplay();
+        }
+
+        // Update Selected Subjects Display
+        function updateSelectedSubjectsDisplay() {
+            const summary = document.getElementById('selectedSubjectsSummary');
+            const list = document.getElementById('selectedSubjectsList');
+            
+            if (selectedSubjects.length === 0) {
+                summary.classList.add('hidden');
+            } else {
+                summary.classList.remove('hidden');
+                list.innerHTML = selectedSubjects.map(subject => 
+                    `<span class="inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-xs mr-2 mb-2">${subject.name}</span>`
+                ).join('');
+            }
+        }
+
+        // Assign Selected Subjects to Class
+        async function assignSelectedSubjects() {
+            if (!currentAssigningClass || selectedSubjects.length === 0) {
+                alert('Please select at least one subject to assign');
+                return;
+            }
+
+            console.log(`📚 Assigning ${selectedSubjects.length} subjects to class ${currentAssigningClass.id}`);
+
+            try {
+                const token = localStorage.getItem('jwtToken');
+                
+                // Extract subject IDs
+                const subjectIds = selectedSubjects.map(subject => subject.id);
+
+                // Call the actual API endpoint
+                const response = await fetch(`/api/v1/school-classes/${currentAssigningClass.id}/subjects`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(subjectIds)
+                });
+
+                if (response.ok) {
+                    alert(`✅ Successfully assigned ${selectedSubjects.length} subjects to ${currentAssigningClass.className}`);
+                    
+                    // Close modal and reset
+                    closeAssignSubjectsModal();
+                    
+                    // Reload classes to refresh any subject count
+                    loadClasses();
+                } else {
+                    const error = await response.json();
+                    console.error('Failed to assign subjects:', error);
+                    alert(`❌ Failed to assign subjects: ${error.message || 'Unknown error'}`);
+                }
+                
+            } catch (error) {
+                console.error('Error assigning subjects:', error);
+                alert('❌ Error assigning subjects. Please try again.');
+            }
         }
     </script>
 </body>

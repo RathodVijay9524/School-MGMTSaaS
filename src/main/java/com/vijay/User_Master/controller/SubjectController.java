@@ -127,6 +127,16 @@ public class SubjectController {
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
 
+    @GetMapping("/class/{classId}")
+    public ResponseEntity<?> getSubjectsByClass(@PathVariable Long classId) {
+        log.info("Getting subjects for class: {}", classId);
+        
+        Long ownerId = getCorrectOwnerId();
+        List<SubjectResponse> response = subjectService.getSubjectsByClass(classId, ownerId);
+        
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSubject(@PathVariable Long id) {
         log.info("Deleting subject: {}", id);

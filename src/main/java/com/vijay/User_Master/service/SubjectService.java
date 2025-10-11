@@ -25,6 +25,8 @@ public interface SubjectService {
     
     List<SubjectResponse> getSubjectsByType(com.vijay.User_Master.entity.Subject.SubjectType type, Long ownerId);
     
+    List<SubjectResponse> getSubjectsByClass(Long classId, Long ownerId);
+    
     void deleteSubject(Long id, Long ownerId);
     
     void restoreSubject(Long id, Long ownerId);

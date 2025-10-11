@@ -4,8 +4,10 @@ import com.vijay.User_Master.dto.SubjectRequest;
 import com.vijay.User_Master.dto.SubjectResponse;
 import com.vijay.User_Master.dto.PageableResponse;
 import com.vijay.User_Master.entity.Subject;
+import com.vijay.User_Master.entity.SchoolClass;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.repository.SubjectRepository;
+import com.vijay.User_Master.repository.SchoolClassRepository;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.SubjectService;
 import org.springframework.ai.tool.annotation.Tool;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 public class SubjectServiceImpl implements SubjectService {
 
     private final SubjectRepository subjectRepository;
+    private final SchoolClassRepository schoolClassRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -69,6 +73,12 @@ public class SubjectServiceImpl implements SubjectService {
         
         Subject subject = subjectRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Subject not found"));
+        
+        // Check if subject code already exists for other subjects (excluding current subject)
+        if (!subject.getSubjectCode().equals(request.getSubjectCode()) && 
+            subjectRepository.existsBySubjectCodeAndOwner_Id(request.getSubjectCode(), ownerId)) {
+            throw new RuntimeException("Subject code already exists: " + request.getSubjectCode());
+        }
         
         subject.setSubjectCode(request.getSubjectCode());
         subject.setSubjectName(request.getSubjectName());
@@ -229,6 +239,28 @@ public class SubjectServiceImpl implements SubjectService {
                 .totalPages(subjects.getTotalPages())
                 .lastPage(subjects.isLast())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SubjectResponse> getSubjectsByClass(Long classId, Long ownerId) {
+        log.info("Getting subjects for class: {} and owner: {}", classId, ownerId);
+        
+        // First verify the class exists and belongs to the owner
+        SchoolClass schoolClass = schoolClassRepository.findByIdAndOwner_IdAndIsDeletedFalse(classId, ownerId)
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+        
+        // Get subjects associated with this class
+        List<Subject> subjects = new ArrayList<>(schoolClass.getSubjects());
+        
+        // Filter by owner and active status
+        List<Subject> filteredSubjects = subjects.stream()
+                .filter(subject -> subject.getOwner().getId().equals(ownerId) && !subject.isDeleted())
+                .collect(Collectors.toList());
+        
+        return filteredSubjects.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 
     private SubjectResponse convertToResponse(Subject subject) {

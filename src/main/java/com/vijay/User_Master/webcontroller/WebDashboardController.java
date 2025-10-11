@@ -24,6 +24,16 @@ public class WebDashboardController {
     }
 
     /**
+     * Reports Page - Analytics and Reports
+     */
+    @GetMapping("/reports")
+    public String reports(Model model) {
+        model.addAttribute("pageTitle", "Reports & Analytics - School Management");
+        model.addAttribute("userRole", "OWNER");
+        return "dashboard/reports";
+    }
+
+    /**
      * Teacher Dashboard
      */
     @GetMapping("/teacher")

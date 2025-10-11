@@ -35,7 +35,7 @@ public class FeeRequest {
     private Double discountAmount;
     
     @NotNull(message = "Due date is required")
-    @Future(message = "Due date must be in the future")
+    @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDate dueDate;
     
     private LocalDate paymentDate;

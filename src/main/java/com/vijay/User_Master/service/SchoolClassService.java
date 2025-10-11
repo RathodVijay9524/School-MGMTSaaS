@@ -14,4 +14,6 @@ public interface SchoolClassService {
     void deleteClass(Long id, Long ownerId);
     List<SchoolClassResponse> getActiveClasses(Long ownerId);
     List<SchoolClassResponse> getClassesByTeacher(Long teacherId, Long ownerId);
+    void assignSubjectsToClass(Long classId, List<Long> subjectIds, Long ownerId);
+    void removeSubjectFromClass(Long classId, Long subjectId, Long ownerId);
 }

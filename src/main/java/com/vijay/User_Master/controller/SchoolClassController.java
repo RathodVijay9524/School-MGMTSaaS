@@ -82,4 +82,20 @@ public class SchoolClassController {
         List<SchoolClassResponse> response = schoolClassService.getClassesByTeacher(teacherId, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
+
+    @PostMapping("/{classId}/subjects")
+    public ResponseEntity<?> assignSubjectsToClass(@PathVariable Long classId, @RequestBody List<Long> subjectIds) {
+        log.info("Assigning {} subjects to class: {}", subjectIds.size(), classId);
+        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        schoolClassService.assignSubjectsToClass(classId, subjectIds, ownerId);
+        return ExceptionUtil.createBuildResponse("Subjects assigned to class successfully", HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{classId}/subjects/{subjectId}")
+    public ResponseEntity<?> removeSubjectFromClass(@PathVariable Long classId, @PathVariable Long subjectId) {
+        log.info("Removing subject {} from class: {}", subjectId, classId);
+        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        schoolClassService.removeSubjectFromClass(classId, subjectId, ownerId);
+        return ExceptionUtil.createBuildResponse("Subject removed from class successfully", HttpStatus.OK);
+    }
 }

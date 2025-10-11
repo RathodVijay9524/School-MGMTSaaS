@@ -37,7 +37,7 @@ public class ExamRequest {
     private Long classId;
 
     @NotNull(message = "Exam date is required")
-    @Future(message = "Exam date must be in the future")
+    @FutureOrPresent(message = "Exam date cannot be in the past")
     private LocalDate examDate;
 
     private LocalTime startTime;

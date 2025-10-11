@@ -24,7 +24,7 @@ public class Exam extends BaseModel {
     @Column(nullable = false)
     private String examName; // e.g., "Midterm Exam", "Final Exam", "Unit Test 1"
     
-    @Column(unique = true)
+    @Column(nullable = false)
     private String examCode;
     
     @Enumerated(EnumType.STRING)

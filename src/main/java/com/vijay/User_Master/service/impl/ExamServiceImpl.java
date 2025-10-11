@@ -112,6 +112,39 @@ public class ExamServiceImpl implements ExamService {
         Exam exam = examRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Exam not found"));
         
+        // Check if exam code is being changed to a code that already exists
+        if (!exam.getExamCode().equals(request.getExamCode())) {
+            if (examRepository.existsByExamCodeAndOwner_Id(request.getExamCode(), ownerId)) {
+                throw new RuntimeException("Exam code already exists: " + request.getExamCode());
+            }
+        }
+        
+        // Update subject if changed
+        if (request.getSubjectId() != null && !request.getSubjectId().equals(exam.getSubject().getId())) {
+            Subject subject = subjectRepository.findByIdAndOwner_IdAndIsDeletedFalse(request.getSubjectId(), ownerId)
+                    .orElseThrow(() -> new RuntimeException("Subject not found or does not belong to owner"));
+            exam.setSubject(subject);
+        }
+        
+        // Update class if changed
+        if (request.getClassId() != null && !request.getClassId().equals(exam.getSchoolClass().getId())) {
+            SchoolClass schoolClass = schoolClassRepository.findByIdAndOwner_IdAndIsDeletedFalse(request.getClassId(), ownerId)
+                    .orElseThrow(() -> new RuntimeException("Class not found or does not belong to owner"));
+            exam.setSchoolClass(schoolClass);
+        }
+        
+        // Update supervisor if changed
+        if (request.getSupervisorId() != null) {
+            if (exam.getSupervisor() == null || !request.getSupervisorId().equals(exam.getSupervisor().getId())) {
+                Worker supervisor = workerRepository.findById(request.getSupervisorId())
+                        .filter(w -> w.getOwner() != null && w.getOwner().getId().equals(ownerId) && !w.isDeleted())
+                        .orElseThrow(() -> new RuntimeException("Supervisor not found or does not belong to owner"));
+                exam.setSupervisor(supervisor);
+            }
+        } else {
+            exam.setSupervisor(null);
+        }
+        
         // Update fields
         exam.setExamName(request.getExamName());
         exam.setExamCode(request.getExamCode());

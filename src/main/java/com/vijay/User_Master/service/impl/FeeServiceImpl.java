@@ -58,6 +58,8 @@ public class FeeServiceImpl implements FeeService {
     @Tool(name = "createFee", description = "Create a new fee record for a student")
     public FeeResponse createFee(FeeRequest request) {
         log.info("Creating fee for student ID: {}", request.getStudentId());
+        log.info("Fee request data - feeCategory: '{}', feeType: '{}', totalAmount: {}", 
+                request.getFeeCategory(), request.getFeeType(), request.getTotalAmount());
         
         Worker student = workerRepository.findById(request.getStudentId())
             .orElseThrow(() -> new ResourceNotFoundException("Student", "id", request.getStudentId()));
@@ -72,6 +74,9 @@ public class FeeServiceImpl implements FeeService {
         Double discountAmount = request.getDiscountAmount() != null ? request.getDiscountAmount() : 0.0;
         Double balanceAmount = request.getTotalAmount() - paidAmount - discountAmount;
         
+        log.info("Fee calculation - Total: {}, Paid: {}, Discount: {}, Balance: {}", 
+                request.getTotalAmount(), paidAmount, discountAmount, balanceAmount);
+        
         Fee.PaymentStatus paymentStatus = calculatePaymentStatus(balanceAmount, request.getDueDate());
         String receiptNumber = generateReceiptNumber();
         
@@ -82,6 +87,8 @@ public class FeeServiceImpl implements FeeService {
         
         Fee fee = Fee.builder()
             .student(student)
+            .feeType(request.getFeeType())
+            .feeCategory(request.getFeeCategory())
             .totalAmount(request.getTotalAmount())
             .paidAmount(paidAmount)
             .discountAmount(discountAmount)
@@ -91,6 +98,13 @@ public class FeeServiceImpl implements FeeService {
             .receiptNumber(receiptNumber)
             .paymentMethod(request.getPaymentMethod())
             .paymentDate(request.getPaymentDate())
+            .transactionId(request.getTransactionId())
+            .academicYear(request.getAcademicYear())
+            .semester(request.getSemester())
+            .lateFeeAmount(request.getLateFeeAmount())
+            .lateFeeReason(request.getLateFeeReason())
+            .isWaived(request.isWaived())
+            .waiverReason(request.getWaiverReason())
             .collectedBy(collectedBy)
             .remarks(request.getRemarks())
             .owner(owner) // Set the owner for multi-tenancy
@@ -214,9 +228,30 @@ public class FeeServiceImpl implements FeeService {
         Fee fee = feeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Fee", "id", id));
         
+        // Update all editable fields
+        fee.setFeeType(request.getFeeType());
+        fee.setFeeCategory(request.getFeeCategory());
         fee.setTotalAmount(request.getTotalAmount());
+        fee.setPaidAmount(request.getPaidAmount() != null ? request.getPaidAmount() : 0.0);
+        fee.setDiscountAmount(request.getDiscountAmount() != null ? request.getDiscountAmount() : 0.0);
         fee.setDueDate(request.getDueDate());
+        fee.setPaymentDate(request.getPaymentDate());
+        fee.setPaymentMethod(request.getPaymentMethod());
+        fee.setTransactionId(request.getTransactionId());
+        fee.setAcademicYear(request.getAcademicYear());
+        fee.setSemester(request.getSemester());
         fee.setRemarks(request.getRemarks());
+        fee.setLateFeeAmount(request.getLateFeeAmount());
+        fee.setLateFeeReason(request.getLateFeeReason());
+        fee.setWaived(request.isWaived());
+        fee.setWaiverReason(request.getWaiverReason());
+        
+        // Recalculate balance and payment status
+        Double balanceAmount = fee.getTotalAmount() - fee.getPaidAmount() - fee.getDiscountAmount();
+        log.info("Update fee calculation - Total: {}, Paid: {}, Discount: {}, Balance: {}", 
+                fee.getTotalAmount(), fee.getPaidAmount(), fee.getDiscountAmount(), balanceAmount);
+        fee.setBalanceAmount(balanceAmount);
+        fee.setPaymentStatus(calculatePaymentStatus(balanceAmount, fee.getDueDate()));
         
         Fee updated = feeRepository.save(fee);
         return mapToResponse(updated);
