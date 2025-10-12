@@ -118,7 +118,14 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtTokenProvider.generateToken(authentication.getName());
 
+        // Map userDetails to UserResponse
         UserResponse response = mapper.map(userDetails, UserResponse.class);
+        
+        // Fix roles mapping - Convert Role objects to role names (String)
+        Set<String> roleNames = userDetails.getRoles().stream()
+                .map(Role::getName)
+                .collect(java.util.stream.Collectors.toSet());
+        response.setRoles(roleNames);
 
         LoginJWTResponse jwtResponse = LoginJWTResponse.builder()
                 .jwtToken(token)
