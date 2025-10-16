@@ -123,6 +123,10 @@ public class GradeServiceImpl implements GradeService {
             .feedback(request.getFeedback())
             .remarks(request.getRemarks())
             .isPublished(request.isPublished())
+            // NEW FIELDS
+            .gradeScale(request.getGradeScale())
+            .weightage(request.getWeightage())
+            .weightedScore(request.getWeightedScore())
             .owner(owner) // Set the owner for multi-tenancy
             .build();
         Grade savedGrade = gradeRepository.save(grade);
@@ -197,6 +201,10 @@ public class GradeServiceImpl implements GradeService {
         grade.setFeedback(request.getFeedback());
         grade.setRemarks(request.getRemarks());
         grade.setPublished(request.isPublished());
+        // NEW FIELDS
+        grade.setGradeScale(request.getGradeScale());
+        grade.setWeightage(request.getWeightage());
+        grade.setWeightedScore(request.getWeightedScore());
         
         Grade updated = gradeRepository.save(grade);
         log.info("Grade updated successfully with ID: {}", updated.getId());
@@ -318,6 +326,11 @@ public class GradeServiceImpl implements GradeService {
             .feedback(grade.getFeedback())
             .remarks(grade.getRemarks())
             .isPublished(grade.isPublished())
+            // NEW FIELDS
+            .gradeScale(grade.getGradeScale())
+            .weightage(grade.getWeightage())
+            .weightedScore(grade.getWeightedScore())
+            // Computed fields
             .gradeTypeDisplay(grade.getGradeType() != null ? grade.getGradeType().toString() : "N/A")
             .statusDisplay(grade.getStatus() != null ? grade.getStatus().toString() : "PENDING")
             .isPassed(grade.getStatus() == Grade.GradeStatus.PASS)

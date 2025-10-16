@@ -84,6 +84,17 @@ public class AssignmentServiceImpl implements AssignmentService {
                 .allowLateSubmission(request.isAllowLateSubmission())
                 .latePenaltyPercentage(request.getLatePenaltyPercentage())
                 .notes(request.getNotes())
+                // NEW FIELDS
+                .rubricJsonData(request.getRubricJsonData())
+                .hasRubric(request.isHasRubric())
+                .allowedFileTypes(request.getAllowedFileTypes())
+                .maxFileSize(request.getMaxFileSize())
+                .maxFilesAllowed(request.getMaxFilesAllowed())
+                .isGroupAssignment(request.isGroupAssignment())
+                .minGroupSize(request.getMinGroupSize())
+                .maxGroupSize(request.getMaxGroupSize())
+                .allowMultipleAttempts(request.isAllowMultipleAttempts())
+                .maxAttempts(request.getMaxAttempts())
                 .owner(owner)
                 .isDeleted(false)
                 .build();
@@ -117,6 +128,17 @@ public class AssignmentServiceImpl implements AssignmentService {
         assignment.setAllowLateSubmission(request.isAllowLateSubmission());
         assignment.setLatePenaltyPercentage(request.getLatePenaltyPercentage());
         assignment.setNotes(request.getNotes());
+        // NEW FIELDS
+        assignment.setRubricJsonData(request.getRubricJsonData());
+        assignment.setHasRubric(request.isHasRubric());
+        assignment.setAllowedFileTypes(request.getAllowedFileTypes());
+        assignment.setMaxFileSize(request.getMaxFileSize());
+        assignment.setMaxFilesAllowed(request.getMaxFilesAllowed());
+        assignment.setGroupAssignment(request.isGroupAssignment());
+        assignment.setMinGroupSize(request.getMinGroupSize());
+        assignment.setMaxGroupSize(request.getMaxGroupSize());
+        assignment.setAllowMultipleAttempts(request.isAllowMultipleAttempts());
+        assignment.setMaxAttempts(request.getMaxAttempts());
         
         Assignment updatedAssignment = assignmentRepository.save(assignment);
         log.info("Assignment updated successfully");
@@ -360,6 +382,18 @@ public class AssignmentServiceImpl implements AssignmentService {
                 .isDeleted(assignment.isDeleted())
                 .createdOn(assignment.getCreatedOn())
                 .updatedOn(assignment.getUpdatedOn())
+                // NEW FIELDS
+                .rubricJsonData(assignment.getRubricJsonData())
+                .hasRubric(assignment.isHasRubric())
+                .allowedFileTypes(assignment.getAllowedFileTypes())
+                .maxFileSize(assignment.getMaxFileSize())
+                .maxFilesAllowed(assignment.getMaxFilesAllowed())
+                .isGroupAssignment(assignment.isGroupAssignment())
+                .minGroupSize(assignment.getMinGroupSize())
+                .maxGroupSize(assignment.getMaxGroupSize())
+                .allowMultipleAttempts(assignment.isAllowMultipleAttempts())
+                .maxAttempts(assignment.getMaxAttempts())
+                // Computed fields
                 .isOverdue(isOverdue)
                 .isUpcoming(isUpcoming)
                 .daysUntilDue(daysUntilDue)

@@ -94,6 +94,13 @@ public class ExamServiceImpl implements ExamService {
                 .resultsPublished(request.isResultsPublished())
                 .resultPublishDate(request.getResultPublishDate())
                 .notes(request.getNotes())
+                // NEW FIELDS
+                .questionPaperUrl(request.getQuestionPaperUrl())
+                .totalQuestions(request.getTotalQuestions())
+                .questionPattern(request.getQuestionPattern())
+                .hasNegativeMarking(request.isHasNegativeMarking())
+                .negativeMarkingPercentage(request.getNegativeMarkingPercentage())
+                .isBlindGraded(request.isBlindGraded())
                 .owner(owner)
                 .isDeleted(false)
                 .build();
@@ -164,6 +171,13 @@ public class ExamServiceImpl implements ExamService {
         exam.setResultsPublished(request.isResultsPublished());
         exam.setResultPublishDate(request.getResultPublishDate());
         exam.setNotes(request.getNotes());
+        // NEW FIELDS
+        exam.setQuestionPaperUrl(request.getQuestionPaperUrl());
+        exam.setTotalQuestions(request.getTotalQuestions());
+        exam.setQuestionPattern(request.getQuestionPattern());
+        exam.setHasNegativeMarking(request.isHasNegativeMarking());
+        exam.setNegativeMarkingPercentage(request.getNegativeMarkingPercentage());
+        exam.setBlindGraded(request.isBlindGraded());
         
         Exam updatedExam = examRepository.save(exam);
         log.info("Exam updated successfully");
@@ -510,6 +524,14 @@ public class ExamServiceImpl implements ExamService {
                 .isDeleted(exam.isDeleted())
                 .createdOn(exam.getCreatedOn())
                 .updatedOn(exam.getUpdatedOn())
+                // NEW FIELDS
+                .questionPaperUrl(exam.getQuestionPaperUrl())
+                .totalQuestions(exam.getTotalQuestions())
+                .questionPattern(exam.getQuestionPattern())
+                .hasNegativeMarking(exam.isHasNegativeMarking())
+                .negativeMarkingPercentage(exam.getNegativeMarkingPercentage())
+                .isBlindGraded(exam.isBlindGraded())
+                // Computed fields
                 .isUpcoming(isUpcoming)
                 .isOngoing(isOngoing)
                 .isCompleted(isCompleted)
