@@ -34,6 +34,9 @@ public interface WorkerUserService extends AdvancedCrudService<WorkerResponse, L
     
     // Update worker method
     WorkerResponse update(Long id, WorkerRequest request) throws Exception;
+    
+    // Get workers by role
+    PageableResponse<WorkerResponse> getWorkersByRole(String role, Pageable pageable);
 
 
 }

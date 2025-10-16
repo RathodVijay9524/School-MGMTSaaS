@@ -1,6 +1,7 @@
 package com.vijay.User_Master.repository;
 
 import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.entity.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -109,6 +110,9 @@ public interface WorkerRepository extends JpaRepository<Worker, Long>, JpaSpecif
            "AND w.isDeleted = false")
     boolean verifyParentStudentRelationship(@Param("parentEmail") String parentEmail, 
                                            @Param("studentId") Long studentId);
+
+    // Find workers by role and owner
+    Page<Worker> findByRolesAndOwner_IdAndIsDeletedFalse(Role role, Long ownerId, Pageable pageable);
 
 }
 

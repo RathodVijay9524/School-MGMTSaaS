@@ -468,6 +468,22 @@ public class WorkerUserServiceImpl implements WorkerUserService {
         return convertToResponse(updatedWorker);
     }
 
+    @Override
+    @Tool(name = "getWorkersByRole", description = "Get workers filtered by specific role")
+    public PageableResponse<WorkerResponse> getWorkersByRole(String role, Pageable pageable) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long loggedInUserId = loggedInUser.getId();
+        
+        // Find role by name
+        Role roleEntity = roleRepository.findByName(role)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", role));
+        
+        // Find workers by role and owner
+        Page<Worker> workers = workerRepository.findByRolesAndOwner_IdAndIsDeletedFalse(
+                roleEntity, loggedInUserId, pageable);
+        
+        return convertPageToResponse(workers);
+    }
 
 }
                    

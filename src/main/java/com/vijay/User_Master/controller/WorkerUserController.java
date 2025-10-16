@@ -153,6 +153,22 @@ public class WorkerUserController {
         return ExceptionUtil.createBuildResponse(workerUserService.findAllActiveUsers(), HttpStatus.OK);
     }
 
+    @GetMapping("/role/{role}")
+    public ResponseEntity<?> getWorkersByRole(
+            @PathVariable String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+            PageableResponse<WorkerResponse> response = workerUserService.getWorkersByRole(role, pageable);
+            return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error getting workers by role {}: {}", role, e.getMessage(), e);
+            return ExceptionUtil.createBuildResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GetMapping("/recycle")
     public ResponseEntity<?> getSoftDeletedUser(@PageableDefault(size = 10, sort = "name") Pageable pageable) {
         PageableResponse<WorkerResponse> pages = workerUserService.getRecycleBin(pageable);
