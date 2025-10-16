@@ -5,6 +5,8 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -90,6 +92,24 @@ public class Library extends BaseModel {
     
     private LocalDate lastConditionCheckDate; // When was condition last inspected
     
+    // ========== NEW FIELDS - MAINTENANCE TRACKING ==========
+    private LocalDate lastMaintenanceDate; // Last time book was maintained/repaired
+    
+    private LocalDate nextMaintenanceDate; // Scheduled next maintenance
+    
+    @lombok.Builder.Default
+    private boolean requiresMaintenance = false; // Flag for books needing maintenance
+    
+    private Integer maintenanceCount; // Total number of times book has been maintained
+    
+    @Column(length = 1000)
+    private String lastMaintenanceNotes; // Notes from last maintenance
+    
+    // ========== NEW RELATIONSHIP - MAINTENANCE RECORDS ==========
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @lombok.Builder.Default
+    private List<BookMaintenance> maintenanceRecords = new ArrayList<>(); // Complete maintenance history
+    
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
@@ -98,6 +118,43 @@ public class Library extends BaseModel {
     // Soft Delete
     @lombok.Builder.Default
     private boolean isDeleted = false;
+    
+    // ========== HELPER METHODS FOR MAINTENANCE MANAGEMENT ==========
+    
+    /**
+     * Add a maintenance record to this book
+     */
+    public void addMaintenanceRecord(BookMaintenance maintenance) {
+        maintenanceRecords.add(maintenance);
+        maintenance.setBook(this);
+        this.lastMaintenanceDate = maintenance.getMaintenanceDate();
+        this.maintenanceCount = (maintenanceCount == null ? 0 : maintenanceCount) + 1;
+    }
+    
+    /**
+     * Check if book needs maintenance soon (within 30 days)
+     */
+    public boolean needsMaintenanceSoon() {
+        if (nextMaintenanceDate == null) return false;
+        return nextMaintenanceDate.isBefore(LocalDate.now().plusDays(30));
+    }
+    
+    /**
+     * Check if maintenance is overdue
+     */
+    public boolean isMaintenanceOverdue() {
+        if (nextMaintenanceDate == null) return false;
+        return nextMaintenanceDate.isBefore(LocalDate.now());
+    }
+    
+    /**
+     * Get most recent maintenance record
+     */
+    public BookMaintenance getLastMaintenance() {
+        return maintenanceRecords.stream()
+            .max((m1, m2) -> m1.getMaintenanceDate().compareTo(m2.getMaintenanceDate()))
+            .orElse(null);
+    }
 
     public enum BookCategory {
         TEXTBOOK, REFERENCE, FICTION, NON_FICTION, BIOGRAPHY, SCIENCE, MATHEMATICS,

@@ -105,4 +105,19 @@ public class LibraryRequest {
     private Library.BookCondition bookCondition = Library.BookCondition.GOOD;
     
     private LocalDate lastConditionCheckDate;
+    
+    // ========== NEW FIELDS - MAINTENANCE TRACKING ==========
+    private LocalDate lastMaintenanceDate;
+    
+    @FutureOrPresent(message = "Next maintenance date must be in the future")
+    private LocalDate nextMaintenanceDate;
+    
+    @Builder.Default
+    private boolean requiresMaintenance = false;
+    
+    @Min(value = 0, message = "Maintenance count cannot be negative")
+    private Integer maintenanceCount;
+    
+    @Size(max = 1000, message = "Last maintenance notes cannot exceed 1000 characters")
+    private String lastMaintenanceNotes;
 }

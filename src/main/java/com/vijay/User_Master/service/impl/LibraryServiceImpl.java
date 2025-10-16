@@ -80,9 +80,15 @@ public class LibraryServiceImpl implements LibraryService {
                 .lateFeePerDay(request.getLateFeePerDay())
                 .isReferenceOnly(request.isReferenceOnly())
                 .notes(request.getNotes())
-                // NEW FIELDS
+                // CONDITION TRACKING
                 .bookCondition(request.getBookCondition())
                 .lastConditionCheckDate(request.getLastConditionCheckDate())
+                // MAINTENANCE TRACKING
+                .lastMaintenanceDate(request.getLastMaintenanceDate())
+                .nextMaintenanceDate(request.getNextMaintenanceDate())
+                .requiresMaintenance(request.isRequiresMaintenance())
+                .maintenanceCount(request.getMaintenanceCount())
+                .lastMaintenanceNotes(request.getLastMaintenanceNotes())
                 .owner(owner)
                 .isDeleted(false)
                 .build();
@@ -126,9 +132,15 @@ public class LibraryServiceImpl implements LibraryService {
         library.setLateFeePerDay(request.getLateFeePerDay());
         library.setReferenceOnly(request.isReferenceOnly());
         library.setNotes(request.getNotes());
-        // NEW FIELDS
+        // CONDITION TRACKING
         library.setBookCondition(request.getBookCondition());
         library.setLastConditionCheckDate(request.getLastConditionCheckDate());
+        // MAINTENANCE TRACKING
+        library.setLastMaintenanceDate(request.getLastMaintenanceDate());
+        library.setNextMaintenanceDate(request.getNextMaintenanceDate());
+        library.setRequiresMaintenance(request.isRequiresMaintenance());
+        library.setMaintenanceCount(request.getMaintenanceCount());
+        library.setLastMaintenanceNotes(request.getLastMaintenanceNotes());
         
         Library updatedBook = libraryRepository.save(library);
         log.info("Library book updated successfully");
@@ -604,6 +616,37 @@ public class LibraryServiceImpl implements LibraryService {
         String bookConditionDisplay = library.getBookCondition() != null ? 
                 library.getBookCondition().name().replace("_", " ") : "GOOD";
         
+        // ========== MAINTENANCE TRACKING COMPUTED FIELDS ==========
+        boolean needsMaintenanceSoon = library.needsMaintenanceSoon();
+        boolean isMaintenanceOverdue = library.isMaintenanceOverdue();
+        
+        // Calculate days since last maintenance
+        Integer daysSinceLastMaintenance = null;
+        if (library.getLastMaintenanceDate() != null) {
+            daysSinceLastMaintenance = (int) java.time.temporal.ChronoUnit.DAYS.between(
+                library.getLastMaintenanceDate(), LocalDate.now());
+        }
+        
+        // Calculate days until next maintenance
+        Integer daysUntilNextMaintenance = null;
+        if (library.getNextMaintenanceDate() != null) {
+            daysUntilNextMaintenance = (int) java.time.temporal.ChronoUnit.DAYS.between(
+                LocalDate.now(), library.getNextMaintenanceDate());
+        }
+        
+        // Build maintenance status message
+        String maintenanceStatus;
+        if (isMaintenanceOverdue && library.getNextMaintenanceDate() != null) {
+            int daysOverdue = Math.abs(daysUntilNextMaintenance);
+            maintenanceStatus = String.format("⚠️ Overdue by %d day%s", daysOverdue, daysOverdue != 1 ? "s" : "");
+        } else if (needsMaintenanceSoon && library.getNextMaintenanceDate() != null) {
+            maintenanceStatus = String.format("⏰ Due in %d day%s", daysUntilNextMaintenance, daysUntilNextMaintenance != 1 ? "s" : "");
+        } else if (library.getNextMaintenanceDate() == null) {
+            maintenanceStatus = "No maintenance scheduled";
+        } else {
+            maintenanceStatus = String.format("✅ Scheduled in %d day%s", daysUntilNextMaintenance, daysUntilNextMaintenance != 1 ? "s" : "");
+        }
+        
         return LibraryResponse.builder()
                 .id(library.getId())
                 .isbn(library.getIsbn())
@@ -633,9 +676,17 @@ public class LibraryServiceImpl implements LibraryService {
                 .isDeleted(library.isDeleted())
                 .createdOn(library.getCreatedOn())
                 .updatedOn(library.getUpdatedOn())
-                // NEW FIELDS
+                // CONDITION TRACKING
                 .bookCondition(library.getBookCondition())
                 .lastConditionCheckDate(library.getLastConditionCheckDate())
+                // MAINTENANCE TRACKING
+                .lastMaintenanceDate(library.getLastMaintenanceDate())
+                .nextMaintenanceDate(library.getNextMaintenanceDate())
+                .requiresMaintenance(library.isRequiresMaintenance())
+                .maintenanceCount(library.getMaintenanceCount())
+                .lastMaintenanceNotes(library.getLastMaintenanceNotes())
+                // Note: maintenanceRecords list is lazy-loaded, not included here to avoid N+1 queries
+                // Use dedicated endpoint to fetch maintenance history for a book
                 // Computed fields
                 .isAvailable(isAvailable)
                 .isIssued(isIssued)
@@ -652,6 +703,12 @@ public class LibraryServiceImpl implements LibraryService {
                 .availabilityPercentage(availabilityPercentage)
                 .shelfLocation(shelfLocation)
                 .bookConditionDisplay(bookConditionDisplay)
+                // MAINTENANCE COMPUTED FIELDS
+                .needsMaintenanceSoon(needsMaintenanceSoon)
+                .isMaintenanceOverdue(isMaintenanceOverdue)
+                .maintenanceStatus(maintenanceStatus)
+                .daysSinceLastMaintenance(daysSinceLastMaintenance)
+                .daysUntilNextMaintenance(daysUntilNextMaintenance)
                 .build();
     }
 }

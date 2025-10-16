@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * DTO for Library book response
@@ -47,9 +49,19 @@ public class LibraryResponse {
     private Date createdOn;
     private Date updatedOn;
     
-    // ========== NEW FIELDS ==========
+    // ========== NEW FIELDS - CONDITION TRACKING ==========
     private Library.BookCondition bookCondition; // Changed from String to Enum
     private LocalDate lastConditionCheckDate;
+    
+    // ========== NEW FIELDS - MAINTENANCE TRACKING ==========
+    private LocalDate lastMaintenanceDate;
+    private LocalDate nextMaintenanceDate;
+    private boolean requiresMaintenance;
+    private Integer maintenanceCount;
+    private String lastMaintenanceNotes;
+    
+    @Builder.Default
+    private List<BookMaintenanceResponse> maintenanceRecords = new ArrayList<>(); // Complete maintenance history
 
     // Computed fields
     private boolean isAvailable;
@@ -67,4 +79,11 @@ public class LibraryResponse {
     private double availabilityPercentage;
     private String shelfLocation;
     private String bookConditionDisplay; // Keep this for UI display
+    
+    // ========== MAINTENANCE COMPUTED FIELDS ==========
+    private boolean needsMaintenanceSoon; // Within 30 days
+    private boolean isMaintenanceOverdue; // Past due date
+    private String maintenanceStatus; // e.g., "Due in 15 days", "Overdue by 5 days", "No maintenance scheduled"
+    private Integer daysSinceLastMaintenance;
+    private Integer daysUntilNextMaintenance;
 }
