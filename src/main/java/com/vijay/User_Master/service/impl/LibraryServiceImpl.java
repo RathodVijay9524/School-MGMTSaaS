@@ -80,6 +80,9 @@ public class LibraryServiceImpl implements LibraryService {
                 .lateFeePerDay(request.getLateFeePerDay())
                 .isReferenceOnly(request.isReferenceOnly())
                 .notes(request.getNotes())
+                // NEW FIELDS
+                .bookCondition(request.getBookCondition())
+                .lastConditionCheckDate(request.getLastConditionCheckDate())
                 .owner(owner)
                 .isDeleted(false)
                 .build();
@@ -123,6 +126,9 @@ public class LibraryServiceImpl implements LibraryService {
         library.setLateFeePerDay(request.getLateFeePerDay());
         library.setReferenceOnly(request.isReferenceOnly());
         library.setNotes(request.getNotes());
+        // NEW FIELDS
+        library.setBookCondition(request.getBookCondition());
+        library.setLastConditionCheckDate(request.getLastConditionCheckDate());
         
         Library updatedBook = libraryRepository.save(library);
         log.info("Library book updated successfully");
@@ -593,7 +599,10 @@ public class LibraryServiceImpl implements LibraryService {
                 (double) library.getAvailableCopies() / library.getTotalCopies() * 100 : 0.0;
         
         String shelfLocation = library.getShelfNumber() != null ? "Shelf " + library.getShelfNumber() : "Location not set";
-        String bookCondition = library.getStatus().name().replace("_", " ").toLowerCase();
+        
+        // NEW: Book condition display for UI
+        String bookConditionDisplay = library.getBookCondition() != null ? 
+                library.getBookCondition().name().replace("_", " ") : "GOOD";
         
         return LibraryResponse.builder()
                 .id(library.getId())
@@ -624,6 +633,10 @@ public class LibraryServiceImpl implements LibraryService {
                 .isDeleted(library.isDeleted())
                 .createdOn(library.getCreatedOn())
                 .updatedOn(library.getUpdatedOn())
+                // NEW FIELDS
+                .bookCondition(library.getBookCondition())
+                .lastConditionCheckDate(library.getLastConditionCheckDate())
+                // Computed fields
                 .isAvailable(isAvailable)
                 .isIssued(isIssued)
                 .isReserved(isReserved)
@@ -638,7 +651,7 @@ public class LibraryServiceImpl implements LibraryService {
                 .referenceStatus(referenceStatus)
                 .availabilityPercentage(availabilityPercentage)
                 .shelfLocation(shelfLocation)
-                .bookCondition(bookCondition)
+                .bookConditionDisplay(bookConditionDisplay)
                 .build();
     }
 }
