@@ -114,6 +114,9 @@ public interface WorkerRepository extends JpaRepository<Worker, Long>, JpaSpecif
     // Find workers by role and owner
     Page<Worker> findByRolesAndOwner_IdAndIsDeletedFalse(Role role, Long ownerId, Pageable pageable);
 
+    // Find workers by owner and order by name
+    List<Worker> findByOwnerIdAndIsDeletedFalseOrderByNameAsc(Long ownerId);
+
 }
 
 
