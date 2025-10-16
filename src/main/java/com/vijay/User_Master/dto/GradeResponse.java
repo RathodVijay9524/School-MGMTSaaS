@@ -42,16 +42,33 @@ public class GradeResponse {
     @JsonProperty("isPublished")
     private boolean isPublished;
     
-    // ========== NEW FIELDS ==========
+    // ========== NEW FIELDS - GRADE SCALE & WEIGHTED SCORING ==========
     private String gradeScale;
     private Double weightage;
     private Double weightedScore;
     
+    // ========== NEW FIELDS - GPA CALCULATION ==========
+    private Double gradePoint; // Numeric grade point (e.g., 4.0, 3.7, 3.3)
+    private Double gpaValue; // GPA for this specific subject/grade
+    private Double cumulativeGPA; // Cumulative GPA including all previous semesters
+    private String gpaScale; // e.g., "4.0", "5.0", "10.0"
+    
+    // ========== NEW FIELDS - CLASS RANK ==========
+    private Integer classRank; // Student's rank in class (1 = highest)
+    private Integer totalStudents; // Total number of students in class
+    private Double percentile; // Percentile rank (0-100, where 100 is best)
+    private Integer sectionRank; // Rank within section
+    private Integer gradeRank; // Rank within entire grade level
+    
     // Computed fields
     private String gradeTypeDisplay;
     private String statusDisplay;
+    private String rankDisplay; // e.g., "Rank 5 of 45 (Top 11%)"
     
     @JsonProperty("isPassed")
     private boolean isPassed;
+    
+    @JsonProperty("isTopPerformer")
+    private boolean isTopPerformer; // True if rank <= 10 or percentile >= 90
 }
 

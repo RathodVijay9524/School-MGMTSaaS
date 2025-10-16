@@ -1,6 +1,7 @@
 package com.vijay.User_Master.dto;
 
 import com.vijay.User_Master.entity.Exam;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DTO for Exam creation and update requests
@@ -105,4 +108,9 @@ public class ExamRequest {
     // ========== NEW FIELDS - BLIND GRADING ==========
     @Builder.Default
     private boolean isBlindGraded = false;
+    
+    // ========== NEW FIELDS - MULTIPLE EXAMINERS ==========
+    @Valid
+    @Builder.Default
+    private List<ExaminerRequest> examiners = new ArrayList<>(); // Support for multiple examiners
 }

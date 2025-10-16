@@ -3,7 +3,10 @@ package com.vijay.User_Master.service.impl;
 import com.vijay.User_Master.dto.ExamRequest;
 import com.vijay.User_Master.dto.ExamResponse;
 import com.vijay.User_Master.dto.ExamStatistics;
+import com.vijay.User_Master.dto.ExaminerRequest;
+import com.vijay.User_Master.dto.ExaminerResponse;
 import com.vijay.User_Master.entity.Exam;
+import com.vijay.User_Master.entity.Examiner;
 import com.vijay.User_Master.entity.SchoolClass;
 import com.vijay.User_Master.entity.Subject;
 import com.vijay.User_Master.entity.User;
@@ -105,8 +108,17 @@ public class ExamServiceImpl implements ExamService {
                 .isDeleted(false)
                 .build();
         
+        // Handle examiners if provided
+        if (request.getExaminers() != null && !request.getExaminers().isEmpty()) {
+            for (ExaminerRequest examinerReq : request.getExaminers()) {
+                Examiner examiner = createExaminerFromRequest(examinerReq, exam, owner, ownerId);
+                exam.addExaminer(examiner);
+            }
+        }
+        
         Exam savedExam = examRepository.save(exam);
-        log.info("Exam created successfully with ID: {}", savedExam.getId());
+        log.info("Exam created successfully with ID: {} and {} examiners", 
+            savedExam.getId(), savedExam.getExaminers().size());
         
         return convertToResponse(savedExam);
     }
@@ -179,8 +191,22 @@ public class ExamServiceImpl implements ExamService {
         exam.setNegativeMarkingPercentage(request.getNegativeMarkingPercentage());
         exam.setBlindGraded(request.isBlindGraded());
         
+        // Update examiners if provided
+        if (request.getExaminers() != null) {
+            // Clear existing examiners
+            exam.getExaminers().clear();
+            
+            // Add new examiners
+            for (ExaminerRequest examinerReq : request.getExaminers()) {
+                User owner = userRepository.findById(ownerId)
+                    .orElseThrow(() -> new RuntimeException("Owner not found"));
+                Examiner examiner = createExaminerFromRequest(examinerReq, exam, owner, ownerId);
+                exam.addExaminer(examiner);
+            }
+        }
+        
         Exam updatedExam = examRepository.save(exam);
-        log.info("Exam updated successfully");
+        log.info("Exam updated successfully with {} examiners", updatedExam.getExaminers().size());
         
         return convertToResponse(updatedExam);
     }
@@ -531,6 +557,10 @@ public class ExamServiceImpl implements ExamService {
                 .hasNegativeMarking(exam.isHasNegativeMarking())
                 .negativeMarkingPercentage(exam.getNegativeMarkingPercentage())
                 .isBlindGraded(exam.isBlindGraded())
+                // EXAMINERS
+                .examiners(exam.getExaminers().stream()
+                    .map(this::convertExaminerToResponse)
+                    .collect(Collectors.toList()))
                 // Computed fields
                 .isUpcoming(isUpcoming)
                 .isOngoing(isOngoing)
@@ -542,6 +572,68 @@ public class ExamServiceImpl implements ExamService {
                 .typeDisplay(exam.getExamType().name().replace("_", " "))
                 .durationDisplay(durationDisplay)
                 .supervisorDisplay(supervisorDisplay)
+                .examinerCount(exam.getExaminers().size())
+                .primaryExaminerName(exam.getPrimaryExaminer() != null ? 
+                    exam.getPrimaryExaminer().getDisplayName() : null)
                 .build();
+    }
+    
+    /**
+     * Create an Examiner entity from request DTO
+     */
+    private Examiner createExaminerFromRequest(ExaminerRequest request, Exam exam, User owner, Long ownerId) {
+        Worker teacher = null;
+        if (request.getTeacherId() != null) {
+            teacher = workerRepository.findById(request.getTeacherId())
+                .filter(w -> w.getOwner() != null && w.getOwner().getId().equals(ownerId) && !w.isDeleted())
+                .orElse(null);
+        }
+        
+        return Examiner.builder()
+            .exam(exam)
+            .teacher(teacher)
+            .externalExaminerName(request.getExternalExaminerName())
+            .externalExaminerEmail(request.getExternalExaminerEmail())
+            .externalExaminerPhone(request.getExternalExaminerPhone())
+            .institution(request.getInstitution())
+            .role(request.getRole())
+            .status(request.getStatus() != null ? request.getStatus() : Examiner.ExaminerStatus.ASSIGNED)
+            .assignedDate(request.getAssignedDate() != null ? request.getAssignedDate() : LocalDate.now())
+            .completionDate(request.getCompletionDate())
+            .specialization(request.getSpecialization())
+            .isBlindGrading(request.isBlindGrading())
+            .remarks(request.getRemarks())
+            .owner(owner)
+            .isDeleted(false)
+            .build();
+    }
+    
+    /**
+     * Convert Examiner entity to response DTO
+     */
+    private ExaminerResponse convertExaminerToResponse(Examiner examiner) {
+        return ExaminerResponse.builder()
+            .id(examiner.getId())
+            .examId(examiner.getExam().getId())
+            .examName(examiner.getExam().getExamName())
+            .teacherId(examiner.getTeacher() != null ? examiner.getTeacher().getId() : null)
+            .teacherName(examiner.getTeacher() != null ? examiner.getTeacher().getName() : null)
+            .externalExaminerName(examiner.getExternalExaminerName())
+            .externalExaminerEmail(examiner.getExternalExaminerEmail())
+            .externalExaminerPhone(examiner.getExternalExaminerPhone())
+            .institution(examiner.getInstitution())
+            .role(examiner.getRole())
+            .status(examiner.getStatus())
+            .assignedDate(examiner.getAssignedDate())
+            .completionDate(examiner.getCompletionDate())
+            .specialization(examiner.getSpecialization())
+            .isBlindGrading(examiner.isBlindGrading())
+            .remarks(examiner.getRemarks())
+            .displayName(examiner.getDisplayName())
+            .roleDisplay(examiner.getRole().name().replace("_", " "))
+            .statusDisplay(examiner.getStatus().name().replace("_", " "))
+            .isExternal(examiner.isExternal())
+            .isCompleted(examiner.getStatus() == Examiner.ExaminerStatus.COMPLETED)
+            .build();
     }
 }

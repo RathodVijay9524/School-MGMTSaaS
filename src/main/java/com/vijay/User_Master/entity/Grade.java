@@ -77,6 +77,27 @@ public class Grade extends BaseModel {
     
     private Double weightedScore; // Calculated: (marksObtained/totalMarks) * weightage
     
+    // ========== NEW FIELDS - GPA CALCULATION ==========
+    private Double gradePoint; // Numeric grade point (e.g., 4.0, 3.7, 3.3) based on letterGrade
+    
+    private Double gpaValue; // GPA for this specific subject/grade (calculated based on gradePoint)
+    
+    private Double cumulativeGPA; // Cumulative GPA including all previous semesters
+    
+    @Column(length = 50)
+    private String gpaScale; // e.g., "4.0", "5.0", "10.0"
+    
+    // ========== NEW FIELDS - CLASS RANK ==========
+    private Integer classRank; // Student's rank in class for this subject/exam (1 = highest)
+    
+    private Integer totalStudents; // Total number of students in the class/cohort
+    
+    private Double percentile; // Percentile rank (0-100, where 100 is best)
+    
+    private Integer sectionRank; // Rank within section (if class has multiple sections)
+    
+    private Integer gradeRank; // Rank within entire grade level (all sections)
+    
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)

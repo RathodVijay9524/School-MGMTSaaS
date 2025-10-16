@@ -6,6 +6,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -100,6 +102,11 @@ public class Exam extends BaseModel {
     @lombok.Builder.Default
     private boolean isBlindGraded = false; // Anonymous grading to reduce bias
     
+    // ========== NEW FIELDS - MULTIPLE EXAMINERS SUPPORT ==========
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @lombok.Builder.Default
+    private List<Examiner> examiners = new ArrayList<>(); // Support for multiple examiners
+    
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
@@ -108,6 +115,34 @@ public class Exam extends BaseModel {
     // Soft Delete
     @lombok.Builder.Default
     private boolean isDeleted = false;
+    
+    // ========== HELPER METHODS FOR EXAMINER MANAGEMENT ==========
+    
+    /**
+     * Add an examiner to this exam
+     */
+    public void addExaminer(Examiner examiner) {
+        examiners.add(examiner);
+        examiner.setExam(this);
+    }
+    
+    /**
+     * Remove an examiner from this exam
+     */
+    public void removeExaminer(Examiner examiner) {
+        examiners.remove(examiner);
+        examiner.setExam(null);
+    }
+    
+    /**
+     * Get primary examiner (if exists)
+     */
+    public Examiner getPrimaryExaminer() {
+        return examiners.stream()
+            .filter(e -> e.getRole() == Examiner.ExaminerRole.PRIMARY)
+            .findFirst()
+            .orElse(null);
+    }
 
     public enum ExamType {
         MIDTERM, FINAL, UNIT_TEST, QUARTERLY, HALF_YEARLY, ANNUAL, SURPRISE_TEST, PRACTICAL

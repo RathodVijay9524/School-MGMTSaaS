@@ -70,5 +70,35 @@ public class GradeRequest {
     private Double weightage; // e.g., 30% for midterm
     
     private Double weightedScore; // Calculated: (marksObtained/totalMarks) * weightage
+    
+    // ========== NEW FIELDS - GPA CALCULATION ==========
+    @DecimalMin(value = "0.0", message = "Grade point must be zero or positive")
+    private Double gradePoint; // e.g., 4.0, 3.7, 3.3
+    
+    @DecimalMin(value = "0.0", message = "GPA value must be zero or positive")
+    private Double gpaValue; // GPA for this specific subject/grade
+    
+    @DecimalMin(value = "0.0", message = "Cumulative GPA must be zero or positive")
+    private Double cumulativeGPA; // Cumulative GPA including all previous semesters
+    
+    @Size(max = 50, message = "GPA scale must not exceed 50 characters")
+    private String gpaScale; // e.g., "4.0", "5.0", "10.0"
+    
+    // ========== NEW FIELDS - CLASS RANK ==========
+    @Positive(message = "Class rank must be positive")
+    private Integer classRank; // Student's rank in class (1 = highest)
+    
+    @Positive(message = "Total students must be positive")
+    private Integer totalStudents; // Total number of students in class
+    
+    @DecimalMin(value = "0.0", message = "Percentile must be zero or positive")
+    @DecimalMax(value = "100.0", message = "Percentile cannot exceed 100")
+    private Double percentile; // Percentile rank (0-100)
+    
+    @Positive(message = "Section rank must be positive")
+    private Integer sectionRank; // Rank within section
+    
+    @Positive(message = "Grade rank must be positive")
+    private Integer gradeRank; // Rank within entire grade level
 }
 

@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * DTO for Exam response
@@ -55,6 +57,10 @@ public class ExamResponse {
     private boolean hasNegativeMarking;
     private Double negativeMarkingPercentage;
     private boolean isBlindGraded;
+    
+    // ========== NEW FIELDS - MULTIPLE EXAMINERS ==========
+    @Builder.Default
+    private List<ExaminerResponse> examiners = new ArrayList<>(); // List of all examiners for this exam
 
     // Computed fields
     private boolean isUpcoming;
@@ -67,4 +73,6 @@ public class ExamResponse {
     private String typeDisplay;
     private String durationDisplay;
     private String supervisorDisplay;
+    private Integer examinerCount; // Total number of examiners
+    private String primaryExaminerName; // Name of primary examiner
 }

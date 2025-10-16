@@ -123,10 +123,21 @@ public class GradeServiceImpl implements GradeService {
             .feedback(request.getFeedback())
             .remarks(request.getRemarks())
             .isPublished(request.isPublished())
-            // NEW FIELDS
+            // GRADE SCALE & WEIGHTED SCORING
             .gradeScale(request.getGradeScale())
             .weightage(request.getWeightage())
             .weightedScore(request.getWeightedScore())
+            // GPA CALCULATION
+            .gradePoint(request.getGradePoint())
+            .gpaValue(request.getGpaValue())
+            .cumulativeGPA(request.getCumulativeGPA())
+            .gpaScale(request.getGpaScale())
+            // CLASS RANK
+            .classRank(request.getClassRank())
+            .totalStudents(request.getTotalStudents())
+            .percentile(request.getPercentile())
+            .sectionRank(request.getSectionRank())
+            .gradeRank(request.getGradeRank())
             .owner(owner) // Set the owner for multi-tenancy
             .build();
         Grade savedGrade = gradeRepository.save(grade);
@@ -201,10 +212,21 @@ public class GradeServiceImpl implements GradeService {
         grade.setFeedback(request.getFeedback());
         grade.setRemarks(request.getRemarks());
         grade.setPublished(request.isPublished());
-        // NEW FIELDS
+        // GRADE SCALE & WEIGHTED SCORING
         grade.setGradeScale(request.getGradeScale());
         grade.setWeightage(request.getWeightage());
         grade.setWeightedScore(request.getWeightedScore());
+        // GPA CALCULATION
+        grade.setGradePoint(request.getGradePoint());
+        grade.setGpaValue(request.getGpaValue());
+        grade.setCumulativeGPA(request.getCumulativeGPA());
+        grade.setGpaScale(request.getGpaScale());
+        // CLASS RANK
+        grade.setClassRank(request.getClassRank());
+        grade.setTotalStudents(request.getTotalStudents());
+        grade.setPercentile(request.getPercentile());
+        grade.setSectionRank(request.getSectionRank());
+        grade.setGradeRank(request.getGradeRank());
         
         Grade updated = gradeRepository.save(grade);
         log.info("Grade updated successfully with ID: {}", updated.getId());
@@ -301,6 +323,18 @@ public class GradeServiceImpl implements GradeService {
     }
     
     private GradeResponse mapToResponse(Grade grade) {
+        // Calculate rank display
+        String rankDisplay = null;
+        if (grade.getClassRank() != null && grade.getTotalStudents() != null) {
+            double topPercentage = ((double) grade.getClassRank() / grade.getTotalStudents()) * 100;
+            rankDisplay = String.format("Rank %d of %d (Top %.0f%%)", 
+                grade.getClassRank(), grade.getTotalStudents(), topPercentage);
+        }
+        
+        // Determine if top performer
+        boolean isTopPerformer = (grade.getClassRank() != null && grade.getClassRank() <= 10) || 
+                                (grade.getPercentile() != null && grade.getPercentile() >= 90.0);
+        
         return GradeResponse.builder()
             .id(grade.getId())
             .studentId(grade.getStudent().getId())
@@ -326,14 +360,27 @@ public class GradeServiceImpl implements GradeService {
             .feedback(grade.getFeedback())
             .remarks(grade.getRemarks())
             .isPublished(grade.isPublished())
-            // NEW FIELDS
+            // GRADE SCALE & WEIGHTED SCORING
             .gradeScale(grade.getGradeScale())
             .weightage(grade.getWeightage())
             .weightedScore(grade.getWeightedScore())
+            // GPA CALCULATION
+            .gradePoint(grade.getGradePoint())
+            .gpaValue(grade.getGpaValue())
+            .cumulativeGPA(grade.getCumulativeGPA())
+            .gpaScale(grade.getGpaScale())
+            // CLASS RANK
+            .classRank(grade.getClassRank())
+            .totalStudents(grade.getTotalStudents())
+            .percentile(grade.getPercentile())
+            .sectionRank(grade.getSectionRank())
+            .gradeRank(grade.getGradeRank())
             // Computed fields
             .gradeTypeDisplay(grade.getGradeType() != null ? grade.getGradeType().toString() : "N/A")
             .statusDisplay(grade.getStatus() != null ? grade.getStatus().toString() : "PENDING")
+            .rankDisplay(rankDisplay)
             .isPassed(grade.getStatus() == Grade.GradeStatus.PASS)
+            .isTopPerformer(isTopPerformer)
             .build();
     }
     
