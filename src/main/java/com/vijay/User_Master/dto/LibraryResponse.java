@@ -41,11 +41,15 @@ public class LibraryResponse {
     private LocalDate purchaseDate;
     private Integer maxBorrowDays;
     private Double lateFeePerDay;
-    private boolean isReferencOnly;
+    private boolean isReferenceOnly;
     private String notes;
     private boolean isDeleted;
     private Date createdOn;
     private Date updatedOn;
+    
+    // ========== NEW FIELDS ==========
+    private Library.BookCondition bookCondition; // Changed from String to Enum
+    private LocalDate lastConditionCheckDate;
 
     // Computed fields
     private boolean isAvailable;
@@ -62,5 +66,5 @@ public class LibraryResponse {
     private String referenceStatus;
     private double availabilityPercentage;
     private String shelfLocation;
-    private String bookCondition;
+    private String bookConditionDisplay; // Keep this for UI display
 }

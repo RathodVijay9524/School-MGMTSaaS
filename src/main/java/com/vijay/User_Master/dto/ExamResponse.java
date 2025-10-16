@@ -47,6 +47,14 @@ public class ExamResponse {
     private boolean isDeleted;
     private Date createdOn;
     private Date updatedOn;
+    
+    // ========== NEW FIELDS ==========
+    private String questionPaperUrl;
+    private Integer totalQuestions;
+    private String questionPattern;
+    private boolean hasNegativeMarking;
+    private Double negativeMarkingPercentage;
+    private boolean isBlindGraded;
 
     // Computed fields
     private boolean isUpcoming;

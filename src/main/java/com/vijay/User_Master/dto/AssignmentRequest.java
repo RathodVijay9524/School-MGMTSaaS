@@ -72,4 +72,43 @@ public class AssignmentRequest {
 
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;
+    
+    // ========== NEW FIELDS - RUBRIC SUPPORT ==========
+    @Size(max = 5000, message = "Rubric data cannot exceed 5000 characters")
+    private String rubricJsonData;
+    
+    @Builder.Default
+    private boolean hasRubric = false;
+    
+    // ========== NEW FIELDS - SUBMISSION FORMAT ==========
+    @Size(max = 200, message = "Allowed file types cannot exceed 200 characters")
+    private String allowedFileTypes; // e.g., "pdf,docx,jpg,png"
+    
+    @Min(value = 1, message = "Max file size must be at least 1 MB")
+    @Max(value = 100, message = "Max file size cannot exceed 100 MB")
+    private Integer maxFileSize;
+    
+    @Builder.Default
+    @Min(value = 1, message = "Max files allowed must be at least 1")
+    @Max(value = 10, message = "Max files allowed cannot exceed 10")
+    private Integer maxFilesAllowed = 1;
+    
+    // ========== NEW FIELDS - GROUP ASSIGNMENT SUPPORT ==========
+    @Builder.Default
+    private boolean isGroupAssignment = false;
+    
+    @Min(value = 2, message = "Min group size must be at least 2")
+    private Integer minGroupSize;
+    
+    @Min(value = 2, message = "Max group size must be at least 2")
+    @Max(value = 20, message = "Max group size cannot exceed 20")
+    private Integer maxGroupSize;
+    
+    // ========== NEW FIELDS - MULTIPLE ATTEMPTS ==========
+    @Builder.Default
+    private boolean allowMultipleAttempts = false;
+    
+    @Min(value = 1, message = "Max attempts must be at least 1")
+    @Max(value = 10, message = "Max attempts cannot exceed 10")
+    private Integer maxAttempts;
 }

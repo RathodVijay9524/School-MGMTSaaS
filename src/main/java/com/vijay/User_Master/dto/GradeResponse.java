@@ -42,6 +42,11 @@ public class GradeResponse {
     @JsonProperty("isPublished")
     private boolean isPublished;
     
+    // ========== NEW FIELDS ==========
+    private String gradeScale;
+    private Double weightage;
+    private Double weightedScore;
+    
     // Computed fields
     private String gradeTypeDisplay;
     private String statusDisplay;

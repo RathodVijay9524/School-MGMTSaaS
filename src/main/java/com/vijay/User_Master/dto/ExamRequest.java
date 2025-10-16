@@ -82,4 +82,27 @@ public class ExamRequest {
 
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;
+    
+    // ========== NEW FIELDS - QUESTION PAPER DETAILS ==========
+    @Size(max = 500, message = "Question paper URL cannot exceed 500 characters")
+    private String questionPaperUrl;
+    
+    @Min(value = 1, message = "Total questions must be at least 1")
+    @Max(value = 500, message = "Total questions cannot exceed 500")
+    private Integer totalQuestions;
+    
+    @Size(max = 500, message = "Question pattern cannot exceed 500 characters")
+    private String questionPattern;
+    
+    // ========== NEW FIELDS - NEGATIVE MARKING ==========
+    @Builder.Default
+    private boolean hasNegativeMarking = false;
+    
+    @Min(value = 0, message = "Negative marking percentage cannot be negative")
+    @Max(value = 100, message = "Negative marking percentage cannot exceed 100")
+    private Double negativeMarkingPercentage;
+    
+    // ========== NEW FIELDS - BLIND GRADING ==========
+    @Builder.Default
+    private boolean isBlindGraded = false;
 }

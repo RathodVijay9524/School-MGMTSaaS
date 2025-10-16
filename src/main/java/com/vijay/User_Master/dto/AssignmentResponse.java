@@ -42,6 +42,18 @@ public class AssignmentResponse {
     private boolean isDeleted;
     private Date createdOn;
     private Date updatedOn;
+    
+    // ========== NEW FIELDS ==========
+    private String rubricJsonData;
+    private boolean hasRubric;
+    private String allowedFileTypes;
+    private Integer maxFileSize;
+    private Integer maxFilesAllowed;
+    private boolean isGroupAssignment;
+    private Integer minGroupSize;
+    private Integer maxGroupSize;
+    private boolean allowMultipleAttempts;
+    private Integer maxAttempts;
 
     // Computed fields
     private boolean isOverdue;

@@ -95,8 +95,14 @@ public class LibraryRequest {
     private Double lateFeePerDay;
 
     @Builder.Default
-    private boolean isReferencOnly = false;
+    private boolean isReferenceOnly = false;
 
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;
+    
+    // ========== NEW FIELDS - BOOK CONDITION TRACKING ==========
+    @Builder.Default
+    private Library.BookCondition bookCondition = Library.BookCondition.GOOD;
+    
+    private LocalDate lastConditionCheckDate;
 }

@@ -60,5 +60,15 @@ public class GradeRequest {
     
     @JsonProperty("isPublished")
     private boolean isPublished;
+    
+    // ========== NEW FIELDS - GRADE SCALE & WEIGHTED SCORING ==========
+    @Size(max = 50, message = "Grade scale must not exceed 50 characters")
+    private String gradeScale; // e.g., "4.0 Scale", "10 Point Scale", "Percentage"
+    
+    @DecimalMin(value = "0.0", message = "Weightage must be zero or positive")
+    @DecimalMax(value = "100.0", message = "Weightage cannot exceed 100")
+    private Double weightage; // e.g., 30% for midterm
+    
+    private Double weightedScore; // Calculated: (marksObtained/totalMarks) * weightage
 }
 
