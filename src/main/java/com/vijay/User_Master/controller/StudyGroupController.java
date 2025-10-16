@@ -3,6 +3,9 @@ package com.vijay.User_Master.controller;
 import com.vijay.User_Master.dto.*;
 import com.vijay.User_Master.service.PeerLearningService;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.security.CustomUserDetails;
+import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.repository.WorkerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -28,12 +31,15 @@ public class StudyGroupController {
     @Autowired
     private PeerLearningService peerLearningService;
 
+    @Autowired
+    private WorkerRepository workerRepository;
+
     // Study Group Management endpoints
     @PostMapping("/study-groups")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> createStudyGroup(@RequestBody StudyGroupRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudyGroupResponse response = peerLearningService.createStudyGroup(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -46,7 +52,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudyGroupById(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudyGroupResponse response = peerLearningService.getStudyGroupById(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -63,7 +69,7 @@ public class StudyGroupController {
             @RequestParam(defaultValue = "createdOn") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
             Pageable pageable = PageRequest.of(page, size, sort);
             
@@ -79,7 +85,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudyGroupsBySubject(@PathVariable String subject) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupResponse> response = peerLearningService.getStudyGroupsBySubject(ownerId, subject);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -92,7 +98,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudyGroupsByGradeLevel(@PathVariable String gradeLevel) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupResponse> response = peerLearningService.getStudyGroupsByGradeLevel(ownerId, gradeLevel);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -105,7 +111,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudyGroupsByType(@PathVariable String groupType) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupResponse> response = peerLearningService.getStudyGroupsByType(ownerId, groupType);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -118,7 +124,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getAvailableStudyGroups() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupResponse> response = peerLearningService.getAvailableStudyGroups(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -134,7 +140,7 @@ public class StudyGroupController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdOn"));
             
             var response = peerLearningService.searchStudyGroups(ownerId, keyword, pageable);
@@ -149,7 +155,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getPopularStudyGroups(@RequestParam(defaultValue = "10") int limit) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupResponse> response = peerLearningService.getPopularStudyGroups(ownerId, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -162,7 +168,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> updateStudyGroup(@PathVariable Long id, @RequestBody StudyGroupRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudyGroupResponse response = peerLearningService.updateStudyGroup(id, request, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -175,7 +181,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> deleteStudyGroup(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.deleteStudyGroup(id, ownerId);
             return ResponseEntity.ok("Study group deleted successfully");
         } catch (Exception e) {
@@ -188,7 +194,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> archiveStudyGroup(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.archiveStudyGroup(id, ownerId);
             return ResponseEntity.ok("Study group archived successfully");
         } catch (Exception e) {
@@ -201,7 +207,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> restoreStudyGroup(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.restoreStudyGroup(id, ownerId);
             return ResponseEntity.ok("Study group restored successfully");
         } catch (Exception e) {
@@ -215,7 +221,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> joinStudyGroup(@PathVariable Long groupId, @PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudyGroupMemberResponse response = peerLearningService.joinStudyGroup(groupId, studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -228,7 +234,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> leaveStudyGroup(@PathVariable Long groupId, @PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.leaveStudyGroup(groupId, studentId, ownerId);
             return ResponseEntity.ok("Left study group successfully");
         } catch (Exception e) {
@@ -241,7 +247,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudyGroupMembers(@PathVariable Long groupId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupMemberResponse> response = peerLearningService.getStudyGroupMembers(groupId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -254,7 +260,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentStudyGroups(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupResponse> response = peerLearningService.getStudentStudyGroups(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -268,7 +274,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> createStudySession(@RequestBody StudySessionRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudySessionResponse response = peerLearningService.createStudySession(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -281,7 +287,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudySessionById(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudySessionResponse response = peerLearningService.getStudySessionById(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -294,7 +300,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudySessionsByGroup(@PathVariable Long groupId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudySessionResponse> response = peerLearningService.getStudySessionsByGroup(groupId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -307,7 +313,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getUpcomingStudySessions() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudySessionResponse> response = peerLearningService.getUpcomingStudySessions(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -320,7 +326,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getCompletedStudySessions() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudySessionResponse> response = peerLearningService.getCompletedStudySessions(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -333,7 +339,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> startStudySession(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudySessionResponse response = peerLearningService.startStudySession(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -346,7 +352,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> completeStudySession(@PathVariable Long id, @RequestParam String notes) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudySessionResponse response = peerLearningService.completeStudySession(id, notes, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -359,7 +365,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> cancelStudySession(@PathVariable Long id, @RequestParam String reason) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.cancelStudySession(id, reason, ownerId);
             return ResponseEntity.ok("Study session cancelled successfully");
         } catch (Exception e) {
@@ -372,7 +378,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> updateStudySession(@PathVariable Long id, @RequestBody StudySessionRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudySessionResponse response = peerLearningService.updateStudySession(id, request, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -385,7 +391,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> deleteStudySession(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.deleteStudySession(id, ownerId);
             return ResponseEntity.ok("Study session deleted successfully");
         } catch (Exception e) {
@@ -399,7 +405,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> createPeerTutoringSession(@RequestBody PeerTutoringRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudySessionResponse response = peerLearningService.createPeerTutoringSession(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -412,7 +418,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getPeerTutoringSessions() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudySessionResponse> response = peerLearningService.getPeerTutoringSessions(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -428,7 +434,7 @@ public class StudyGroupController {
             @RequestParam int rating,
             @RequestParam String feedback) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.ratePeerTutoringSession(sessionId, rating, feedback, ownerId);
             return ResponseEntity.ok("Rating submitted successfully");
         } catch (Exception e) {
@@ -442,7 +448,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getCollaborativeProjects() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudyGroupResponse> response = peerLearningService.getCollaborativeProjects(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -455,7 +461,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> createCollaborativeProject(@RequestBody CollaborativeProjectRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudyGroupResponse response = peerLearningService.createCollaborativeProject(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -472,7 +478,7 @@ public class StudyGroupController {
             @RequestParam String subject,
             @RequestParam String topic) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = peerLearningService.findStudyBuddies(studentId, subject, topic, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -485,7 +491,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getPeerRecommendations(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = peerLearningService.getPeerRecommendations(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -499,7 +505,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getDiscussionForums() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = peerLearningService.getDiscussionForums(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -512,7 +518,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> createDiscussionTopic(@RequestBody DiscussionTopicRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.createDiscussionTopic(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -525,7 +531,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getDiscussionTopicsByGroup(@PathVariable Long groupId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = peerLearningService.getDiscussionTopicsByGroup(groupId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -538,7 +544,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> postDiscussionReply(@RequestBody DiscussionReplyRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.postDiscussionReply(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -552,7 +558,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getPeerLearningStatistics() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.getPeerLearningStatistics(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -565,7 +571,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudyGroupStatistics(@PathVariable Long groupId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.getStudyGroupStatistics(groupId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -578,7 +584,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentPeerLearningProfile(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.getStudentPeerLearningProfile(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -591,7 +597,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentContributionScore(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Double response = peerLearningService.getStudentContributionScore(studentId, ownerId);
             return ResponseEntity.ok(Map.of("contributionScore", response));
         } catch (Exception e) {
@@ -606,7 +612,7 @@ public class StudyGroupController {
             @PathVariable Long studentId,
             @RequestParam String activityType) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             peerLearningService.updateStudentContributionScore(studentId, activityType, ownerId);
             return ResponseEntity.ok("Contribution score updated successfully");
         } catch (Exception e) {
@@ -620,7 +626,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getPeerLearningDashboard() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.getPeerLearningDashboard(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -633,7 +639,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudyGroupActivity(@PathVariable Long groupId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = peerLearningService.getStudyGroupActivity(groupId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -646,7 +652,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getTrendingTopics(@RequestParam(defaultValue = "10") int limit) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = peerLearningService.getTrendingTopics(ownerId, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -659,7 +665,7 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> getStudyGroupAnalytics() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.getStudyGroupAnalytics(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -672,12 +678,35 @@ public class StudyGroupController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getPeerLearningInsights(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = peerLearningService.getPeerLearningInsights(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error getting peer learning insights for student {}: {}", studentId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+    /**
+     * Get the correct owner ID based on the logged-in user.
+     * If the logged-in user is a worker (like a student), return their owner's ID.
+     * If the logged-in user is a direct owner, return their own ID.
+     */
+    private Long getCorrectOwnerId() {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long userId = loggedInUser.getId();
+        
+        // Check if the logged-in user is a worker
+        Worker worker = workerRepository.findById(userId).orElse(null);
+        if (worker != null && worker.getOwner() != null) {
+            // User is a worker, return their owner's ID
+            Long ownerId = worker.getOwner().getId();
+            log.info("Logged-in user is worker ID: {}, returning owner ID: {}", userId, ownerId);
+            return ownerId;
+        }
+        
+        // User is a direct owner, return their own ID
+        log.info("Logged-in user is direct owner ID: {}", userId);
+        return userId;
     }
 }

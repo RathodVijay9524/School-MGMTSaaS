@@ -636,4 +636,272 @@ public class AcademicTutoringServiceImpl implements AcademicTutoringService {
                 .updatedOn(learningPath.getUpdatedOn() != null ? new java.sql.Date(learningPath.getUpdatedOn().getTime()) : null)
                 .build();
     }
+
+    @Override
+    public Map<String, Object> getDashboardAnalytics(Long ownerId) {
+        Map<String, Object> analytics = new HashMap<>();
+        
+        // Get total tutoring sessions
+        long totalSessions = tutoringSessionRepository.countByOwnerIdAndIsDeletedFalse(ownerId);
+        long completedSessions = tutoringSessionRepository.countByOwnerIdAndSessionStatusAndIsDeletedFalse(ownerId, TutoringSession.SessionStatus.COMPLETED);
+        long scheduledSessions = tutoringSessionRepository.countByOwnerIdAndSessionStatusAndIsDeletedFalse(ownerId, TutoringSession.SessionStatus.ACTIVE);
+        
+        // Get total learning paths
+        long totalLearningPaths = learningPathRepository.countByOwnerIdAndIsDeletedFalse(ownerId);
+        long activeLearningPaths = learningPathRepository.countByOwnerIdAndIsActiveTrueAndIsDeletedFalse(ownerId);
+        long completedLearningPaths = learningPathRepository.countByOwnerIdAndIsCompletedTrueAndIsDeletedFalse(ownerId);
+        
+        // Get total learning modules
+        long totalModules = learningModuleRepository.countByOwnerIdAndIsDeletedFalse(ownerId);
+        long completedModules = learningModuleRepository.countByOwnerIdAndIsCompletedTrueAndIsDeletedFalse(ownerId);
+        
+        // Get average satisfaction rating
+        Double avgSatisfaction = tutoringSessionRepository.getAverageSatisfactionRating(ownerId);
+        
+        // Get average comprehension score
+        Double avgComprehension = tutoringSessionRepository.getAverageComprehensionScore(ownerId);
+        
+        // Get total time spent
+        Integer totalTimeSpent = tutoringSessionRepository.getTotalTimeSpent(ownerId);
+        
+        // Get sessions by subject
+        List<Object[]> subjectResults = tutoringSessionRepository.getSessionsBySubject(ownerId);
+        Map<String, Long> sessionsBySubject = new HashMap<>();
+        for (Object[] result : subjectResults) {
+            sessionsBySubject.put((String) result[0], ((Number) result[1]).longValue());
+        }
+        
+        // Get sessions by difficulty level
+        List<Object[]> difficultyResults = tutoringSessionRepository.getSessionsByDifficultyLevel(ownerId);
+        Map<String, Long> sessionsByDifficulty = new HashMap<>();
+        for (Object[] result : difficultyResults) {
+            sessionsByDifficulty.put(result[0] != null ? result[0].toString() : "UNKNOWN", ((Number) result[1]).longValue());
+        }
+        
+        // Populate analytics
+        analytics.put("totalSessions", totalSessions);
+        analytics.put("completedSessions", completedSessions);
+        analytics.put("scheduledSessions", scheduledSessions);
+        analytics.put("totalLearningPaths", totalLearningPaths);
+        analytics.put("activeLearningPaths", activeLearningPaths);
+        analytics.put("completedLearningPaths", completedLearningPaths);
+        analytics.put("totalModules", totalModules);
+        analytics.put("completedModules", completedModules);
+        analytics.put("avgSatisfactionRating", avgSatisfaction != null ? avgSatisfaction : 0.0);
+        analytics.put("avgComprehensionScore", avgComprehension != null ? avgComprehension : 0.0);
+        analytics.put("totalTimeSpentMinutes", totalTimeSpent != null ? totalTimeSpent : 0);
+        analytics.put("sessionsBySubject", sessionsBySubject);
+        analytics.put("sessionsByDifficulty", sessionsByDifficulty);
+        
+        // Calculate completion rates
+        double sessionCompletionRate = totalSessions > 0 ? (double) completedSessions / totalSessions * 100 : 0.0;
+        double learningPathCompletionRate = totalLearningPaths > 0 ? (double) completedLearningPaths / totalLearningPaths * 100 : 0.0;
+        double moduleCompletionRate = totalModules > 0 ? (double) completedModules / totalModules * 100 : 0.0;
+        
+        analytics.put("sessionCompletionRate", Math.round(sessionCompletionRate * 100.0) / 100.0);
+        analytics.put("learningPathCompletionRate", Math.round(learningPathCompletionRate * 100.0) / 100.0);
+        analytics.put("moduleCompletionRate", Math.round(moduleCompletionRate * 100.0) / 100.0);
+        
+        return analytics;
+    }
+
+    // Learning Module methods
+    @Override
+    @Transactional
+    public LearningModuleResponse createLearningModule(LearningModuleRequest request, Long ownerId) {
+        log.info("Creating learning module: {} for owner: {}", request.getModuleName(), ownerId);
+        
+        // Validate learning path exists and belongs to owner
+        LearningPath learningPath = learningPathRepository.findById(request.getLearningPathId())
+                .filter(lp -> lp.getOwner().getId().equals(ownerId) && !lp.getIsDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("LearningPath", "id", request.getLearningPathId()));
+
+        // Create learning module
+        LearningModule learningModule = LearningModule.builder()
+                .moduleName(request.getModuleName())
+                .description(request.getDescription())
+                .content(request.getContent())
+                .learningObjectives(request.getLearningObjectives())
+                .moduleType(LearningModule.ModuleType.valueOf(request.getModuleType()))
+                .difficultyLevel(LearningModule.DifficultyLevel.valueOf(request.getDifficultyLevel()))
+                .orderIndex(request.getOrderIndex())
+                .estimatedDurationMinutes(request.getEstimatedDurationMinutes())
+                .prerequisites(request.getPrerequisites())
+                .resources(request.getResources())
+                .assessmentQuestions(request.getAssessmentQuestions())
+                .passingScorePercentage(request.getPassingScorePercentage())
+                .instructions(request.getInstructions())
+                .isActive(request.getIsActive() != null ? request.getIsActive() : true)
+                .isRequired(request.getIsRequired() != null ? request.getIsRequired() : false)
+                .tags(request.getTags())
+                .notes(request.getNotes())
+                .learningPath(learningPath)
+                .owner(learningPath.getOwner())
+                .isCompleted(false)
+                .attemptsCount(0)
+                .isDeleted(false)
+                .build();
+
+        LearningModule savedModule = learningModuleRepository.save(learningModule);
+        log.info("Learning module created successfully with ID: {}", savedModule.getId());
+        
+        return mapToLearningModuleResponse(savedModule);
+    }
+
+    @Override
+    public LearningModuleResponse getLearningModuleById(Long id, Long ownerId) {
+        log.info("Getting learning module by ID: {} for owner: {}", id, ownerId);
+        
+        LearningModule learningModule = learningModuleRepository.findById(id)
+                .filter(lm -> lm.getOwner().getId().equals(ownerId) && !lm.getIsDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("LearningModule", "id", id));
+        
+        return mapToLearningModuleResponse(learningModule);
+    }
+
+    @Override
+    public List<LearningModuleResponse> getLearningModulesByLearningPath(Long learningPathId, Long ownerId) {
+        log.info("Getting learning modules for learning path: {} by owner: {}", learningPathId, ownerId);
+        
+        List<LearningModule> modules = learningModuleRepository.findByLearningPathIdAndIsDeletedFalseOrderByOrderIndexAsc(learningPathId);
+        
+        return modules.stream()
+                .filter(lm -> lm.getOwner().getId().equals(ownerId))
+                .map(this::mapToLearningModuleResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public LearningModuleResponse updateLearningModule(Long id, LearningModuleRequest request, Long ownerId) {
+        log.info("Updating learning module: {} for owner: {}", id, ownerId);
+        
+        LearningModule learningModule = learningModuleRepository.findById(id)
+                .filter(lm -> lm.getOwner().getId().equals(ownerId) && !lm.getIsDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("LearningModule", "id", id));
+
+        // Update fields
+        learningModule.setModuleName(request.getModuleName());
+        learningModule.setDescription(request.getDescription());
+        learningModule.setContent(request.getContent());
+        learningModule.setLearningObjectives(request.getLearningObjectives());
+        learningModule.setModuleType(LearningModule.ModuleType.valueOf(request.getModuleType()));
+        learningModule.setDifficultyLevel(LearningModule.DifficultyLevel.valueOf(request.getDifficultyLevel()));
+        learningModule.setOrderIndex(request.getOrderIndex());
+        learningModule.setEstimatedDurationMinutes(request.getEstimatedDurationMinutes());
+        learningModule.setPrerequisites(request.getPrerequisites());
+        learningModule.setResources(request.getResources());
+        learningModule.setAssessmentQuestions(request.getAssessmentQuestions());
+        learningModule.setPassingScorePercentage(request.getPassingScorePercentage());
+        learningModule.setInstructions(request.getInstructions());
+        if (request.getIsActive() != null) learningModule.setIsActive(request.getIsActive());
+        if (request.getIsRequired() != null) learningModule.setIsRequired(request.getIsRequired());
+        learningModule.setTags(request.getTags());
+        learningModule.setNotes(request.getNotes());
+
+        LearningModule updatedModule = learningModuleRepository.save(learningModule);
+        log.info("Learning module updated successfully");
+        
+        return mapToLearningModuleResponse(updatedModule);
+    }
+
+    @Override
+    @Transactional
+    public void deleteLearningModule(Long id, Long ownerId) {
+        log.info("Deleting learning module: {} for owner: {}", id, ownerId);
+        
+        LearningModule learningModule = learningModuleRepository.findById(id)
+                .filter(lm -> lm.getOwner().getId().equals(ownerId) && !lm.getIsDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("LearningModule", "id", id));
+
+        learningModule.setIsDeleted(true);
+        learningModuleRepository.save(learningModule);
+        log.info("Learning module soft deleted successfully");
+    }
+
+    @Override
+    @Transactional
+    public LearningModuleResponse completeLearningModule(Long id, Long studentId, Double scorePercentage, Integer timeSpentMinutes, Long ownerId) {
+        log.info("Completing learning module: {} for student: {} by owner: {}", id, studentId, ownerId);
+        
+        LearningModule learningModule = learningModuleRepository.findById(id)
+                .filter(lm -> lm.getOwner().getId().equals(ownerId) && !lm.getIsDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("LearningModule", "id", id));
+
+        learningModule.setIsCompleted(true);
+        learningModule.setCompletionDate(LocalDateTime.now());
+        learningModule.setScorePercentage(scorePercentage);
+        if (timeSpentMinutes != null) {
+            learningModule.setTimeSpentMinutes(timeSpentMinutes);
+        }
+        learningModule.setAttemptsCount(learningModule.getAttemptsCount() + 1);
+
+        LearningModule completedModule = learningModuleRepository.save(learningModule);
+        log.info("Learning module completed successfully");
+        
+        return mapToLearningModuleResponse(completedModule);
+    }
+
+    @Override
+    public Map<String, Object> getLearningModuleStatistics(Long ownerId) {
+        log.info("Getting learning module statistics for owner: {}", ownerId);
+        
+        Object[] stats = learningModuleRepository.getLearningModuleStatistics(ownerId);
+        
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("totalModules", stats[0]);
+        statistics.put("completedModules", stats[1]);
+        statistics.put("activeModules", stats[2]);
+        statistics.put("avgScore", stats[3]);
+        statistics.put("avgTimeSpent", stats[4]);
+        statistics.put("avgAttempts", stats[5]);
+        
+        return statistics;
+    }
+
+    @Override
+    public List<LearningModuleResponse> searchLearningModules(String keyword, Long ownerId, Pageable pageable) {
+        log.info("Searching learning modules with keyword: {} for owner: {}", keyword, ownerId);
+        
+        Page<LearningModule> modules = learningModuleRepository.searchLearningModules(ownerId, keyword, pageable);
+        
+        return modules.stream()
+                .map(this::mapToLearningModuleResponse)
+                .collect(Collectors.toList());
+    }
+
+    private LearningModuleResponse mapToLearningModuleResponse(LearningModule learningModule) {
+        return LearningModuleResponse.builder()
+                .id(learningModule.getId())
+                .moduleName(learningModule.getModuleName())
+                .description(learningModule.getDescription())
+                .content(learningModule.getContent())
+                .learningObjectives(learningModule.getLearningObjectives())
+                .moduleType(learningModule.getModuleType() != null ? learningModule.getModuleType().name() : null)
+                .difficultyLevel(learningModule.getDifficultyLevel() != null ? learningModule.getDifficultyLevel().name() : null)
+                .orderIndex(learningModule.getOrderIndex())
+                .estimatedDurationMinutes(learningModule.getEstimatedDurationMinutes())
+                .prerequisites(learningModule.getPrerequisites())
+                .resources(learningModule.getResources())
+                .assessmentQuestions(learningModule.getAssessmentQuestions())
+                .passingScorePercentage(learningModule.getPassingScorePercentage())
+                .instructions(learningModule.getInstructions())
+                .isActive(learningModule.getIsActive())
+                .isRequired(learningModule.getIsRequired())
+                .tags(learningModule.getTags())
+                .notes(learningModule.getNotes())
+                .isCompleted(learningModule.getIsCompleted())
+                .completionDate(learningModule.getCompletionDate() != null ? java.sql.Date.valueOf(learningModule.getCompletionDate().toLocalDate()) : null)
+                .timeSpentMinutes(learningModule.getTimeSpentMinutes())
+                .scorePercentage(learningModule.getScorePercentage())
+                .attemptsCount(learningModule.getAttemptsCount())
+                .learningPathId(learningModule.getLearningPath().getId())
+                .learningPathName(learningModule.getLearningPath().getPathName())
+                .studentId(learningModule.getStudent() != null ? learningModule.getStudent().getId() : null)
+                .studentName(learningModule.getStudent() != null ? learningModule.getStudent().getName() : null)
+                .ownerId(learningModule.getOwner().getId())
+                .createdOn(learningModule.getCreatedOn() != null ? new java.sql.Date(learningModule.getCreatedOn().getTime()) : null)
+                .updatedOn(learningModule.getUpdatedOn() != null ? new java.sql.Date(learningModule.getUpdatedOn().getTime()) : null)
+                .build();
+    }
 }

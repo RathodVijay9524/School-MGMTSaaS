@@ -252,12 +252,12 @@ public class GamificationServiceImpl implements GamificationService {
         // Calculate total points and XP
         int totalPoints = studentAchievements.stream()
                 .filter(sa -> sa.getIsEarned())
-                .mapToInt(sa -> sa.getAchievement().getPointsValue())
+                .mapToInt(sa -> sa.getAchievement().getPointsValue() != null ? sa.getAchievement().getPointsValue() : 0)
                 .sum();
         
         int totalXp = studentAchievements.stream()
                 .filter(sa -> sa.getIsEarned())
-                .mapToInt(sa -> sa.getAchievement().getXpValue())
+                .mapToInt(sa -> sa.getAchievement().getXpValue() != null ? sa.getAchievement().getXpValue() : 0)
                 .sum();
         
         // Calculate level (every 1000 XP = 1 level)
@@ -300,7 +300,7 @@ public class GamificationServiceImpl implements GamificationService {
                     
                     int totalPoints = studentAchievements.stream()
                             .filter(sa -> sa.getIsEarned())
-                            .mapToInt(sa -> sa.getAchievement().getPointsValue())
+                            .mapToInt(sa -> sa.getAchievement().getPointsValue() != null ? sa.getAchievement().getPointsValue() : 0)
                             .sum();
                     
                     Map<String, Object> entry = new HashMap<>();
@@ -330,7 +330,7 @@ public class GamificationServiceImpl implements GamificationService {
                     
                     int totalPoints = studentAchievements.stream()
                             .filter(sa -> sa.getIsEarned())
-                            .mapToInt(sa -> sa.getAchievement().getPointsValue())
+                            .mapToInt(sa -> sa.getAchievement().getPointsValue() != null ? sa.getAchievement().getPointsValue() : 0)
                             .sum();
                     
                     Map<String, Object> entry = new HashMap<>();
@@ -411,7 +411,7 @@ public class GamificationServiceImpl implements GamificationService {
         
         return studentAchievements.stream()
                 .filter(sa -> sa.getIsEarned())
-                .mapToInt(sa -> sa.getAchievement().getPointsValue())
+                .mapToInt(sa -> sa.getAchievement().getPointsValue() != null ? sa.getAchievement().getPointsValue() : 0)
                 .sum();
     }
 
@@ -421,7 +421,7 @@ public class GamificationServiceImpl implements GamificationService {
         
         return studentAchievements.stream()
                 .filter(sa -> sa.getIsEarned())
-                .mapToInt(sa -> sa.getAchievement().getXpValue())
+                .mapToInt(sa -> sa.getAchievement().getXpValue() != null ? sa.getAchievement().getXpValue() : 0)
                 .sum();
     }
 
@@ -692,8 +692,8 @@ public class GamificationServiceImpl implements GamificationService {
                 .rarityColor(studentAchievement.getAchievement().getRarityColor())
                 .difficultyIcon(studentAchievement.getAchievement().getDifficultyIcon())
                 .categoryIcon(studentAchievement.getAchievement().getCategoryIcon())
-                .pointsValue(studentAchievement.getAchievement().getPointsValue())
-                .xpValue(studentAchievement.getAchievement().getXpValue())
+                .pointsValue(studentAchievement.getAchievement().getPointsValue() != null ? studentAchievement.getAchievement().getPointsValue() : 0)
+                .xpValue(studentAchievement.getAchievement().getXpValue() != null ? studentAchievement.getAchievement().getXpValue() : 0)
                 .earnedDate(studentAchievement.getEarnedDate() != null ? java.sql.Date.valueOf(studentAchievement.getEarnedDate().toLocalDate()) : null)
                 .formattedEarnedDate(studentAchievement.getFormattedEarnedDate())
                 .progressPercentage(studentAchievement.getProgressPercentage())

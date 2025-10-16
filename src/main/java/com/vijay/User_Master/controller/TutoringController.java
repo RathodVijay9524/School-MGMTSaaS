@@ -3,6 +3,9 @@ package com.vijay.User_Master.controller;
 import com.vijay.User_Master.dto.*;
 import com.vijay.User_Master.service.AcademicTutoringService;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.security.CustomUserDetails;
+import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.repository.WorkerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -28,12 +31,15 @@ public class TutoringController {
     @Autowired
     private AcademicTutoringService academicTutoringService;
 
+    @Autowired
+    private WorkerRepository workerRepository;
+
     // Tutoring Session endpoints
     @PostMapping("/sessions")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> createTutoringSession(@RequestBody TutoringSessionRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             TutoringSessionResponse response = academicTutoringService.createTutoringSession(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -46,7 +52,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> createTutoringSessionWithAI(@RequestBody TutoringSessionAIRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             TutoringSessionResponse response = academicTutoringService.createTutoringSessionWithAI(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -59,7 +65,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getTutoringSessionById(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             TutoringSessionResponse response = academicTutoringService.getTutoringSessionById(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -76,7 +82,7 @@ public class TutoringController {
             @RequestParam(defaultValue = "createdOn") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
             Pageable pageable = PageRequest.of(page, size, sort);
             
@@ -95,7 +101,7 @@ public class TutoringController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdOn"));
             
             var response = academicTutoringService.getTutoringSessionsByStudent(studentId, ownerId, pageable);
@@ -113,7 +119,7 @@ public class TutoringController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdOn"));
             
             var response = academicTutoringService.getTutoringSessionsBySubject(ownerId, subject, pageable);
@@ -131,7 +137,7 @@ public class TutoringController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdOn"));
             
             var response = academicTutoringService.getTutoringSessionsByGradeLevel(ownerId, gradeLevel, pageable);
@@ -149,7 +155,7 @@ public class TutoringController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdOn"));
             
             var response = academicTutoringService.searchTutoringSessions(ownerId, keyword, pageable);
@@ -164,7 +170,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> updateTutoringSession(@PathVariable Long id, @RequestBody TutoringSessionRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             TutoringSessionResponse response = academicTutoringService.updateTutoringSession(id, request, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -177,7 +183,7 @@ public class TutoringController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteTutoringSession(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             academicTutoringService.deleteTutoringSession(id, ownerId);
             return ResponseEntity.ok("Tutoring session deleted successfully");
         } catch (Exception e) {
@@ -190,7 +196,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getSessionsRequiringFollowUp() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<TutoringSessionResponse> response = academicTutoringService.getSessionsRequiringFollowUp(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -203,7 +209,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getSessionsRequiringTeacherReview() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<TutoringSessionResponse> response = academicTutoringService.getSessionsRequiringTeacherReview(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -216,7 +222,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getRecentTutoringSessions(@RequestParam(defaultValue = "7") int days) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<TutoringSessionResponse> response = academicTutoringService.getRecentTutoringSessions(ownerId, days);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -230,7 +236,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> createLearningPath(@RequestBody LearningPathRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             LearningPathResponse response = academicTutoringService.createLearningPath(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -243,7 +249,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getLearningPathById(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             LearningPathResponse response = academicTutoringService.getLearningPathById(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -256,7 +262,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getLearningPathsByStudent(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<LearningPathResponse> response = academicTutoringService.getLearningPathsByStudent(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -269,7 +275,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getLearningPathsBySubject(@PathVariable String subject) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<LearningPathResponse> response = academicTutoringService.getLearningPathsBySubject(ownerId, subject);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -284,7 +290,7 @@ public class TutoringController {
             @PathVariable Long id, 
             @RequestParam Double progressPercentage) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             LearningPathResponse response = academicTutoringService.updateLearningPathProgress(id, progressPercentage, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -297,7 +303,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> completeLearningPath(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             LearningPathResponse response = academicTutoringService.completeLearningPath(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -310,7 +316,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getPersonalizedRecommendations(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<LearningPathResponse> response = academicTutoringService.getPersonalizedRecommendations(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -371,7 +377,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getTutoringStatistics() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = academicTutoringService.getTutoringStatistics(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -384,7 +390,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getSubjectWiseStatistics() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = academicTutoringService.getSubjectWiseStatistics(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -397,7 +403,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getGradeWiseStatistics() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = academicTutoringService.getGradeWiseStatistics(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -410,7 +416,7 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> analyzeStudentPerformance(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = academicTutoringService.analyzeStudentPerformance(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -423,12 +429,161 @@ public class TutoringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getLearningInsights(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = academicTutoringService.getLearningInsights(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error getting learning insights for student {}: {}", studentId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+    @GetMapping("/dashboard/analytics")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> getDashboardAnalytics() {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            Map<String, Object> analytics = academicTutoringService.getDashboardAnalytics(ownerId);
+            return ResponseEntity.ok(analytics);
+        } catch (Exception e) {
+            log.error("Error getting dashboard analytics: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    // Learning Module endpoints
+    @PostMapping("/learning-modules")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> createLearningModule(@RequestBody LearningModuleRequest request) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            LearningModuleResponse response = academicTutoringService.createLearningModule(request, ownerId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            log.error("Error creating learning module: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/learning-modules/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getLearningModuleById(@PathVariable Long id) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            LearningModuleResponse response = academicTutoringService.getLearningModuleById(id, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting learning module by ID: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/learning-modules")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getLearningModulesByLearningPath(@RequestParam Long learningPathId,
+                                                              @RequestParam(defaultValue = "0") int page,
+                                                              @RequestParam(defaultValue = "10") int size) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            List<LearningModuleResponse> response = academicTutoringService.getLearningModulesByLearningPath(learningPathId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting learning modules by learning path: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/learning-modules/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> updateLearningModule(@PathVariable Long id, @RequestBody LearningModuleRequest request) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            LearningModuleResponse response = academicTutoringService.updateLearningModule(id, request, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error updating learning module: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/learning-modules/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> deleteLearningModule(@PathVariable Long id) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            academicTutoringService.deleteLearningModule(id, ownerId);
+            return ResponseEntity.ok("Learning module deleted successfully");
+        } catch (Exception e) {
+            log.error("Error deleting learning module: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/learning-modules/{id}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> completeLearningModule(@PathVariable Long id,
+                                                    @RequestParam Long studentId,
+                                                    @RequestParam Double scorePercentage,
+                                                    @RequestParam(required = false) Integer timeSpentMinutes) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            LearningModuleResponse response = academicTutoringService.completeLearningModule(id, studentId, scorePercentage, timeSpentMinutes, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error completing learning module: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/learning-modules/statistics")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> getLearningModuleStatistics() {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            Map<String, Object> statistics = academicTutoringService.getLearningModuleStatistics(ownerId);
+            return ResponseEntity.ok(statistics);
+        } catch (Exception e) {
+            log.error("Error getting learning module statistics: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/learning-modules/search")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> searchLearningModules(@RequestParam String keyword,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            Pageable pageable = PageRequest.of(page, size, Sort.by("moduleName").ascending());
+            List<LearningModuleResponse> response = academicTutoringService.searchLearningModules(keyword, ownerId, pageable);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error searching learning modules: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Get the correct owner ID based on the logged-in user.
+     * If the logged-in user is a worker (like a student), return their owner's ID.
+     * If the logged-in user is a direct owner, return their own ID.
+     */
+    private Long getCorrectOwnerId() {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long userId = loggedInUser.getId();
+        
+        // Check if the logged-in user is a worker
+        Worker worker = workerRepository.findById(userId).orElse(null);
+        if (worker != null && worker.getOwner() != null) {
+            // User is a worker, return their owner's ID
+            Long ownerId = worker.getOwner().getId();
+            log.info("Logged-in user is worker ID: {}, returning owner ID: {}", userId, ownerId);
+            return ownerId;
+        }
+        
+        // User is a direct owner, return their own ID
+        log.info("Logged-in user is direct owner ID: {}", userId);
+        return userId;
     }
 }

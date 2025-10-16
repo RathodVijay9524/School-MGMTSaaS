@@ -69,13 +69,20 @@ public interface LearningPathRepository extends JpaRepository<LearningPath, Long
     // Count learning paths by owner
     long countByOwnerIdAndIsDeletedFalse(Long ownerId);
     
+    // Count active learning paths
+    long countByOwnerIdAndIsActiveTrueAndIsDeletedFalse(Long ownerId);
+    
+    // Count completed learning paths (completion percentage >= 100%)
+    @Query("SELECT COUNT(lp) FROM LearningPath lp WHERE lp.owner.id = :ownerId AND lp.completionPercentage >= 100.0 AND lp.isDeleted = false")
+    long countByOwnerIdAndIsCompletedTrueAndIsDeletedFalse(@Param("ownerId") Long ownerId);
+    
     // Count learning paths by subject
     long countByOwnerIdAndSubjectAndIsDeletedFalse(Long ownerId, String subject);
     
     // Count learning paths by grade level
     long countByOwnerIdAndGradeLevelAndIsDeletedFalse(Long ownerId, String gradeLevel);
     
-    // Count completed learning paths
+    // Count completed learning paths (query method)
     @Query("SELECT COUNT(lp) FROM LearningPath lp WHERE lp.owner.id = :ownerId AND lp.completionPercentage >= 100.0 AND lp.isDeleted = false")
     long countCompletedLearningPaths(@Param("ownerId") Long ownerId);
     

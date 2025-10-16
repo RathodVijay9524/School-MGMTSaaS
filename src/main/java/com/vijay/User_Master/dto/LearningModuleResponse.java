@@ -30,6 +30,11 @@ public class LearningModuleResponse {
     private String prerequisites;
     private String resources;
     private String assessmentQuestions;
+    private Double passingScorePercentage;
+    private String instructions;
+    private Boolean isRequired;
+    private String tags;
+    private String notes;
     private Boolean isCompleted;
     private Date completionDate;
     private Integer timeSpentMinutes;
@@ -44,6 +49,7 @@ public class LearningModuleResponse {
     private String learningPathName;
     private Long studentId;
     private String studentName;
+    private Long ownerId;
     private Date createdOn;
     private Date updatedOn;
 }

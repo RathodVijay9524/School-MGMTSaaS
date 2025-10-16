@@ -63,6 +63,9 @@ public interface TutoringSessionRepository extends JpaRepository<TutoringSession
     // Count sessions by student
     long countByStudentIdAndIsDeletedFalse(Long studentId);
     
+    // Count sessions by owner
+    long countByOwnerIdAndIsDeletedFalse(Long ownerId);
+    
     // Count sessions by subject
     long countByOwnerIdAndSubjectAndIsDeletedFalse(Long ownerId, String subject);
     
@@ -120,4 +123,20 @@ public interface TutoringSessionRepository extends JpaRepository<TutoringSession
     // Soft delete by owner
     @Query("UPDATE TutoringSession ts SET ts.isDeleted = true WHERE ts.id = :id AND ts.owner.id = :ownerId")
     void softDeleteByIdAndOwnerId(@Param("id") Long id, @Param("ownerId") Long ownerId);
+    
+    // Dashboard analytics methods
+    @Query("SELECT AVG(ts.studentSatisfactionRating) FROM TutoringSession ts WHERE ts.owner.id = :ownerId AND ts.isDeleted = false AND ts.studentSatisfactionRating IS NOT NULL")
+    Double getAverageSatisfactionRating(@Param("ownerId") Long ownerId);
+    
+    @Query("SELECT AVG(ts.comprehensionScore) FROM TutoringSession ts WHERE ts.owner.id = :ownerId AND ts.isDeleted = false AND ts.comprehensionScore IS NOT NULL")
+    Double getAverageComprehensionScore(@Param("ownerId") Long ownerId);
+    
+    @Query("SELECT SUM(ts.timeSpentMinutes) FROM TutoringSession ts WHERE ts.owner.id = :ownerId AND ts.isDeleted = false AND ts.timeSpentMinutes IS NOT NULL")
+    Integer getTotalTimeSpent(@Param("ownerId") Long ownerId);
+    
+    @Query("SELECT ts.subject, COUNT(ts) FROM TutoringSession ts WHERE ts.owner.id = :ownerId AND ts.isDeleted = false GROUP BY ts.subject")
+    List<Object[]> getSessionsBySubject(@Param("ownerId") Long ownerId);
+    
+    @Query("SELECT ts.difficultyLevel, COUNT(ts) FROM TutoringSession ts WHERE ts.owner.id = :ownerId AND ts.isDeleted = false GROUP BY ts.difficultyLevel")
+    List<Object[]> getSessionsByDifficultyLevel(@Param("ownerId") Long ownerId);
 }

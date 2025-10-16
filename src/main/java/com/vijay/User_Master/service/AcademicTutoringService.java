@@ -156,4 +156,19 @@ public interface AcademicTutoringService {
      * Create tutoring session with AI
      */
     TutoringSessionResponse createTutoringSessionWithAI(TutoringSessionAIRequest request, Long ownerId);
+
+    /**
+     * Get dashboard analytics
+     */
+    Map<String, Object> getDashboardAnalytics(Long ownerId);
+
+    // Learning Module methods
+    LearningModuleResponse createLearningModule(LearningModuleRequest request, Long ownerId);
+    LearningModuleResponse getLearningModuleById(Long id, Long ownerId);
+    List<LearningModuleResponse> getLearningModulesByLearningPath(Long learningPathId, Long ownerId);
+    LearningModuleResponse updateLearningModule(Long id, LearningModuleRequest request, Long ownerId);
+    void deleteLearningModule(Long id, Long ownerId);
+    LearningModuleResponse completeLearningModule(Long id, Long studentId, Double scorePercentage, Integer timeSpentMinutes, Long ownerId);
+    Map<String, Object> getLearningModuleStatistics(Long ownerId);
+    List<LearningModuleResponse> searchLearningModules(String keyword, Long ownerId, Pageable pageable);
 }

@@ -3,6 +3,9 @@ package com.vijay.User_Master.controller;
 import com.vijay.User_Master.dto.*;
 import com.vijay.User_Master.service.GamificationService;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.security.CustomUserDetails;
+import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.repository.WorkerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -28,12 +31,15 @@ public class AchievementController {
     @Autowired
     private GamificationService gamificationService;
 
+    @Autowired
+    private WorkerRepository workerRepository;
+
     // Achievement Management endpoints
     @PostMapping("/achievements")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> createAchievement(@RequestBody AchievementRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             AchievementResponse response = gamificationService.createAchievement(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -46,7 +52,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getAchievementById(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             AchievementResponse response = gamificationService.getAchievementById(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -63,7 +69,7 @@ public class AchievementController {
             @RequestParam(defaultValue = "createdOn") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
             Pageable pageable = PageRequest.of(page, size, sort);
             
@@ -79,7 +85,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getAchievementsByType(@PathVariable String type) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getAchievementsByType(ownerId, type);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -92,7 +98,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getAchievementsByCategory(@PathVariable String category) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getAchievementsByCategory(ownerId, category);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -105,7 +111,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getAchievementsByDifficulty(@PathVariable String difficulty) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getAchievementsByDifficulty(ownerId, difficulty);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -118,7 +124,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getAchievementsByRarity(@PathVariable String rarity) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getAchievementsByRarity(ownerId, rarity);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -134,7 +140,7 @@ public class AchievementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdOn"));
             
             var response = gamificationService.searchAchievements(ownerId, keyword, pageable);
@@ -149,7 +155,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getAvailableAchievements() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getAvailableAchievements(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -162,7 +168,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> updateAchievement(@PathVariable Long id, @RequestBody AchievementRequest request) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             AchievementResponse response = gamificationService.updateAchievement(id, request, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -175,7 +181,7 @@ public class AchievementController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteAchievement(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             gamificationService.deleteAchievement(id, ownerId);
             return ResponseEntity.ok("Achievement deleted successfully");
         } catch (Exception e) {
@@ -189,7 +195,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> awardAchievement(@PathVariable Long achievementId, @PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudentAchievementResponse response = gamificationService.awardAchievement(achievementId, studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -202,7 +208,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentAchievements(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<StudentAchievementResponse> response = gamificationService.getStudentAchievements(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -215,7 +221,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentAchievementById(@PathVariable Long id) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudentAchievementResponse response = gamificationService.getStudentAchievementById(id, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -231,7 +237,7 @@ public class AchievementController {
             @PathVariable Long studentId,
             @RequestParam int progress) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudentAchievementResponse response = gamificationService.updateAchievementProgress(achievementId, studentId, progress, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -245,7 +251,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getAchievementStatistics() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = gamificationService.getAchievementStatistics(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -258,7 +264,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentGamificationProfile(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = gamificationService.getStudentGamificationProfile(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -273,7 +279,7 @@ public class AchievementController {
             @RequestParam(defaultValue = "ALL") String category,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = gamificationService.getLeaderboard(ownerId, category, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -288,7 +294,7 @@ public class AchievementController {
             @PathVariable String gradeLevel,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = gamificationService.getClassLeaderboard(ownerId, gradeLevel, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -303,7 +309,7 @@ public class AchievementController {
             @PathVariable String subject,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<Map<String, Object>> response = gamificationService.getSubjectLeaderboard(ownerId, subject, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -317,7 +323,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentPoints(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Integer response = gamificationService.getStudentPoints(studentId, ownerId);
             return ResponseEntity.ok(Map.of("points", response));
         } catch (Exception e) {
@@ -330,7 +336,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentXP(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Integer response = gamificationService.getStudentXP(studentId, ownerId);
             return ResponseEntity.ok(Map.of("xp", response));
         } catch (Exception e) {
@@ -343,7 +349,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentLevel(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Integer response = gamificationService.getStudentLevel(studentId, ownerId);
             return ResponseEntity.ok(Map.of("level", response));
         } catch (Exception e) {
@@ -356,7 +362,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentBadges(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getStudentBadges(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -369,7 +375,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentStreaks(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = gamificationService.getStudentStreaks(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -382,7 +388,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getStudentProgress(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = gamificationService.getStudentProgress(studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -396,7 +402,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getDailyChallenges() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getDailyChallenges(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -409,7 +415,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getWeeklyChallenges() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getWeeklyChallenges(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -422,7 +428,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> getMonthlyChallenges() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             List<AchievementResponse> response = gamificationService.getMonthlyChallenges(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -435,7 +441,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
     public ResponseEntity<?> completeChallenge(@PathVariable Long challengeId, @PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             StudentAchievementResponse response = gamificationService.completeChallenge(challengeId, studentId, ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -452,7 +458,7 @@ public class AchievementController {
             @RequestParam String activityType,
             @RequestBody Map<String, Object> activityData) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             gamificationService.updateStudentActivity(studentId, activityType, activityData, ownerId);
             return ResponseEntity.ok("Activity updated successfully");
         } catch (Exception e) {
@@ -466,7 +472,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
     public ResponseEntity<?> getGamificationDashboard() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = gamificationService.getGamificationDashboard(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -479,7 +485,7 @@ public class AchievementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     public ResponseEntity<?> getAchievementAnalytics() {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             Map<String, Object> response = gamificationService.getAchievementAnalytics(ownerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -493,12 +499,35 @@ public class AchievementController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> resetStudentProgress(@PathVariable Long studentId) {
         try {
-            Long ownerId = CommonUtils.getLoggedInUser().getId();
+            Long ownerId = getCorrectOwnerId();
             gamificationService.resetStudentProgress(studentId, ownerId);
             return ResponseEntity.ok("Student progress reset successfully");
         } catch (Exception e) {
             log.error("Error resetting progress for student {}: {}", studentId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+    /**
+     * Get the correct owner ID based on the logged-in user.
+     * If the logged-in user is a worker (like a student), return their owner's ID.
+     * If the logged-in user is a direct owner, return their own ID.
+     */
+    private Long getCorrectOwnerId() {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long userId = loggedInUser.getId();
+        
+        // Check if the logged-in user is a worker
+        Worker worker = workerRepository.findById(userId).orElse(null);
+        if (worker != null && worker.getOwner() != null) {
+            // User is a worker, return their owner's ID
+            Long ownerId = worker.getOwner().getId();
+            log.info("Logged-in user is worker ID: {}, returning owner ID: {}", userId, ownerId);
+            return ownerId;
+        }
+        
+        // User is a direct owner, return their own ID
+        log.info("Logged-in user is direct owner ID: {}", userId);
+        return userId;
     }
 }

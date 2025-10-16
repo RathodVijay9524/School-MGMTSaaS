@@ -61,6 +61,22 @@ public class LearningModule extends BaseModel {
     @Column(name = "assessment_questions", columnDefinition = "TEXT")
     private String assessmentQuestions; // JSON string of questions
 
+    @Column(name = "passing_score_percentage")
+    private Double passingScorePercentage;
+
+    @Column(name = "instructions", columnDefinition = "TEXT")
+    private String instructions;
+
+    @Column(name = "is_required")
+    @Builder.Default
+    private Boolean isRequired = false;
+
+    @Column(name = "tags")
+    private String tags; // Comma-separated tags
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+
     @Column(name = "is_completed")
     @Builder.Default
     private Boolean isCompleted = false;
