@@ -1,5 +1,6 @@
 package com.vijay.User_Master.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vijay.User_Master.entity.Fee;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,6 +48,7 @@ public class FeeResponse {
     private String parentContact;
     
     // ========== NEW FIELDS - INSTALLMENT SUPPORT ==========
+    @JsonProperty("installmentAllowed")
     private boolean installmentAllowed;
     private Fee.PaymentPlanType paymentPlanType;
     private Integer totalInstallments;
