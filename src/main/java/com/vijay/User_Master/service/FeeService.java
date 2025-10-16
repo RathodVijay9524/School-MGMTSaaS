@@ -1,11 +1,11 @@
 package com.vijay.User_Master.service;
 
+import com.vijay.User_Master.dto.FeeInstallmentResponse;
 import com.vijay.User_Master.dto.FeeRequest;
 import com.vijay.User_Master.dto.FeeResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface FeeService {
@@ -35,5 +35,42 @@ public interface FeeService {
     Double calculateTotalPendingFees();
     
     void deleteFee(Long id);
+    
+    // ==================== INSTALLMENT METHODS ====================
+    
+    /**
+     * Get all installments for a specific fee
+     */
+    Page<FeeInstallmentResponse> getFeeInstallments(Long feeId, Pageable pageable);
+    
+    /**
+     * Get a specific installment by ID
+     */
+    FeeInstallmentResponse getInstallmentById(Long installmentId);
+    
+    /**
+     * Pay a specific installment
+     */
+    FeeInstallmentResponse payInstallment(Long installmentId, String paymentMethod, String transactionId, String remarks);
+    
+    /**
+     * Get all overdue installments
+     */
+    Page<FeeInstallmentResponse> getOverdueInstallments(Pageable pageable);
+    
+    /**
+     * Get pending installments for a student
+     */
+    Page<FeeInstallmentResponse> getStudentPendingInstallments(Long studentId, Pageable pageable);
+    
+    /**
+     * Get installments due within a date range
+     */
+    Page<FeeInstallmentResponse> getInstallmentsDueInRange(String startDate, String endDate, Pageable pageable);
+    
+    /**
+     * Get next pending installment for a fee
+     */
+    FeeInstallmentResponse getNextPendingInstallment(Long feeId);
 }
 

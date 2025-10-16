@@ -8,6 +8,7 @@ import com.vijay.User_Master.entity.FeeInstallment;
 import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.exceptions.BadApiRequestException;
+import com.vijay.User_Master.exceptions.BusinessRuleViolationException;
 import com.vijay.User_Master.exceptions.ResourceNotFoundException;
 import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.FeeRepository;
@@ -25,7 +26,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -506,9 +510,197 @@ public class FeeServiceImpl implements FeeService {
             .build();
     }
     
-    private Long getCurrentOwnerId() {
-        // Get the logged-in user ID for multi-tenancy
-        return 1L; // For now, using karina's ID. In real implementation, get from security context
+    // ==================== INSTALLMENT SERVICE METHODS ====================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FeeInstallmentResponse> getFeeInstallments(Long feeId, Pageable pageable) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        List<FeeInstallment> allInstallments = feeInstallmentRepository
+            .findByFee_IdAndOwner_IdAndIsDeletedFalseOrderByInstallmentNumberAsc(feeId, ownerId);
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allInstallments.size());
+        
+        List<FeeInstallmentResponse> responses = allInstallments.subList(start, end).stream()
+            .map(this::convertInstallmentToResponse)
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            responses, pageable, allInstallments.size());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public FeeInstallmentResponse getInstallmentById(Long installmentId) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        FeeInstallment installment = feeInstallmentRepository
+            .findByIdAndOwner_IdAndIsDeletedFalse(installmentId, ownerId)
+            .orElseThrow(() -> new ResourceNotFoundException("Installment", "id", installmentId));
+        return convertInstallmentToResponse(installment);
+    }
+    
+    @Override
+    @Transactional
+    public FeeInstallmentResponse payInstallment(Long installmentId, String paymentMethod, 
+                                                  String transactionId, String remarks) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        User collectedBy = userRepository.findById(ownerId)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", ownerId));
+        
+        FeeInstallment installment = feeInstallmentRepository
+            .findByIdAndOwner_IdAndIsDeletedFalse(installmentId, ownerId)
+            .orElseThrow(() -> new ResourceNotFoundException("Installment", "id", installmentId));
+        
+        if (installment.getStatus() == FeeInstallment.InstallmentStatus.PAID) {
+            throw new BusinessRuleViolationException("Installment is already paid");
+        }
+        
+        // Mark installment as paid
+        installment.setPaidDate(LocalDate.now());
+        installment.setPaidAt(LocalDateTime.now());
+        installment.setStatus(FeeInstallment.InstallmentStatus.PAID);
+        installment.setPaymentMethod(Fee.PaymentMethod.valueOf(paymentMethod));
+        installment.setTransactionId(transactionId);
+        installment.setCollectedBy(collectedBy);
+        installment.setRemarks(remarks);
+        
+        // Calculate late fee if overdue
+        if (installment.getDueDate().isBefore(LocalDate.now())) {
+            installment.setLatePayment(true);
+            installment.setDaysOverdue(installment.calculateDaysOverdue());
+        }
+        
+        FeeInstallment savedInstallment = feeInstallmentRepository.save(installment);
+        
+        // Update parent fee
+        Fee fee = installment.getFee();
+        fee.setPaidAmount(fee.getPaidAmount() + installment.getAmount());
+        fee.setBalanceAmount(fee.getBalanceAmount() - installment.getAmount());
+        fee.setPaidInstallments(fee.getPaidInstallments() + 1);
+        
+        // Update fee status
+        if (fee.getBalanceAmount() <= 0.001) {
+            fee.setPaymentStatus(Fee.PaymentStatus.PAID);
+        } else if (fee.getPaidAmount() > 0) {
+            fee.setPaymentStatus(Fee.PaymentStatus.PARTIAL);
+        }
+        
+        // Update next installment due date
+        FeeInstallment nextInstallment = feeInstallmentRepository
+            .findNextDueInstallment(fee.getId(), ownerId)
+            .orElse(null);
+        
+        if (nextInstallment != null) {
+            fee.setNextInstallmentDueDate(nextInstallment.getDueDate());
+        } else {
+            fee.setNextInstallmentDueDate(null);
+        }
+        
+        feeRepository.save(fee);
+        
+        // Update student fee balance
+        updateStudentFeeBalance(fee.getStudent().getId());
+        
+        log.info("Installment ID {} paid successfully. Fee ID: {}, Amount: {}", 
+            installmentId, fee.getId(), installment.getAmount());
+        
+        return convertInstallmentToResponse(savedInstallment);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FeeInstallmentResponse> getOverdueInstallments(Pageable pageable) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        List<FeeInstallment> overdueInstallments = feeInstallmentRepository
+            .findAllOverdueInstallmentsByOwner(LocalDate.now(), ownerId);
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), overdueInstallments.size());
+        
+        List<FeeInstallmentResponse> responses = overdueInstallments.subList(start, end).stream()
+            .map(this::convertInstallmentToResponse)
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            responses, pageable, overdueInstallments.size());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FeeInstallmentResponse> getStudentPendingInstallments(Long studentId, Pageable pageable) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        // Get all fees for the student
+        List<Fee> studentFees = feeRepository.findByStudent_IdAndIsDeletedFalse(
+            studentId, Pageable.unpaged()).getContent();
+        
+        List<FeeInstallment> pendingInstallments = new ArrayList<>();
+        for (Fee fee : studentFees) {
+            List<FeeInstallment> feeInstallments = feeInstallmentRepository
+                .findByFee_IdAndStatusAndOwner_IdAndIsDeletedFalse(
+                    fee.getId(), FeeInstallment.InstallmentStatus.PENDING, ownerId);
+            pendingInstallments.addAll(feeInstallments);
+        }
+        
+        // Sort by due date
+        pendingInstallments.sort(Comparator.comparing(FeeInstallment::getDueDate));
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), pendingInstallments.size());
+        
+        List<FeeInstallmentResponse> responses = pendingInstallments.subList(start, end).stream()
+            .map(this::convertInstallmentToResponse)
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            responses, pageable, pendingInstallments.size());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FeeInstallmentResponse> getInstallmentsDueInRange(String startDate, String endDate, Pageable pageable) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+        
+        List<FeeInstallment> installments = feeInstallmentRepository
+            .findInstallmentsDueInRange(start, end, ownerId);
+        
+        int pageStart = (int) pageable.getOffset();
+        int pageEnd = Math.min((pageStart + pageable.getPageSize()), installments.size());
+        
+        List<FeeInstallmentResponse> responses = installments.subList(pageStart, pageEnd).stream()
+            .map(this::convertInstallmentToResponse)
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            responses, pageable, installments.size());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public FeeInstallmentResponse getNextPendingInstallment(Long feeId) {
+        CustomUserDetails loggedInUser = CommonUtils.getLoggedInUser();
+        Long ownerId = loggedInUser.getId();
+        
+        FeeInstallment nextInstallment = feeInstallmentRepository
+            .findNextDueInstallment(feeId, ownerId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Installment", "pending for fee", feeId));
+        
+        return convertInstallmentToResponse(nextInstallment);
     }
 }
 

@@ -1,6 +1,7 @@
 package com.vijay.User_Master.controller;
 
 import com.vijay.User_Master.Helper.ExceptionUtil;
+import com.vijay.User_Master.dto.FeeInstallmentResponse;
 import com.vijay.User_Master.dto.FeeRequest;
 import com.vijay.User_Master.dto.FeeResponse;
 import com.vijay.User_Master.service.FeeService;
@@ -138,6 +139,110 @@ public class FeeController {
     public ResponseEntity<?> deleteFee(@PathVariable Long id) {
         feeService.deleteFee(id);
         return ExceptionUtil.createBuildResponseMessage("Fee deleted successfully", HttpStatus.OK);
+    }
+
+    // ==================== INSTALLMENT ENDPOINTS ====================
+
+    /**
+     * Get all installments for a specific fee
+     */
+    @GetMapping("/{feeId}/installments")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'STUDENT', 'PARENT')")
+    public ResponseEntity<?> getFeeInstallments(
+            @PathVariable Long feeId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Fetching installments for fee ID: {}", feeId);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("installmentNumber").ascending());
+        Page<FeeInstallmentResponse> response = feeService.getFeeInstallments(feeId, pageable);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
+    /**
+     * Get a specific installment by ID
+     */
+    @GetMapping("/{feeId}/installments/{installmentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'STUDENT', 'PARENT')")
+    public ResponseEntity<?> getInstallmentById(
+            @PathVariable Long feeId,
+            @PathVariable Long installmentId) {
+        log.info("Fetching installment ID: {} for fee ID: {}", installmentId, feeId);
+        FeeInstallmentResponse response = feeService.getInstallmentById(installmentId);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
+    /**
+     * Pay a specific installment
+     */
+    @PostMapping("/{feeId}/installments/{installmentId}/pay")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    public ResponseEntity<?> payInstallment(
+            @PathVariable Long feeId,
+            @PathVariable Long installmentId,
+            @RequestParam String paymentMethod,
+            @RequestParam(required = false) String transactionId,
+            @RequestParam(required = false) String remarks) {
+        log.info("Recording payment for installment ID: {} of fee ID: {}", installmentId, feeId);
+        FeeInstallmentResponse response = feeService.payInstallment(
+            installmentId, paymentMethod, transactionId, remarks);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
+    /**
+     * Get all overdue installments across all fees
+     */
+    @GetMapping("/installments/overdue")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    public ResponseEntity<?> getOverdueInstallments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("Fetching all overdue installments");
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+        Page<FeeInstallmentResponse> response = feeService.getOverdueInstallments(pageable);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
+    /**
+     * Get pending installments for a specific student
+     */
+    @GetMapping("/student/{studentId}/installments/pending")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'STUDENT', 'PARENT')")
+    public ResponseEntity<?> getStudentPendingInstallments(
+            @PathVariable Long studentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Fetching pending installments for student ID: {}", studentId);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+        Page<FeeInstallmentResponse> response = feeService.getStudentPendingInstallments(studentId, pageable);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
+    /**
+     * Get installments due within a specific date range
+     */
+    @GetMapping("/installments/due")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    public ResponseEntity<?> getInstallmentsDueInRange(
+            @RequestParam String startDate,
+            @RequestParam String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("Fetching installments due between {} and {}", startDate, endDate);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+        Page<FeeInstallmentResponse> response = feeService.getInstallmentsDueInRange(
+            startDate, endDate, pageable);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
+    }
+
+    /**
+     * Get next pending installment for a fee
+     */
+    @GetMapping("/{feeId}/installments/next")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'STUDENT', 'PARENT')")
+    public ResponseEntity<?> getNextPendingInstallment(@PathVariable Long feeId) {
+        log.info("Fetching next pending installment for fee ID: {}", feeId);
+        FeeInstallmentResponse response = feeService.getNextPendingInstallment(feeId);
+        return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
 
     // Helper response classes
