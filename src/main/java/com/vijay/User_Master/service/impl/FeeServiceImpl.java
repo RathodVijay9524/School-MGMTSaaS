@@ -2,19 +2,21 @@ package com.vijay.User_Master.service.impl;
 
 import com.vijay.User_Master.dto.FeeRequest;
 import com.vijay.User_Master.dto.FeeResponse;
+import com.vijay.User_Master.dto.FeeInstallmentResponse;
 import com.vijay.User_Master.entity.Fee;
+import com.vijay.User_Master.entity.FeeInstallment;
 import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.exceptions.BadApiRequestException;
 import com.vijay.User_Master.exceptions.ResourceNotFoundException;
 import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.FeeRepository;
+import com.vijay.User_Master.repository.FeeInstallmentRepository;
 import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.repository.UserRepository;
 import com.vijay.User_Master.service.FeeService;
 import com.vijay.User_Master.Helper.CommonUtils;
 import com.vijay.User_Master.config.security.CustomUserDetails;
-import com.vijay.User_Master.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 public class FeeServiceImpl implements FeeService {
 
     private final FeeRepository feeRepository;
+    private final FeeInstallmentRepository feeInstallmentRepository;
     private final WorkerRepository workerRepository;
     private final UserRepository userRepository;
 
@@ -63,6 +66,13 @@ public class FeeServiceImpl implements FeeService {
         
         Worker student = workerRepository.findById(request.getStudentId())
             .orElseThrow(() -> new ResourceNotFoundException("Student", "id", request.getStudentId()));
+        
+        // NEW: Get parent/guardian if provided
+        Worker parent = null;
+        if (request.getParentId() != null) {
+            parent = workerRepository.findById(request.getParentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Parent", "id", request.getParentId()));
+        }
         
         User collectedBy = null;
         if (request.getCollectedByUserId() != null) {
@@ -107,9 +117,24 @@ public class FeeServiceImpl implements FeeService {
             .waiverReason(request.getWaiverReason())
             .collectedBy(collectedBy)
             .remarks(request.getRemarks())
+            // NEW FIELDS - Parent/Guardian
+            .parent(parent)
+            // NEW FIELDS - Installment Support
+            .isInstallmentAllowed(request.isInstallmentAllowed())
+            .paymentPlanType(request.getPaymentPlanType())
+            .totalInstallments(request.getTotalInstallments())
+            .paidInstallments(0) // Initially zero
+            .installmentAmount(request.getInstallmentAmount())
             .owner(owner) // Set the owner for multi-tenancy
             .build();
         Fee savedFee = feeRepository.save(fee);
+        
+        // NEW: Create installments if payment plan is enabled
+        if (request.isInstallmentAllowed() && request.getTotalInstallments() != null && request.getTotalInstallments() > 0) {
+            createInstallmentsForFee(savedFee, request, owner);
+            // Reload fee to get installments
+            savedFee = feeRepository.findById(savedFee.getId()).orElse(savedFee);
+        }
         
         // Update student fee balance
         updateStudentFeeBalance(student.getId());
@@ -331,12 +356,139 @@ public class FeeServiceImpl implements FeeService {
             .waiverReason(fee.getWaiverReason())
             .collectedByUserId(fee.getCollectedBy() != null ? fee.getCollectedBy().getId() : null)
             .collectedByUsername(fee.getCollectedBy() != null ? fee.getCollectedBy().getUsername() : null)
+            // NEW FIELDS - Parent/Guardian
+            .parentId(fee.getParent() != null ? fee.getParent().getId() : null)
+            .parentName(fee.getParent() != null ? fee.getParent().getName() : null)
+            .parentContact(fee.getParent() != null ? fee.getParent().getPhoNo() : null)
+            // NEW FIELDS - Installment Support
+            .isInstallmentAllowed(fee.isInstallmentAllowed())
+            .paymentPlanType(fee.getPaymentPlanType())
+            .totalInstallments(fee.getTotalInstallments())
+            .paidInstallments(fee.getPaidInstallments())
+            .nextInstallmentDueDate(fee.getNextInstallmentDueDate())
+            .installmentAmount(fee.getInstallmentAmount())
+            .installments(fee.getInstallments() != null && !fee.getInstallments().isEmpty() ? 
+                fee.getInstallments().stream()
+                    .map(this::convertInstallmentToResponse)
+                    .collect(Collectors.toList()) : null)
+            // Computed fields
             .feeTypeDisplay(fee.getFeeType().toString())
             .paymentStatusDisplay(fee.getPaymentStatus().toString())
             .paymentMethodDisplay(fee.getPaymentMethod() != null ? fee.getPaymentMethod().toString() : null)
+            .paymentPlanTypeDisplay(fee.getPaymentPlanType() != null ? fee.getPaymentPlanType().toString() : "FULL_PAYMENT")
             .isOverdue(isOverdue)
             .daysOverdue(daysOverdue)
             .paymentPercentage(paymentPercentage)
+            .installmentsRemaining(fee.getTotalInstallments() != null && fee.getPaidInstallments() != null ? 
+                fee.getTotalInstallments() - fee.getPaidInstallments() : 0)
+            .hasOutstandingInstallments(fee.isInstallmentAllowed() && fee.getPaidInstallments() != null && 
+                fee.getTotalInstallments() != null && fee.getPaidInstallments() < fee.getTotalInstallments())
+            .build();
+    }
+    
+    /**
+     * Create installments for a fee based on payment plan
+     */
+    private void createInstallmentsForFee(Fee fee, FeeRequest request, User owner) {
+        LocalDate startDate = fee.getDueDate();
+        int totalInstallments = request.getTotalInstallments();
+        Double amountPerInstallment = request.getInstallmentAmount() != null ? 
+            request.getInstallmentAmount() : 
+            fee.getTotalAmount() / totalInstallments;
+        
+        log.info("Creating {} installments for fee ID: {}, Amount per installment: {}", 
+            totalInstallments, fee.getId(), amountPerInstallment);
+        
+        for (int i = 1; i <= totalInstallments; i++) {
+            LocalDate dueDate = calculateInstallmentDueDate(startDate, i, fee.getPaymentPlanType());
+            
+            FeeInstallment installment = FeeInstallment.builder()
+                .fee(fee)
+                .installmentNumber(i)
+                .amount(amountPerInstallment)
+                .dueDate(dueDate)
+                .status(FeeInstallment.InstallmentStatus.PENDING)
+                .owner(owner)
+                .build();
+            
+            feeInstallmentRepository.save(installment);
+        }
+        
+        // Update nextInstallmentDueDate to the first installment's due date
+        fee.setNextInstallmentDueDate(calculateInstallmentDueDate(startDate, 1, fee.getPaymentPlanType()));
+        feeRepository.save(fee);
+        
+        log.info("Successfully created {} installments for fee ID: {}", totalInstallments, fee.getId());
+    }
+    
+    /**
+     * Calculate installment due date based on payment plan type
+     */
+    private LocalDate calculateInstallmentDueDate(LocalDate startDate, int installmentNumber, Fee.PaymentPlanType planType) {
+        if (planType == null) {
+            planType = Fee.PaymentPlanType.MONTHLY; // Default to monthly
+        }
+        
+        switch (planType) {
+            case MONTHLY:
+                return startDate.plusMonths((long) installmentNumber - 1);
+            case QUARTERLY:
+                return startDate.plusMonths((long) (installmentNumber - 1) * 3);
+            case SEMI_ANNUAL:
+                return startDate.plusMonths((long) (installmentNumber - 1) * 6);
+            case ANNUAL:
+                return startDate.plusYears((long) installmentNumber - 1);
+            case CUSTOM:
+                // For custom, default to monthly for now
+                return startDate.plusMonths((long) installmentNumber - 1);
+            default:
+                return startDate.plusMonths((long) installmentNumber - 1);
+        }
+    }
+    
+    /**
+     * Convert FeeInstallment entity to FeeInstallmentResponse DTO
+     */
+    private FeeInstallmentResponse convertInstallmentToResponse(FeeInstallment installment) {
+        Double netAmount = installment.getAmount();
+        if (installment.getDiscountAmount() != null) {
+            netAmount -= installment.getDiscountAmount();
+        }
+        if (installment.getLateFeeAmount() != null) {
+            netAmount += installment.getLateFeeAmount();
+        }
+        
+        return FeeInstallmentResponse.builder()
+            .id(installment.getId())
+            .feeId(installment.getFee().getId())
+            .installmentNumber(installment.getInstallmentNumber())
+            .amount(installment.getAmount())
+            .dueDate(installment.getDueDate())
+            .paidDate(installment.getPaidDate())
+            .paidAt(installment.getPaidAt())
+            .status(installment.getStatus())
+            .paymentMethod(installment.getPaymentMethod())
+            .transactionId(installment.getTransactionId())
+            .receiptNumber(installment.getReceiptNumber())
+            .remarks(installment.getRemarks())
+            .lateFeeAmount(installment.getLateFeeAmount())
+            .daysOverdue(installment.getDaysOverdue())
+            .isLatePayment(installment.isLatePayment())
+            .discountAmount(installment.getDiscountAmount())
+            .isWaived(installment.isWaived())
+            .waiverReason(installment.getWaiverReason())
+            .collectedByUserId(installment.getCollectedBy() != null ? installment.getCollectedBy().getId() : null)
+            .collectedByUserName(installment.getCollectedBy() != null ? installment.getCollectedBy().getName() : null)
+            .isDeleted(installment.isDeleted())
+            .createdOn(installment.getCreatedOn())
+            .updatedOn(installment.getUpdatedOn())
+            // Computed fields
+            .isOverdue(installment.isOverdue())
+            .isPaid(installment.getStatus() == FeeInstallment.InstallmentStatus.PAID)
+            .isPending(installment.getStatus() == FeeInstallment.InstallmentStatus.PENDING)
+            .statusDisplay(installment.getStatus() != null ? installment.getStatus().name() : "PENDING")
+            .paymentMethodDisplay(installment.getPaymentMethod() != null ? installment.getPaymentMethod().name() : "N/A")
+            .netAmount(netAmount)
             .build();
     }
     
