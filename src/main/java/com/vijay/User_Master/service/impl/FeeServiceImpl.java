@@ -132,11 +132,6 @@ public class FeeServiceImpl implements FeeService {
         // NEW: Create installments if payment plan is enabled
         if (request.isInstallmentAllowed() && request.getTotalInstallments() != null && request.getTotalInstallments() > 0) {
             createInstallmentsForFee(savedFee, request, owner);
-            // Manually load installments (to handle lazy loading)
-            List<FeeInstallment> installments = feeInstallmentRepository
-                .findByFee_IdAndOwner_IdAndIsDeletedFalseOrderByInstallmentNumberAsc(savedFee.getId(), owner.getId());
-            savedFee.getInstallments().clear();
-            savedFee.getInstallments().addAll(installments);
         }
         
         // Update student fee balance
@@ -187,15 +182,6 @@ public class FeeServiceImpl implements FeeService {
     public FeeResponse getFeeById(Long id) {
         Fee fee = feeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Fee", "id", id));
-        
-        // Manually load installments if payment plan is enabled (to handle lazy loading)
-        if (fee.isInstallmentAllowed() && fee.getOwner() != null) {
-            List<FeeInstallment> installments = feeInstallmentRepository
-                .findByFee_IdAndOwner_IdAndIsDeletedFalseOrderByInstallmentNumberAsc(fee.getId(), fee.getOwner().getId());
-            fee.getInstallments().clear();
-            fee.getInstallments().addAll(installments);
-        }
-        
         return mapToResponse(fee);
     }
 
@@ -342,6 +328,18 @@ public class FeeServiceImpl implements FeeService {
             : 0;
         Double paymentPercentage = (fee.getPaidAmount() / fee.getTotalAmount()) * 100.0;
         
+        // Load installments manually if payment plan is enabled (handle lazy loading)
+        List<FeeInstallmentResponse> installmentResponses = null;
+        if (fee.isInstallmentAllowed() && fee.getOwner() != null) {
+            List<FeeInstallment> installments = feeInstallmentRepository
+                .findByFee_IdAndOwner_IdAndIsDeletedFalseOrderByInstallmentNumberAsc(fee.getId(), fee.getOwner().getId());
+            if (installments != null && !installments.isEmpty()) {
+                installmentResponses = installments.stream()
+                    .map(this::convertInstallmentToResponse)
+                    .collect(Collectors.toList());
+            }
+        }
+        
         return FeeResponse.builder()
             .id(fee.getId())
             .studentId(fee.getStudent().getId())
@@ -379,10 +377,7 @@ public class FeeServiceImpl implements FeeService {
             .paidInstallments(fee.getPaidInstallments())
             .nextInstallmentDueDate(fee.getNextInstallmentDueDate())
             .installmentAmount(fee.getInstallmentAmount())
-            .installments(fee.getInstallments() != null && !fee.getInstallments().isEmpty() ? 
-                fee.getInstallments().stream()
-                    .map(this::convertInstallmentToResponse)
-                    .collect(Collectors.toList()) : null)
+            .installments(installmentResponses)
             // Computed fields
             .feeTypeDisplay(fee.getFeeType().toString())
             .paymentStatusDisplay(fee.getPaymentStatus().toString())
