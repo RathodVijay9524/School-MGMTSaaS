@@ -82,6 +82,24 @@ public class Exam extends BaseModel {
     @Column(length = 500)
     private String notes;
     
+    // ========== NEW FIELDS - QUESTION PAPER DETAILS ==========
+    private String questionPaperUrl; // URL/path to uploaded question paper PDF
+    
+    private Integer totalQuestions; // Total number of questions in exam
+    
+    @Column(length = 500)
+    private String questionPattern; // e.g., "MCQ: 20 (40 marks), Short Answer: 10 (30 marks), Essay: 5 (30 marks)"
+    
+    // ========== NEW FIELDS - NEGATIVE MARKING ==========
+    @lombok.Builder.Default
+    private boolean hasNegativeMarking = false;
+    
+    private Double negativeMarkingPercentage; // e.g., 25.0 means 25% marks deducted for wrong answer
+    
+    // ========== NEW FIELDS - BLIND GRADING ==========
+    @lombok.Builder.Default
+    private boolean isBlindGraded = false; // Anonymous grading to reduce bias
+    
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)

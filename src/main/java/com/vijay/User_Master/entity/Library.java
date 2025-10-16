@@ -78,10 +78,17 @@ public class Library extends BaseModel {
     
     private Double lateFeePerDay;
     
-    private boolean isReferencOnly; // Cannot be issued, only read in library
+    private boolean isReferenceOnly; // Cannot be issued, only read in library (TYPO FIXED)
     
     @Column(length = 500)
     private String notes;
+    
+    // ========== NEW FIELDS - BOOK CONDITION TRACKING ==========
+    @Enumerated(EnumType.STRING)
+    @lombok.Builder.Default
+    private BookCondition bookCondition = BookCondition.GOOD; // Physical condition of book
+    
+    private LocalDate lastConditionCheckDate; // When was condition last inspected
     
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -99,6 +106,14 @@ public class Library extends BaseModel {
 
     public enum BookStatus {
         AVAILABLE, ISSUED, RESERVED, DAMAGED, LOST, UNDER_REPAIR, OUT_OF_PRINT
+    }
+    
+    public enum BookCondition {
+        EXCELLENT, // Like new, perfect condition
+        GOOD, // Normal wear and tear
+        FAIR, // Noticeable wear, still readable
+        POOR, // Significant damage but usable
+        DAMAGED // Severe damage, may need repair
     }
 }
 

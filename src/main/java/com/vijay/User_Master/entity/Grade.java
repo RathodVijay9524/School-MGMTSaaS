@@ -69,6 +69,14 @@ public class Grade extends BaseModel {
     
     private boolean isPublished; // Whether visible to student/parent
     
+    // ========== NEW FIELDS - GRADE SCALE & WEIGHTED SCORING ==========
+    @Column(length = 50)
+    private String gradeScale; // e.g., "4.0 Scale", "10 Point Scale", "Percentage"
+    
+    private Double weightage; // Weightage of this grade in final calculation (e.g., 30% for midterm)
+    
+    private Double weightedScore; // Calculated: (marksObtained/totalMarks) * weightage
+    
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)

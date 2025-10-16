@@ -90,10 +90,10 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("SELECT l FROM Library l WHERE l.owner.id = :ownerId AND l.language = :language AND l.isDeleted = false")
     List<Library> findByOwner_IdAndLanguageAndIsDeletedFalse(@Param("ownerId") Long ownerId, @Param("language") String language);
     
-    @Query("SELECT l FROM Library l WHERE l.owner.id = :ownerId AND l.isReferencOnly = true AND l.isDeleted = false")
+    @Query("SELECT l FROM Library l WHERE l.owner.id = :ownerId AND l.isReferenceOnly = true AND l.isDeleted = false")
     List<Library> findReferenceOnlyBooksByOwner(@Param("ownerId") Long ownerId);
     
-    @Query("SELECT l FROM Library l WHERE l.owner.id = :ownerId AND l.availableCopies > 0 AND l.isReferencOnly = false AND l.isDeleted = false")
+    @Query("SELECT l FROM Library l WHERE l.owner.id = :ownerId AND l.availableCopies > 0 AND l.isReferenceOnly = false AND l.isDeleted = false")
     List<Library> findBorrowableBooksByOwner(@Param("ownerId") Long ownerId);
     
     @Query("SELECT l FROM Library l WHERE l.owner.id = :ownerId AND l.purchaseDate >= :startDate AND l.purchaseDate <= :endDate AND l.isDeleted = false")

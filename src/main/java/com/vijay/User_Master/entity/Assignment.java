@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Setter
@@ -68,6 +67,36 @@ public class Assignment extends BaseModel {
     
     @Column(length = 500)
     private String notes;
+    
+    // ========== NEW FIELDS - RUBRIC SUPPORT ==========
+    @Column(length = 5000)
+    private String rubricJsonData; // JSON string with grading rubric criteria
+    
+    @lombok.Builder.Default
+    private boolean hasRubric = false;
+    
+    // ========== NEW FIELDS - SUBMISSION FORMAT ==========
+    @Column(length = 200)
+    private String allowedFileTypes; // e.g., "pdf,docx,jpg,png" - comma separated
+    
+    private Integer maxFileSize; // Maximum file size in MB
+    
+    @lombok.Builder.Default
+    private Integer maxFilesAllowed = 1; // Number of files student can submit
+    
+    // ========== NEW FIELDS - GROUP ASSIGNMENT SUPPORT ==========
+    @lombok.Builder.Default
+    private boolean isGroupAssignment = false;
+    
+    private Integer minGroupSize; // Minimum students per group
+    
+    private Integer maxGroupSize; // Maximum students per group
+    
+    // ========== NEW FIELDS - MULTIPLE ATTEMPTS ==========
+    @lombok.Builder.Default
+    private boolean allowMultipleAttempts = false;
+    
+    private Integer maxAttempts; // Maximum submission attempts allowed
     
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)

@@ -78,7 +78,7 @@ public class LibraryServiceImpl implements LibraryService {
                 .purchaseDate(request.getPurchaseDate())
                 .maxBorrowDays(request.getMaxBorrowDays())
                 .lateFeePerDay(request.getLateFeePerDay())
-                .isReferencOnly(request.isReferencOnly())
+                .isReferenceOnly(request.isReferenceOnly())
                 .notes(request.getNotes())
                 .owner(owner)
                 .isDeleted(false)
@@ -121,7 +121,7 @@ public class LibraryServiceImpl implements LibraryService {
         library.setPurchaseDate(request.getPurchaseDate());
         library.setMaxBorrowDays(request.getMaxBorrowDays());
         library.setLateFeePerDay(request.getLateFeePerDay());
-        library.setReferencOnly(request.isReferencOnly());
+        library.setReferenceOnly(request.isReferenceOnly());
         library.setNotes(request.getNotes());
         
         Library updatedBook = libraryRepository.save(library);
@@ -291,7 +291,7 @@ public class LibraryServiceImpl implements LibraryService {
         Library library = libraryRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
         
-        if (library.isReferencOnly()) {
+        if (library.isReferenceOnly()) {
             throw new RuntimeException("Reference books cannot be issued");
         }
         
@@ -486,8 +486,8 @@ public class LibraryServiceImpl implements LibraryService {
         long dictionaryBooks = allBooks.stream().filter(b -> b.getCategory() == Library.BookCategory.DICTIONARY).count();
         
         // Count reference only and borrowable
-        long referenceOnlyBooks = allBooks.stream().filter(Library::isReferencOnly).count();
-        long borrowableBooks = allBooks.stream().filter(b -> !b.isReferencOnly()).count();
+        long referenceOnlyBooks = allBooks.stream().filter(Library::isReferenceOnly).count();
+        long borrowableBooks = allBooks.stream().filter(b -> !b.isReferenceOnly()).count();
         
         // Calculate totals
         long totalCopies = allBooks.stream().mapToInt(Library::getTotalCopies).sum();
@@ -587,7 +587,7 @@ public class LibraryServiceImpl implements LibraryService {
                 String.format("Max %d days, Late fee: $%.2f/day", library.getMaxBorrowDays(), library.getLateFeePerDay() != null ? library.getLateFeePerDay() : 0.0) : 
                 "No borrowing rules set";
         
-        String referenceStatus = library.isReferencOnly() ? "Reference Only" : "Available for Borrowing";
+        String referenceStatus = library.isReferenceOnly() ? "Reference Only" : "Available for Borrowing";
         
         double availabilityPercentage = library.getTotalCopies() > 0 ? 
                 (double) library.getAvailableCopies() / library.getTotalCopies() * 100 : 0.0;
@@ -619,7 +619,7 @@ public class LibraryServiceImpl implements LibraryService {
                 .purchaseDate(library.getPurchaseDate())
                 .maxBorrowDays(library.getMaxBorrowDays())
                 .lateFeePerDay(library.getLateFeePerDay())
-                .isReferencOnly(library.isReferencOnly())
+                .isReferenceOnly(library.isReferenceOnly())
                 .notes(library.getNotes())
                 .isDeleted(library.isDeleted())
                 .createdOn(library.getCreatedOn())
