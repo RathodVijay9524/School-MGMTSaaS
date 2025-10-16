@@ -402,6 +402,15 @@ public class AssignmentServiceImpl implements AssignmentService {
                 .typeDisplay(assignment.getAssignmentType().name().replace("_", " "))
                 .submissionPercentage(submissionPercentage)
                 .ownerName(assignment.getOwner().getName())
+                // SUBMISSION STATISTICS (from helper methods in Assignment entity)
+                .submittedCount(assignment.getSubmittedCount())
+                .gradedCount(assignment.getGradedCount())
+                .pendingGradingCount(assignment.getPendingGradingCount())
+                .lateSubmissionsCount(assignment.getLateSubmissionsCount())
+                .averageMarks(assignment.getAverageMarks())
+                .submissionRate(assignment.getSubmissionRate())
+                // Note: submissions list is lazy-loaded, not included here to avoid N+1 queries
+                // Use dedicated endpoint to fetch submissions for an assignment
                 .build();
     }
 }

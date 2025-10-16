@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * DTO for Assignment response
@@ -54,6 +56,10 @@ public class AssignmentResponse {
     private Integer maxGroupSize;
     private boolean allowMultipleAttempts;
     private Integer maxAttempts;
+    
+    // ========== HOMEWORK SUBMISSIONS ==========
+    @Builder.Default
+    private List<HomeworkSubmissionResponse> submissions = new ArrayList<>(); // List of all submissions for this assignment
 
     // Computed fields
     private boolean isOverdue;
@@ -64,4 +70,12 @@ public class AssignmentResponse {
     private String typeDisplay;
     private Double submissionPercentage;
     private String ownerName;
+    
+    // ========== SUBMISSION STATISTICS ==========
+    private Integer submittedCount;       // Number of students who submitted
+    private Integer gradedCount;          // Number of graded submissions
+    private Integer pendingGradingCount;  // Submitted but not graded
+    private Integer lateSubmissionsCount; // Number of late submissions
+    private Double averageMarks;          // Average marks across all graded submissions
+    private Double submissionRate;        // Percentage of students who submitted
 }
