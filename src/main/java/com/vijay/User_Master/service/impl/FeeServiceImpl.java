@@ -491,7 +491,7 @@ public class FeeServiceImpl implements FeeService {
             .remarks(installment.getRemarks())
             .lateFeeAmount(installment.getLateFeeAmount())
             .daysOverdue(installment.getDaysOverdue())
-            .isLatePayment(installment.isLatePayment())
+            .latePayment(installment.isLatePayment())
             .discountAmount(installment.getDiscountAmount())
             .isWaived(installment.isWaived())
             .waiverReason(installment.getWaiverReason())

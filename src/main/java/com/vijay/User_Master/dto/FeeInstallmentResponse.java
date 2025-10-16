@@ -1,5 +1,6 @@
 package com.vijay.User_Master.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vijay.User_Master.entity.Fee;
 import com.vijay.User_Master.entity.FeeInstallment;
 import lombok.AllArgsConstructor;
@@ -34,7 +35,8 @@ public class FeeInstallmentResponse {
     private String remarks;
     private Double lateFeeAmount;
     private Integer daysOverdue;
-    private boolean isLatePayment;
+    @JsonProperty("isLatePayment")
+    private boolean latePayment;
     private Double discountAmount;
     private boolean isWaived;
     private String waiverReason;

@@ -72,7 +72,8 @@ public class FeeInstallment extends BaseModel {
     
     private Integer daysOverdue;
     
-    private boolean isLatePayment;
+    @Column(name = "is_late_payment")
+    private boolean latePayment;
     
     // Waiver/Discount
     private Double discountAmount;
@@ -126,7 +127,7 @@ public class FeeInstallment extends BaseModel {
         this.collectedBy = collectedBy;
         
         // Calculate late fee if overdue
-        if (isLatePayment) {
+        if (isLatePayment()) {
             this.daysOverdue = calculateDaysOverdue();
         }
     }
