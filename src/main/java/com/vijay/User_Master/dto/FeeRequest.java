@@ -61,5 +61,20 @@ public class FeeRequest {
     private String waiverReason;
     
     private Long collectedByUserId;
+    
+    // ========== NEW FIELDS - PARENT/GUARDIAN ==========
+    private Long parentId;  // Worker ID of parent/guardian who pays
+    
+    // ========== NEW FIELDS - INSTALLMENT SUPPORT ==========
+    private boolean isInstallmentAllowed;
+    
+    private Fee.PaymentPlanType paymentPlanType;
+    
+    @Min(value = 1, message = "Total installments must be at least 1")
+    @Max(value = 12, message = "Total installments cannot exceed 12")
+    private Integer totalInstallments;
+    
+    @DecimalMin(value = "0.0", inclusive = false, message = "Installment amount must be positive")
+    private Double installmentAmount;
 }
 

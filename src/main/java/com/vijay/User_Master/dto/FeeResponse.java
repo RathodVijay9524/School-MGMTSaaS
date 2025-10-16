@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -40,12 +41,29 @@ public class FeeResponse {
     private Long collectedByUserId;
     private String collectedByUsername;
     
+    // ========== NEW FIELDS - PARENT/GUARDIAN ==========
+    private Long parentId;
+    private String parentName;
+    private String parentContact;
+    
+    // ========== NEW FIELDS - INSTALLMENT SUPPORT ==========
+    private boolean isInstallmentAllowed;
+    private Fee.PaymentPlanType paymentPlanType;
+    private Integer totalInstallments;
+    private Integer paidInstallments;
+    private LocalDate nextInstallmentDueDate;
+    private Double installmentAmount;
+    private List<FeeInstallmentResponse> installments;
+    
     // Computed fields
     private String feeTypeDisplay;
     private String paymentStatusDisplay;
     private String paymentMethodDisplay;
+    private String paymentPlanTypeDisplay;
     private boolean isOverdue;
     private Integer daysOverdue;
     private Double paymentPercentage;
+    private Integer installmentsRemaining;  // totalInstallments - paidInstallments
+    private boolean hasOutstandingInstallments;
 }
 

@@ -5,6 +5,8 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -78,6 +80,33 @@ public class Fee extends BaseModel {
     @JoinColumn(name = "collected_by_user_id")
     private User collectedBy;
     
+    // ========== NEW FIELDS - PARENT/GUARDIAN RELATIONSHIP ==========
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Worker parent; // Guardian/Parent who pays the fee
+    
+    // ========== NEW FIELDS - INSTALLMENT SUPPORT ==========
+    @OneToMany(mappedBy = "fee", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @lombok.Builder.Default
+    private List<FeeInstallment> installments = new ArrayList<>();
+    
+    private Integer totalInstallments;  // Total number of installments planned
+    
+    @lombok.Builder.Default
+    private Integer paidInstallments = 0;   // Number of installments paid so far
+    
+    private LocalDate nextInstallmentDueDate;  // Next payment due date
+    
+    private Double installmentAmount;   // Amount per installment (if equal installments)
+    
+    @lombok.Builder.Default
+    private boolean isInstallmentAllowed = false;  // Whether payment plan is enabled
+    
+    // Payment Plan Type
+    @Enumerated(EnumType.STRING)
+    @lombok.Builder.Default
+    private PaymentPlanType paymentPlanType = PaymentPlanType.FULL_PAYMENT;
+    
     // Business Owner (Multi-tenancy)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
@@ -98,6 +127,15 @@ public class Fee extends BaseModel {
 
     public enum PaymentMethod {
         CASH, DEBIT_CARD, CREDIT_CARD, ONLINE, CHEQUE, BANK_TRANSFER, UPI, WALLET
+    }
+    
+    public enum PaymentPlanType {
+        FULL_PAYMENT,      // Pay all at once (no installments)
+        MONTHLY,           // Monthly installments
+        QUARTERLY,         // Quarterly installments (every 3 months)
+        SEMI_ANNUAL,       // Half-yearly installments (every 6 months)
+        ANNUAL,            // Annual installments
+        CUSTOM             // Custom payment plan
     }
 }
 
