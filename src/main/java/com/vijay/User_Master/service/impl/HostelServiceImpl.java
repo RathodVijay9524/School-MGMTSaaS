@@ -270,7 +270,7 @@ public class HostelServiceImpl implements HostelService {
                 .hasAvailableBeds(hostel.hasAvailableBeds())
                 .ownerId(hostel.getOwner().getId())
                 .ownerName(hostel.getOwner().getName())
-                .createdOn(hostel.getCreated())
+                .createdOn(hostel.getCreatedOn())
                 .updatedOn(hostel.getUpdatedOn())
                 .build();
     }
