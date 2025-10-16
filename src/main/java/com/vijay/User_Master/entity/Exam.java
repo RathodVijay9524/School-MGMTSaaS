@@ -20,6 +20,10 @@ public class Exam extends BaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    // Optimistic Locking - prevents concurrent update conflicts (e.g., grade updates)
+    @Version
+    private Long version;
 
     @Column(nullable = false)
     private String examName; // e.g., "Midterm Exam", "Final Exam", "Unit Test 1"

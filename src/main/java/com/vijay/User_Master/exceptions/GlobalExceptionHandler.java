@@ -13,17 +13,16 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.mapping.PropertyReferenceException;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -140,7 +139,53 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // ============= CUSTOM BUSINESS EXCEPTIONS ============= //
+    @ExceptionHandler(BusinessRuleViolationException.class)
+    public ResponseEntity<?> handleBusinessRuleViolation(BusinessRuleViolationException ex) {
+        logger.warn("Business rule violation: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                ex.getMessage(),
+                HttpStatus.UNPROCESSABLE_ENTITY
+        );
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<?> handleDuplicateResource(DuplicateResourceException ex) {
+        logger.warn("Duplicate resource: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                ex.getMessage(),
+                HttpStatus.CONFLICT
+        );
+    }
+
+    @ExceptionHandler(ConcurrentUpdateException.class)
+    public ResponseEntity<?> handleConcurrentUpdate(ConcurrentUpdateException ex) {
+        logger.warn("Concurrent update conflict: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                ex.getMessage(),
+                HttpStatus.CONFLICT
+        );
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFound(EntityNotFoundException ex) {
+        logger.warn("Entity not found: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                ex.getMessage(),
+                HttpStatus.NOT_FOUND
+        );
+    }
+
     // ============= DATABASE EXCEPTIONS ============= //
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<?> handleOptimisticLock(OptimisticLockException ex) {
+        logger.warn("Optimistic lock exception: {}", ex.getMessage());
+        return ExceptionUtil.createErrorResponseMessage(
+                "The record was modified by another user. Please refresh and try again.",
+                HttpStatus.CONFLICT
+        );
+    }
+    
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<?> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         logger.error("Data integrity violation: {}", ex.getMessage());

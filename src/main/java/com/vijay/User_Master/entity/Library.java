@@ -19,6 +19,10 @@ public class Library extends BaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    // Optimistic Locking - prevents concurrent update conflicts (e.g., book issue/return)
+    @Version
+    private Long version;
 
     // Book Information
     @Column(nullable = false, unique = true)

@@ -8,6 +8,8 @@ import com.vijay.User_Master.entity.SchoolClass;
 import com.vijay.User_Master.entity.Subject;
 import com.vijay.User_Master.entity.User;
 import com.vijay.User_Master.entity.Worker;
+import com.vijay.User_Master.exceptions.EntityNotFoundException;
+import com.vijay.User_Master.exceptions.ResourceNotFoundException;
 import org.springframework.ai.tool.annotation.Tool;
 import com.vijay.User_Master.repository.AssignmentRepository;
 import com.vijay.User_Master.repository.SchoolClassRepository;
@@ -49,20 +51,20 @@ public class AssignmentServiceImpl implements AssignmentService {
         
         // Validate owner exists
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new RuntimeException("Owner not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Owner", ownerId));
         
         // Validate subject exists and belongs to owner
         Subject subject = subjectRepository.findByIdAndOwner_IdAndIsDeletedFalse(request.getSubjectId(), ownerId)
-                .orElseThrow(() -> new RuntimeException("Subject not found or does not belong to owner"));
+                .orElseThrow(() -> new ResourceNotFoundException("Subject", "id", request.getSubjectId()));
         
         // Validate class exists and belongs to owner
         SchoolClass schoolClass = schoolClassRepository.findByIdAndOwner_IdAndIsDeletedFalse(request.getClassId(), ownerId)
-                .orElseThrow(() -> new RuntimeException("Class not found or does not belong to owner"));
+                .orElseThrow(() -> new ResourceNotFoundException("SchoolClass", "id", request.getClassId()));
         
         // Validate teacher exists and belongs to owner
         Worker teacher = workerRepository.findById(request.getTeacherId())
                 .filter(w -> w.getOwner() != null && w.getOwner().getId().equals(ownerId) && !w.isDeleted())
-                .orElseThrow(() -> new RuntimeException("Teacher not found or does not belong to owner"));
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher", "id", request.getTeacherId()));
         
         Assignment assignment = Assignment.builder()
                 .title(request.getTitle())
@@ -98,7 +100,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         log.info("Updating assignment: {} for owner: {}", id, ownerId);
         
         Assignment assignment = assignmentRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Assignment", id));
         
         // Update fields
         assignment.setTitle(request.getTitle());
@@ -128,7 +130,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         log.info("Getting assignment: {} for owner: {}", id, ownerId);
         
         Assignment assignment = assignmentRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Assignment", id));
         
         return convertToResponse(assignment);
     }
@@ -156,9 +158,11 @@ public class AssignmentServiceImpl implements AssignmentService {
     public List<AssignmentResponse> getAssignmentsBySubject(Long subjectId, Long ownerId) {
         log.info("Getting assignments for subject: {} and owner: {}", subjectId, ownerId);
         
-        List<Assignment> assignments = assignmentRepository.findBySubject_IdAndIsDeletedFalse(subjectId);
+        // SECURITY FIX: Use query with owner filter to prevent cross-tenant data access
+        // Performance FIX: Use JOIN FETCH to avoid N+1 queries
+        List<Assignment> assignments = assignmentRepository
+                .findBySubject_IdAndOwner_IdWithDetailsAndIsDeletedFalse(subjectId, ownerId);
         return assignments.stream()
-                .filter(a -> a.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -168,9 +172,11 @@ public class AssignmentServiceImpl implements AssignmentService {
     public List<AssignmentResponse> getAssignmentsByTeacher(Long teacherId, Long ownerId) {
         log.info("Getting assignments for teacher: {} and owner: {}", teacherId, ownerId);
         
-        List<Assignment> assignments = assignmentRepository.findByAssignedBy_IdAndIsDeletedFalse(teacherId);
+        // SECURITY FIX: Use query with owner filter to prevent cross-tenant data access
+        // Performance FIX: Use JOIN FETCH to avoid N+1 queries
+        List<Assignment> assignments = assignmentRepository
+                .findByAssignedBy_IdAndOwner_IdWithDetailsAndIsDeletedFalse(teacherId, ownerId);
         return assignments.stream()
-                .filter(a -> a.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -189,9 +195,10 @@ public class AssignmentServiceImpl implements AssignmentService {
     public List<AssignmentResponse> getAssignmentsByType(Assignment.AssignmentType type, Long ownerId) {
         log.info("Getting assignments with type: {} for owner: {}", type, ownerId);
         
-        List<Assignment> assignments = assignmentRepository.findByAssignmentTypeAndIsDeletedFalse(type);
+        // SECURITY FIX: Use query with owner filter to prevent cross-tenant data access
+        List<Assignment> assignments = assignmentRepository
+                .findByAssignmentTypeAndOwner_IdAndIsDeletedFalse(type, ownerId);
         return assignments.stream()
-                .filter(a -> a.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -201,9 +208,10 @@ public class AssignmentServiceImpl implements AssignmentService {
     public List<AssignmentResponse> getOverdueAssignments(Long ownerId) {
         log.info("Getting overdue assignments for owner: {}", ownerId);
         
-        List<Assignment> assignments = assignmentRepository.findOverdueAssignments(LocalDateTime.now());
+        // SECURITY FIX: Use query with owner filter to prevent cross-tenant data access
+        List<Assignment> assignments = assignmentRepository
+                .findOverdueAssignmentsByOwner(ownerId, LocalDateTime.now());
         return assignments.stream()
-                .filter(a -> a.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -213,9 +221,10 @@ public class AssignmentServiceImpl implements AssignmentService {
     public List<AssignmentResponse> getUpcomingAssignments(Long ownerId) {
         log.info("Getting upcoming assignments for owner: {}", ownerId);
         
-        List<Assignment> assignments = assignmentRepository.findUpcomingAssignments(LocalDateTime.now());
+        // SECURITY FIX: Use query with owner filter to prevent cross-tenant data access
+        List<Assignment> assignments = assignmentRepository
+                .findUpcomingAssignmentsByOwner(ownerId, LocalDateTime.now());
         return assignments.stream()
-                .filter(a -> a.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -225,9 +234,10 @@ public class AssignmentServiceImpl implements AssignmentService {
     public List<AssignmentResponse> getAssignmentsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Long ownerId) {
         log.info("Getting assignments between {} and {} for owner: {}", startDate, endDate, ownerId);
         
-        List<Assignment> assignments = assignmentRepository.findByDueDateBetweenAndIsDeletedFalse(startDate, endDate);
+        // SECURITY FIX: Use query with owner filter to prevent cross-tenant data access
+        List<Assignment> assignments = assignmentRepository
+                .findByDueDateBetweenAndOwner_IdAndIsDeletedFalse(startDate, endDate, ownerId);
         return assignments.stream()
-                .filter(a -> a.getOwner().getId().equals(ownerId))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -246,7 +256,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         log.info("Deleting assignment: {} for owner: {}", id, ownerId);
         
         Assignment assignment = assignmentRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Assignment", id));
         
         assignment.setDeleted(true);
         assignmentRepository.save(assignment);
@@ -259,7 +269,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         log.info("Restoring assignment: {} for owner: {}", id, ownerId);
         
         Assignment assignment = assignmentRepository.findByIdAndOwner_Id(id, ownerId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Assignment", id));
         
         assignment.setDeleted(false);
         assignmentRepository.save(assignment);

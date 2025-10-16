@@ -24,8 +24,34 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     // Find by subject
     List<Assignment> findBySubject_IdAndIsDeletedFalse(Long subjectId);
     
+    // Find by subject with owner filter (multi-tenant) - SECURITY FIX
+    List<Assignment> findBySubject_IdAndOwner_IdAndIsDeletedFalse(Long subjectId, Long ownerId);
+    
+    // Find by subject with owner filter and JOIN FETCH to avoid N+1
+    @Query("SELECT DISTINCT a FROM Assignment a " +
+           "JOIN FETCH a.subject s " +
+           "JOIN FETCH a.schoolClass c " +
+           "JOIN FETCH a.assignedBy t " +
+           "WHERE s.id = :subjectId AND a.owner.id = :ownerId AND a.isDeleted = false")
+    List<Assignment> findBySubject_IdAndOwner_IdWithDetailsAndIsDeletedFalse(
+            @Param("subjectId") Long subjectId, 
+            @Param("ownerId") Long ownerId);
+    
     // Find by teacher
     List<Assignment> findByAssignedBy_IdAndIsDeletedFalse(Long teacherId);
+    
+    // Find by teacher with owner filter (multi-tenant) - SECURITY FIX
+    List<Assignment> findByAssignedBy_IdAndOwner_IdAndIsDeletedFalse(Long teacherId, Long ownerId);
+    
+    // Find by teacher with owner filter and JOIN FETCH
+    @Query("SELECT DISTINCT a FROM Assignment a " +
+           "JOIN FETCH a.subject s " +
+           "JOIN FETCH a.schoolClass c " +
+           "JOIN FETCH a.assignedBy t " +
+           "WHERE t.id = :teacherId AND a.owner.id = :ownerId AND a.isDeleted = false")
+    List<Assignment> findByAssignedBy_IdAndOwner_IdWithDetailsAndIsDeletedFalse(
+            @Param("teacherId") Long teacherId, 
+            @Param("ownerId") Long ownerId);
     
     // Find by status
     Page<Assignment> findByStatusAndIsDeletedFalse(Assignment.AssignmentStatus status, Pageable pageable);
@@ -33,18 +59,41 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     // Find by type
     List<Assignment> findByAssignmentTypeAndIsDeletedFalse(Assignment.AssignmentType type);
     
+    // Find by type with owner filter (multi-tenant) - SECURITY FIX
+    List<Assignment> findByAssignmentTypeAndOwner_IdAndIsDeletedFalse(Assignment.AssignmentType type, Long ownerId);
+    
     // Find overdue assignments
     @Query("SELECT a FROM Assignment a WHERE a.dueDate < :currentDate AND " +
            "a.status IN ('ASSIGNED', 'IN_PROGRESS') AND a.isDeleted = false")
     List<Assignment> findOverdueAssignments(@Param("currentDate") LocalDateTime currentDate);
+    
+    // Find overdue assignments with owner filter (multi-tenant) - SECURITY FIX
+    @Query("SELECT a FROM Assignment a WHERE a.owner.id = :ownerId AND " +
+           "a.dueDate < :currentDate AND " +
+           "a.status IN ('ASSIGNED', 'IN_PROGRESS') AND a.isDeleted = false")
+    List<Assignment> findOverdueAssignmentsByOwner(
+            @Param("ownerId") Long ownerId, 
+            @Param("currentDate") LocalDateTime currentDate);
     
     // Find upcoming assignments
     @Query("SELECT a FROM Assignment a WHERE a.dueDate > :currentDate AND " +
            "a.status = 'ASSIGNED' AND a.isDeleted = false ORDER BY a.dueDate ASC")
     List<Assignment> findUpcomingAssignments(@Param("currentDate") LocalDateTime currentDate);
     
+    // Find upcoming assignments with owner filter (multi-tenant) - SECURITY FIX
+    @Query("SELECT a FROM Assignment a WHERE a.owner.id = :ownerId AND " +
+           "a.dueDate > :currentDate AND " +
+           "a.status = 'ASSIGNED' AND a.isDeleted = false ORDER BY a.dueDate ASC")
+    List<Assignment> findUpcomingAssignmentsByOwner(
+            @Param("ownerId") Long ownerId, 
+            @Param("currentDate") LocalDateTime currentDate);
+    
     // Find assignments by due date range
     List<Assignment> findByDueDateBetweenAndIsDeletedFalse(LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Find assignments by due date range with owner filter (multi-tenant) - SECURITY FIX
+    List<Assignment> findByDueDateBetweenAndOwner_IdAndIsDeletedFalse(
+            LocalDateTime startDate, LocalDateTime endDate, Long ownerId);
     
     // Search assignments
     @Query("SELECT a FROM Assignment a WHERE a.isDeleted = false AND " +

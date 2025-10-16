@@ -21,6 +21,10 @@ public class Attendance extends BaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    // Optimistic Locking - prevents concurrent update conflicts (e.g., marking attendance)
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
