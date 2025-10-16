@@ -100,7 +100,8 @@ public class Fee extends BaseModel {
     private Double installmentAmount;   // Amount per installment (if equal installments)
     
     @lombok.Builder.Default
-    private boolean isInstallmentAllowed = false;  // Whether payment plan is enabled
+    @Column(name = "is_installment_allowed")
+    private boolean installmentAllowed = false;  // Whether payment plan is enabled
     
     // Payment Plan Type
     @Enumerated(EnumType.STRING)

@@ -66,7 +66,7 @@ public class FeeRequest {
     private Long parentId;  // Worker ID of parent/guardian who pays
     
     // ========== NEW FIELDS - INSTALLMENT SUPPORT ==========
-    private boolean isInstallmentAllowed;
+    private boolean installmentAllowed;
     
     private Fee.PaymentPlanType paymentPlanType;
     

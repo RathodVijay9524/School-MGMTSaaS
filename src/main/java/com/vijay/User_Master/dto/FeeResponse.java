@@ -47,7 +47,7 @@ public class FeeResponse {
     private String parentContact;
     
     // ========== NEW FIELDS - INSTALLMENT SUPPORT ==========
-    private boolean isInstallmentAllowed;
+    private boolean installmentAllowed;
     private Fee.PaymentPlanType paymentPlanType;
     private Integer totalInstallments;
     private Integer paidInstallments;

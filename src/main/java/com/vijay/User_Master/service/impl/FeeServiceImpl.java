@@ -120,7 +120,7 @@ public class FeeServiceImpl implements FeeService {
             // NEW FIELDS - Parent/Guardian
             .parent(parent)
             // NEW FIELDS - Installment Support
-            .isInstallmentAllowed(request.isInstallmentAllowed())
+            .installmentAllowed(request.isInstallmentAllowed())
             .paymentPlanType(request.getPaymentPlanType())
             .totalInstallments(request.getTotalInstallments())
             .paidInstallments(0) // Initially zero
@@ -378,7 +378,7 @@ public class FeeServiceImpl implements FeeService {
             .parentName(fee.getParent() != null ? fee.getParent().getName() : null)
             .parentContact(fee.getParent() != null ? fee.getParent().getPhoNo() : null)
             // NEW FIELDS - Installment Support
-            .isInstallmentAllowed(fee.isInstallmentAllowed())
+            .installmentAllowed(fee.isInstallmentAllowed())
             .paymentPlanType(fee.getPaymentPlanType())
             .totalInstallments(fee.getTotalInstallments())
             .paidInstallments(fee.getPaidInstallments())
