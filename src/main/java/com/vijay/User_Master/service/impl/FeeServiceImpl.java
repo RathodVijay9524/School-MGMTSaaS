@@ -330,13 +330,20 @@ public class FeeServiceImpl implements FeeService {
         
         // Load installments manually if payment plan is enabled (handle lazy loading)
         List<FeeInstallmentResponse> installmentResponses = null;
+        log.debug("mapToResponse: Fee ID={}, isInstallmentAllowed={}, hasOwner={}", 
+            fee.getId(), fee.isInstallmentAllowed(), fee.getOwner() != null);
+        
         if (fee.isInstallmentAllowed() && fee.getOwner() != null) {
             List<FeeInstallment> installments = feeInstallmentRepository
                 .findByFee_IdAndOwner_IdAndIsDeletedFalseOrderByInstallmentNumberAsc(fee.getId(), fee.getOwner().getId());
+            log.info("Loaded {} installments for fee ID: {}", 
+                installments != null ? installments.size() : 0, fee.getId());
+            
             if (installments != null && !installments.isEmpty()) {
                 installmentResponses = installments.stream()
                     .map(this::convertInstallmentToResponse)
                     .collect(Collectors.toList());
+                log.info("Converted {} installments to response DTOs", installmentResponses.size());
             }
         }
         
