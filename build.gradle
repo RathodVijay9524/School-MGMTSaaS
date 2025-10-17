@@ -57,6 +57,10 @@ dependencies {
 	// Twilio for SMS & WhatsApp
 	implementation 'com.twilio.sdk:twilio:9.14.1'
 	
+	// Razorpay for Payment Gateway
+	implementation 'com.razorpay:razorpay-java:1.4.4'
+
+
 	// Document processing libraries for RAG
 	implementation 'org.apache.poi:poi:5.2.4'                    // Excel (.xlsx, .xls)
 	implementation 'org.apache.poi:poi-ooxml:5.2.4'              // Excel OOXML
