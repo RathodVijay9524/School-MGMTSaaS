@@ -23,6 +23,9 @@ public class PeerReviewRequest {
     @NotNull(message = "Submission ID is required")
     private Long submissionId;
 
+    @NotNull(message = "Reviewer ID is required")
+    private Long reviewerId;
+
     private Long rubricId;
 
     private String reviewComments;

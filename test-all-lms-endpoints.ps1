@@ -87,15 +87,15 @@ Test-Endpoint "GET /questions/difficulty/{level} (By Difficulty)" "GET" "$baseUr
 Test-Endpoint "GET /questions/type/{type} (By Type)" "GET" "$baseUrl/api/v1/question-bank/questions/type/TRUE_FALSE"
 
 $searchBody = '{"difficulty":"EASY"}' 
-Test-Endpoint "POST /search (Search Questions)" "POST" "$baseUrl/api/v1/question-bank/search" $searchBody
+Test-Endpoint "POST /advanced-search (Search Questions)" "POST" "$baseUrl/api/v1/question-bank/questions/advanced-search" $searchBody
 
 $duplicateBody = "{`"questionId`":$questionId,`"newOwnerId`":1}"
-Test-Endpoint "POST /duplicate (Duplicate Question)" "POST" "$baseUrl/api/v1/question-bank/duplicate" $duplicateBody
+Test-Endpoint "POST /duplicate (Duplicate Question)" "POST" "$baseUrl/api/v1/question-bank/questions/duplicate" $duplicateBody
 
 Test-Endpoint "GET /statistics (Question Statistics)" "GET" "$baseUrl/api/v1/question-bank/statistics"
 
-$gradeBody = "{`"questionId`":$questionId,`"studentAnswer`":`"true`"}"
-Test-Endpoint "POST /auto-grade (Auto Grade)" "POST" "$baseUrl/api/v1/question-bank/auto-grade" $gradeBody
+# Auto-grading is in QuizService, not QuestionBank
+# Skipping for now as it requires a quiz attempt
 
 # Tags
 $tagBody = '{"tagName":"Math","description":"Mathematics tag"}'
@@ -123,15 +123,16 @@ $quizBody = @{
     quizType = "GRADED"
     subjectId = 1
     classId = 1
-    totalMarks = 10.0
-    passingMarks = 6.0
-    duration = 30
+    totalPoints = 10.0
+    passingScore = 6.0
+    timeLimitMinutes = 30
     maxAttempts = 2
     randomizeQuestions = $true
     showCorrectAnswers = $true
     allowReview = $true
     autoGrade = $true
-    published = $false
+    isPublished = $false
+    isActive = $true
 } | ConvertTo-Json
 
 $quiz = Test-Endpoint "POST /quiz (Create Quiz)" "POST" "$baseUrl/api/v1/quiz" $quizBody
@@ -190,7 +191,7 @@ Write-Host "QUESTION POOL MODULE (9 endpoints)" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
 $poolBody = @{
-    name = "Math Pool 1"
+    poolName = "Math Pool 1"
     description = "Pool of math questions"
     subjectId = 1
     isActive = $true
@@ -230,17 +231,18 @@ $assignBody = @{
 Test-Endpoint "POST /peer-review/assign (Assign Reviews)" "POST" "$baseUrl/api/v1/peer-review/assign" $assignBody
 
 $reviewBody = @{
+    assignmentId = 1
     submissionId = 1
     reviewerId = 2
     rubricId = 1
     overallScore = 85.0
-    comments = "Good work"
+    reviewComments = "Good work"
 } | ConvertTo-Json
 
 $review = Test-Endpoint "POST /peer-review (Submit Review)" "POST" "$baseUrl/api/v1/peer-review" $reviewBody
 $reviewId = if ($review) { $review.id } else { 1 }
 
-Test-Endpoint "PUT /peer-review/{id} (Update Review)" "PUT" "$baseUrl/api/v1/peer-review/$reviewId" $reviewBody
+Test-Endpoint "PUT /peer-review/{id}/reviewer/{reviewerId} (Update Review)" "PUT" "$baseUrl/api/v1/peer-review/$reviewId/reviewer/2" $reviewBody
 Test-Endpoint "GET /peer-review/{id} (Get Review)" "GET" "$baseUrl/api/v1/peer-review/$reviewId"
 Test-Endpoint "GET /peer-review/submission/{id} (Reviews by Submission)" "GET" "$baseUrl/api/v1/peer-review/submission/1"
 Test-Endpoint "GET /peer-review/reviewer/{id} (Reviews by Reviewer)" "GET" "$baseUrl/api/v1/peer-review/reviewer/1"
@@ -249,7 +251,7 @@ Test-Endpoint "GET /peer-review/assignment/{id} (Reviews by Assignment)" "GET" "
 $approveBody = '{"reviewId":1,"approved":true,"teacherComments":"Approved"}'
 Test-Endpoint "POST /peer-review/approve (Approve Review)" "POST" "$baseUrl/api/v1/peer-review/approve" $approveBody
 
-Test-Endpoint "GET /peer-review/pending/teacher/{id} (Pending Reviews)" "GET" "$baseUrl/api/v1/peer-review/pending/teacher/1"
+Test-Endpoint "GET /peer-review/pending/reviewer/{id} (Pending Reviews)" "GET" "$baseUrl/api/v1/peer-review/pending/reviewer/1"
 Test-Endpoint "GET /peer-review/statistics/assignment/{id} (Review Statistics)" "GET" "$baseUrl/api/v1/peer-review/statistics/assignment/1"
 Test-Endpoint "DELETE /peer-review/{id} (Delete Review)" "DELETE" "$baseUrl/api/v1/peer-review/$reviewId"
 

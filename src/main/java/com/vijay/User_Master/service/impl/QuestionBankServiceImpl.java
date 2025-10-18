@@ -503,4 +503,31 @@ public class QuestionBankServiceImpl implements QuestionBankService {
                 .description(tag.getDescription())
                 .build();
     }
+
+    @Override
+    public QuestionResponse.QuestionTagResponse getTagById(Long tagId, Long ownerId) {
+        QuestionTag tag = questionTagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        
+        return QuestionResponse.QuestionTagResponse.builder()
+                .id(tag.getId())
+                .tagName(tag.getTagName())
+                .description(tag.getDescription())
+                .build();
+    }
+
+    @Override
+    public void addQuestionsToTag(Long tagId, List<Long> questionIds, Long ownerId) {
+        QuestionTag tag = questionTagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag not found with id: " + tagId));
+        
+        List<Question> questions = questionRepository.findAllById(questionIds);
+        
+        for (Question question : questions) {
+            if (!question.getTags().contains(tag)) {
+                question.getTags().add(tag);
+                questionRepository.save(question);
+            }
+        }
+    }
 }

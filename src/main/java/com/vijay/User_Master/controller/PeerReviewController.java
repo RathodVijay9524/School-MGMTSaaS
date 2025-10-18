@@ -46,7 +46,23 @@ public class PeerReviewController {
     }
 
     /**
-     * Submit a peer review
+     * Submit a peer review (standard POST)
+     */
+    @PostMapping
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    public ResponseEntity<?> createPeerReview(@Valid @RequestBody PeerReviewRequest request) {
+        try {
+            Long ownerId = getOwnerId();
+            Long reviewerId = request.getReviewerId(); // Get from request body
+            PeerReviewResponse response = peerReviewService.submitPeerReview(request, reviewerId, ownerId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error submitting peer review: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Submit a peer review (alternative with path variable)
      */
     @PostMapping("/submit/reviewer/{reviewerId}")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
@@ -156,14 +172,31 @@ public class PeerReviewController {
     /**
      * Teacher approves/rejects a peer review
      */
-    @PostMapping("/approve/teacher/{teacherId}")
+    @PostMapping("/reviews/{reviewId}/approve")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
-    public ResponseEntity<?> approvePeerReview(@PathVariable Long teacherId,
+    public ResponseEntity<?> approvePeerReview(@PathVariable Long reviewId,
                                                  @Valid @RequestBody PeerReviewApprovalRequest request) {
         try {
             Long ownerId = getOwnerId();
-            PeerReviewResponse response = peerReviewService.approvePeerReview(request, teacherId, ownerId);
-            return ResponseEntity.ok(response);
+            Long teacherId = ownerId; // Use current user as teacher
+            peerReviewService.approvePeerReview(request, teacherId, ownerId);
+            return ResponseEntity.ok("Peer review approved successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error approving peer review: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Teacher approves/rejects a peer review (alternative)
+     */
+    @PostMapping("/approve")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<?> approve(@Valid @RequestBody PeerReviewApprovalRequest request) {
+        try {
+            Long ownerId = getOwnerId();
+            Long teacherId = ownerId; // Use current user as teacher
+            peerReviewService.approvePeerReview(request, teacherId, ownerId);
+            return ResponseEntity.ok("Peer review approved successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error approving peer review: " + e.getMessage());
         }

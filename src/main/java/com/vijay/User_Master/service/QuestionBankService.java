@@ -104,6 +104,16 @@ public interface QuestionBankService {
     List<QuestionResponse.QuestionTagResponse> getAllTags(Long ownerId);
 
     /**
+     * Get tag by ID
+     */
+    QuestionResponse.QuestionTagResponse getTagById(Long tagId, Long ownerId);
+
+    /**
+     * Add questions to tag
+     */
+    void addQuestionsToTag(Long tagId, List<Long> questionIds, Long ownerId);
+
+    /**
      * Delete tag
      */
     void deleteTag(Long tagId, Long ownerId);

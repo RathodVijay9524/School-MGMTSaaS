@@ -299,6 +299,36 @@ public class QuestionBankController {
     }
 
     /**
+     * Get tag by ID
+     */
+    @GetMapping("/tags/{tagId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<?> getTagById(@PathVariable Long tagId) {
+        try {
+            Long ownerId = getOwnerId();
+            QuestionResponse.QuestionTagResponse response = questionBankService.getTagById(tagId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching tag: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Add questions to a tag
+     */
+    @PostMapping("/tags/{tagId}/add-questions")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<?> addQuestionsToTag(@PathVariable Long tagId, @RequestBody List<Long> questionIds) {
+        try {
+            Long ownerId = getOwnerId();
+            questionBankService.addQuestionsToTag(tagId, questionIds, ownerId);
+            return ResponseEntity.ok("Questions added to tag successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error adding questions to tag: " + e.getMessage());
+        }
+    }
+
+    /**
      * Delete a tag
      */
     @DeleteMapping("/tags/{tagId}")
