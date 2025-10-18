@@ -34,6 +34,9 @@ public class TutoringController {
     @Autowired
     private WorkerRepository workerRepository;
 
+    @Autowired
+    private com.vijay.User_Master.service.AdaptiveLearningService adaptiveLearningService;
+
     // Tutoring Session endpoints
     @PostMapping("/sessions")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
@@ -560,6 +563,178 @@ public class TutoringController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error searching learning modules: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    // ==================== ADAPTIVE LEARNING ENDPOINTS ====================
+
+    @PostMapping("/adaptive/record-interaction")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> recordLearningInteraction(@RequestBody LearningInteractionRequest request) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            SkillMasteryResponse response = adaptiveLearningService.recordInteraction(request, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error recording interaction: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/next-module")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getNextModule(@RequestParam Long studentId, @RequestParam Long subjectId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            AdaptiveRecommendationResponse response = adaptiveLearningService.getNextModule(studentId, subjectId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting next module: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/review-queue/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getReviewQueue(@PathVariable Long studentId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            List<AdaptiveRecommendationResponse> response = adaptiveLearningService.getReviewQueue(studentId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting review queue: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/mastery/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getStudentMastery(@PathVariable Long studentId, @RequestParam(required = false) Long subjectId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            List<SkillMasteryResponse> response = adaptiveLearningService.getStudentMastery(studentId, subjectId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting student mastery: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/diagnostic/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> getDiagnosticAssessment(@PathVariable Long studentId, @RequestParam Long subjectId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            List<AdaptiveRecommendationResponse> response = adaptiveLearningService.getDiagnosticAssessment(studentId, subjectId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting diagnostic assessment: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/remedial/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getRemedialContent(@PathVariable Long studentId, @RequestParam String skillKey) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            List<AdaptiveRecommendationResponse> response = adaptiveLearningService.getRemedialContent(studentId, skillKey, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting remedial content: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/skills-needing-attention/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getSkillsNeedingAttention(@PathVariable Long studentId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            List<SkillMasteryResponse> response = adaptiveLearningService.getSkillsNeedingAttention(studentId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting skills needing attention: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/mastered-skills/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getMasteredSkills(@PathVariable Long studentId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            List<SkillMasteryResponse> response = adaptiveLearningService.getMasteredSkills(studentId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting mastered skills: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/statistics/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER', 'STUDENT')")
+    public ResponseEntity<?> getAdaptiveLearningStatistics(@PathVariable Long studentId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            Map<String, Object> response = adaptiveLearningService.getAdaptiveLearningStatistics(studentId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting adaptive learning statistics: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/velocity-trends/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> getVelocityTrends(@PathVariable Long studentId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            Map<String, Object> response = adaptiveLearningService.getVelocityTrends(studentId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting velocity trends: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/adaptive/prerequisite-bottlenecks")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> getPrerequisiteBottlenecks(@RequestParam Long subjectId) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            Map<String, Object> response = adaptiveLearningService.getPrerequisiteBottlenecks(subjectId, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting prerequisite bottlenecks: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/adaptive/adjust-mastery")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> adjustMastery(@RequestParam Long studentId, @RequestParam String skillKey, 
+                                           @RequestParam Double newMasteryLevel, @RequestParam String reason) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            SkillMasteryResponse response = adaptiveLearningService.adjustMastery(studentId, skillKey, newMasteryLevel, reason, ownerId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error adjusting mastery: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/adaptive/reset-mastery")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER', 'TEACHER')")
+    public ResponseEntity<?> resetSkillMastery(@RequestParam Long studentId, @RequestParam String skillKey) {
+        try {
+            Long ownerId = getCorrectOwnerId();
+            adaptiveLearningService.resetSkillMastery(studentId, skillKey, ownerId);
+            return ResponseEntity.ok("Skill mastery reset successfully");
+        } catch (Exception e) {
+            log.error("Error resetting skill mastery: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
