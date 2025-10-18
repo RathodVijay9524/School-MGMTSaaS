@@ -1,7 +1,7 @@
 package com.vijay.User_Master.service;
 
 import com.vijay.User_Master.dto.RubricRequest;
-import com.vijay.User_Master.entity.Rubric;
+import com.vijay.User_Master.dto.RubricResponse;
 
 import java.util.List;
 
@@ -13,32 +13,32 @@ public interface RubricService {
     /**
      * Create a new rubric
      */
-    Rubric createRubric(RubricRequest request, Long ownerId);
+    RubricResponse createRubric(RubricRequest request, Long ownerId);
 
     /**
      * Update rubric
      */
-    Rubric updateRubric(Long id, RubricRequest request, Long ownerId);
+    RubricResponse updateRubric(Long id, RubricRequest request, Long ownerId);
 
     /**
      * Get rubric by ID
      */
-    Rubric getRubricById(Long id, Long ownerId);
+    RubricResponse getRubricById(Long id, Long ownerId);
 
     /**
      * Get all rubrics for owner
      */
-    List<Rubric> getAllRubrics(Long ownerId);
+    List<RubricResponse> getAllRubrics(Long ownerId);
 
     /**
      * Get rubrics by subject
      */
-    List<Rubric> getRubricsBySubject(Long subjectId, Long ownerId);
+    List<RubricResponse> getRubricsBySubject(Long subjectId, Long ownerId);
 
     /**
      * Get rubrics by type
      */
-    List<Rubric> getRubricsByType(String rubricType, Long ownerId);
+    List<RubricResponse> getRubricsByType(String rubricType, Long ownerId);
 
     /**
      * Delete rubric
@@ -48,5 +48,5 @@ public interface RubricService {
     /**
      * Search rubrics by name
      */
-    List<Rubric> searchRubrics(String keyword, Long ownerId);
+    List<RubricResponse> searchRubrics(String keyword, Long ownerId);
 }

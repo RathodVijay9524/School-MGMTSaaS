@@ -5,7 +5,7 @@ import com.vijay.User_Master.config.security.CustomUserDetails;
 import com.vijay.User_Master.dto.AIGradingRequest;
 import com.vijay.User_Master.dto.AIGradingResponse;
 import com.vijay.User_Master.dto.RubricRequest;
-import com.vijay.User_Master.entity.Rubric;
+import com.vijay.User_Master.dto.RubricResponse;
 import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.service.AIGradingService;
@@ -203,7 +203,7 @@ public class AIGradingController {
     public ResponseEntity<?> createRubric(@Valid @RequestBody RubricRequest request) {
         try {
             Long ownerId = getCorrectOwnerId();
-            Rubric rubric = rubricService.createRubric(request, ownerId);
+            RubricResponse rubric = rubricService.createRubric(request, ownerId);
             return ResponseEntity.status(HttpStatus.CREATED).body(rubric);
         } catch (Exception e) {
             log.error("Error creating rubric: {}", e.getMessage(), e);
@@ -217,7 +217,7 @@ public class AIGradingController {
     public ResponseEntity<?> getRubricById(@PathVariable Long id) {
         try {
             Long ownerId = getCorrectOwnerId();
-            Rubric rubric = rubricService.getRubricById(id, ownerId);
+            RubricResponse rubric = rubricService.getRubricById(id, ownerId);
             return ResponseEntity.ok(rubric);
         } catch (Exception e) {
             log.error("Error getting rubric: {}", e.getMessage(), e);
@@ -231,7 +231,7 @@ public class AIGradingController {
     public ResponseEntity<?> getAllRubrics() {
         try {
             Long ownerId = getCorrectOwnerId();
-            List<Rubric> rubrics = rubricService.getAllRubrics(ownerId);
+            List<RubricResponse> rubrics = rubricService.getAllRubrics(ownerId);
             return ResponseEntity.ok(rubrics);
         } catch (Exception e) {
             log.error("Error getting rubrics: {}", e.getMessage(), e);
@@ -245,7 +245,7 @@ public class AIGradingController {
     public ResponseEntity<?> getRubricsBySubject(@PathVariable Long subjectId) {
         try {
             Long ownerId = getCorrectOwnerId();
-            List<Rubric> rubrics = rubricService.getRubricsBySubject(subjectId, ownerId);
+            List<RubricResponse> rubrics = rubricService.getRubricsBySubject(subjectId, ownerId);
             return ResponseEntity.ok(rubrics);
         } catch (Exception e) {
             log.error("Error getting rubrics by subject: {}", e.getMessage(), e);
@@ -259,7 +259,7 @@ public class AIGradingController {
     public ResponseEntity<?> getRubricsByType(@PathVariable String rubricType) {
         try {
             Long ownerId = getCorrectOwnerId();
-            List<Rubric> rubrics = rubricService.getRubricsByType(rubricType, ownerId);
+            List<RubricResponse> rubrics = rubricService.getRubricsByType(rubricType, ownerId);
             return ResponseEntity.ok(rubrics);
         } catch (Exception e) {
             log.error("Error getting rubrics by type: {}", e.getMessage(), e);
@@ -273,7 +273,7 @@ public class AIGradingController {
     public ResponseEntity<?> updateRubric(@PathVariable Long id, @Valid @RequestBody RubricRequest request) {
         try {
             Long ownerId = getCorrectOwnerId();
-            Rubric rubric = rubricService.updateRubric(id, request, ownerId);
+            RubricResponse rubric = rubricService.updateRubric(id, request, ownerId);
             return ResponseEntity.ok(rubric);
         } catch (Exception e) {
             log.error("Error updating rubric: {}", e.getMessage(), e);
@@ -301,7 +301,7 @@ public class AIGradingController {
     public ResponseEntity<?> searchRubrics(@RequestParam String keyword) {
         try {
             Long ownerId = getCorrectOwnerId();
-            List<Rubric> rubrics = rubricService.searchRubrics(keyword, ownerId);
+            List<RubricResponse> rubrics = rubricService.searchRubrics(keyword, ownerId);
             return ResponseEntity.ok(rubrics);
         } catch (Exception e) {
             log.error("Error searching rubrics: {}", e.getMessage(), e);

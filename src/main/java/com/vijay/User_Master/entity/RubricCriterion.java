@@ -1,5 +1,6 @@
 package com.vijay.User_Master.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +27,7 @@ public class RubricCriterion extends BaseModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rubric_id", nullable = false)
+    @JsonBackReference
     private Rubric rubric;
 
     @Column(nullable = false)

@@ -1,6 +1,7 @@
 package com.vijay.User_Master.service.impl;
 
 import com.vijay.User_Master.dto.RubricRequest;
+import com.vijay.User_Master.dto.RubricResponse;
 import com.vijay.User_Master.entity.Rubric;
 import com.vijay.User_Master.entity.RubricCriterion;
 import com.vijay.User_Master.entity.Subject;
@@ -41,7 +42,7 @@ public class RubricServiceImpl implements RubricService {
     private WorkerRepository workerRepository;
 
     @Override
-    public Rubric createRubric(RubricRequest request, Long ownerId) {
+    public RubricResponse createRubric(RubricRequest request, Long ownerId) {
         log.info("Creating rubric: {} for owner: {}", request.getName(), ownerId);
 
         User owner = userRepository.findById(ownerId)
@@ -84,11 +85,11 @@ public class RubricServiceImpl implements RubricService {
 
         Rubric saved = rubricRepository.save(rubric);
         log.info("Rubric created successfully with ID: {}", saved.getId());
-        return saved;
+        return mapToResponse(saved);
     }
 
     @Override
-    public Rubric updateRubric(Long id, RubricRequest request, Long ownerId) {
+    public RubricResponse updateRubric(Long id, RubricRequest request, Long ownerId) {
         log.info("Updating rubric: {}", id);
 
         Rubric rubric = rubricRepository.findById(id)
@@ -130,11 +131,12 @@ public class RubricServiceImpl implements RubricService {
             }
         }
 
-        return rubricRepository.save(rubric);
+        Rubric updated = rubricRepository.save(rubric);
+        return mapToResponse(updated);
     }
 
     @Override
-    public Rubric getRubricById(Long id, Long ownerId) {
+    public RubricResponse getRubricById(Long id, Long ownerId) {
         Rubric rubric = rubricRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rubric", "id", id));
 
@@ -142,23 +144,29 @@ public class RubricServiceImpl implements RubricService {
             throw new RuntimeException("Unauthorized access to rubric");
         }
 
-        return rubric;
+        return mapToResponse(rubric);
     }
 
     @Override
-    public List<Rubric> getAllRubrics(Long ownerId) {
-        return rubricRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
+    public List<RubricResponse> getAllRubrics(Long ownerId) {
+        return rubricRepository.findByOwnerIdAndIsDeletedFalse(ownerId).stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
-    public List<Rubric> getRubricsBySubject(Long subjectId, Long ownerId) {
-        return rubricRepository.findBySubjectIdAndIsDeletedFalse(subjectId);
+    public List<RubricResponse> getRubricsBySubject(Long subjectId, Long ownerId) {
+        return rubricRepository.findBySubjectIdAndIsDeletedFalse(subjectId).stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
-    public List<Rubric> getRubricsByType(String rubricType, Long ownerId) {
+    public List<RubricResponse> getRubricsByType(String rubricType, Long ownerId) {
         return rubricRepository.findByRubricTypeAndOwnerIdAndIsDeletedFalse(
-                Rubric.RubricType.valueOf(rubricType), ownerId);
+                Rubric.RubricType.valueOf(rubricType), ownerId).stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
@@ -177,7 +185,38 @@ public class RubricServiceImpl implements RubricService {
     }
 
     @Override
-    public List<Rubric> searchRubrics(String keyword, Long ownerId) {
-        return rubricRepository.searchByName(ownerId, keyword);
+    public List<RubricResponse> searchRubrics(String keyword, Long ownerId) {
+        return rubricRepository.searchByName(ownerId, keyword).stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private RubricResponse mapToResponse(Rubric rubric) {
+        return RubricResponse.builder()
+                .id(rubric.getId())
+                .name(rubric.getName())
+                .description(rubric.getDescription())
+                .subjectId(rubric.getSubject() != null ? rubric.getSubject().getId() : null)
+                .subjectName(rubric.getSubject() != null ? rubric.getSubject().getSubjectName() : null)
+                .totalPoints(rubric.getTotalPoints())
+                .isActive(rubric.getIsActive())
+                .rubricType(rubric.getRubricType() != null ? rubric.getRubricType().name() : null)
+                .criteria(rubric.getCriteria().stream()
+                        .map(c -> RubricResponse.RubricCriterionResponse.builder()
+                                .id(c.getId())
+                                .name(c.getName())
+                                .description(c.getDescription())
+                                .maxPoints(c.getMaxPoints())
+                                .weightPercentage(c.getWeightPercentage())
+                                .orderIndex(c.getOrderIndex())
+                                .excellentDescription(c.getExcellentDescription())
+                                .goodDescription(c.getGoodDescription())
+                                .satisfactoryDescription(c.getSatisfactoryDescription())
+                                .needsImprovementDescription(c.getNeedsImprovementDescription())
+                                .build())
+                        .collect(java.util.stream.Collectors.toList()))
+                .createdByTeacherId(rubric.getCreatedByTeacher() != null ? rubric.getCreatedByTeacher().getId() : null)
+                .createdByTeacherName(rubric.getCreatedByTeacher() != null ? rubric.getCreatedByTeacher().getName() : null)
+                .build();
     }
 }

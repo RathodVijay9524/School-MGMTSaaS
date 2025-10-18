@@ -1,5 +1,6 @@
 package com.vijay.User_Master.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,6 +51,7 @@ public class Rubric extends BaseModel {
 
     @OneToMany(mappedBy = "rubric", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonManagedReference
     private List<RubricCriterion> criteria = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
