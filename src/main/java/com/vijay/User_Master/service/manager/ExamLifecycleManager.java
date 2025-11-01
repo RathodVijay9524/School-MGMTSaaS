@@ -202,7 +202,7 @@ public class ExamLifecycleManager {
         return "Parents notified: "+notified;
     }
 
-    @Tool(description = "Get exam lifecycle run state. Inputs: runId. Returns state JSON.")
+    @Tool(name = "examsGetRunState", description = "Get Exam lifecycle run state. Inputs: runId. Returns state JSON.")
     public String getRunState(String runId) {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";

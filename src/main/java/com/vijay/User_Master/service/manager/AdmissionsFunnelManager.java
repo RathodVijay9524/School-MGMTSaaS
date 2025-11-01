@@ -341,7 +341,7 @@ public class AdmissionsFunnelManager {
                 : ("Student created with ID: " + state.getCreatedStudentId() + ". Class set. Awaiting fee payment to complete.");
     }
 
-    @Tool(description = "Get run state. Inputs: runId. Returns state JSON.")
+    @Tool(name = "admissionsGetRunState", description = "Get Admissions run state. Inputs: runId. Returns state JSON.")
     public String getRunState(String runId) {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
