@@ -25,6 +25,9 @@ import com.vijay.User_Master.service.impl.UserServiceImpl;
 import com.vijay.User_Master.service.impl.WhatsAppServiceImpl;
 import com.vijay.User_Master.service.impl.WorkerUserServiceImpl;
 import com.vijay.User_Master.service.impl.RagEnhancedServiceImpl;
+import com.vijay.User_Master.service.manager.AtRiskStudentAgentManager;
+import com.vijay.User_Master.service.manager.AdvancedTutorAgentManager;
+import com.vijay.User_Master.service.manager.PeerReviewAgentManager;
 // import com.vijay.User_Master.service.impl.DocumentServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
@@ -91,7 +94,10 @@ class ToolConfig {
         TimetableServiceImpl timetableService,
         FileServiceImpl fileService,
         HomeServiceImpl homeService,
-        RagEnhancedServiceImpl ragEnhancedService
+        RagEnhancedServiceImpl ragEnhancedService,
+        AtRiskStudentAgentManager atRiskStudentAgentManager,
+        AdvancedTutorAgentManager advancedTutorAgentManager,
+        PeerReviewAgentManager peerReviewAgentManager
         // DocumentServiceImpl documentService - removed as it has no @Tool methods
     ) {
         return MethodToolCallbackProvider.builder()
@@ -118,7 +124,10 @@ class ToolConfig {
                     timetableService,
                     fileService,
                     homeService,
-                    ragEnhancedService
+                    ragEnhancedService,
+                    atRiskStudentAgentManager,
+                    advancedTutorAgentManager,
+                    peerReviewAgentManager
                     // documentService - removed as it has no @Tool methods
                 )
                 .build();
