@@ -4,6 +4,7 @@ import com.vijay.User_Master.service.manager.AtRiskStudentAgentManager;
 import com.vijay.User_Master.service.manager.AdvancedTutorAgentManager;
 import com.vijay.User_Master.service.manager.PeerReviewAgentManager;
 import com.vijay.User_Master.service.manager.AdmissionsFunnelManager;
+import com.vijay.User_Master.service.manager.ExamLifecycleManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ public class ManagerAgentController {
     private final AdvancedTutorAgentManager advancedTutorAgentManager;
     private final PeerReviewAgentManager peerReviewAgentManager;
     private final AdmissionsFunnelManager admissionsFunnelManager;
+    private final ExamLifecycleManager examLifecycleManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -122,5 +124,50 @@ public class ManagerAgentController {
     @GetMapping("/admissions/state")
     public String admissionsGetState(@RequestParam String runId) {
         return admissionsFunnelManager.getRunState(runId);
+    }
+
+    // ===================== EXAM LIFECYCLE =====================
+
+    @PostMapping("/exams/start")
+    public String examStart(
+            @RequestParam Long examId,
+            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) Long subjectId,
+            @RequestParam(required = false) Long rubricId) {
+        return examLifecycleManager.startExamLifecycle(examId, classId, subjectId, rubricId);
+    }
+
+    @PostMapping("/exams/reminder")
+    public String examReminder(@RequestParam String runId) {
+        return examLifecycleManager.sendExamReminder(runId);
+    }
+
+    @PostMapping("/exams/collect-submissions")
+    public String examCollectSubmissions(
+            @RequestParam String runId,
+            @RequestParam String submissionIdsCsv) {
+        return examLifecycleManager.collectSubmissions(runId, submissionIdsCsv);
+    }
+
+    @PostMapping("/exams/grade-batch")
+    public String examGradeBatch(@RequestParam String runId) {
+        return examLifecycleManager.aiGradeBatch(runId);
+    }
+
+    @PostMapping("/exams/publish")
+    public String examPublish(@RequestParam String runId) {
+        return examLifecycleManager.publishResults(runId);
+    }
+
+    @PostMapping("/exams/notify-parents")
+    public String examNotifyParents(
+            @RequestParam String runId,
+            @RequestParam(required = false) String studentIdsCsv) {
+        return examLifecycleManager.notifyParents(runId, studentIdsCsv);
+    }
+
+    @GetMapping("/exams/state")
+    public String examGetState(@RequestParam String runId) {
+        return examLifecycleManager.getRunState(runId);
     }
 }

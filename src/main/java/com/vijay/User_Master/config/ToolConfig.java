@@ -29,6 +29,7 @@ import com.vijay.User_Master.service.manager.AtRiskStudentAgentManager;
 import com.vijay.User_Master.service.manager.AdvancedTutorAgentManager;
 import com.vijay.User_Master.service.manager.PeerReviewAgentManager;
 import com.vijay.User_Master.service.manager.AdmissionsFunnelManager;
+import com.vijay.User_Master.service.manager.ExamLifecycleManager;
 // import com.vijay.User_Master.service.impl.DocumentServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
@@ -99,7 +100,8 @@ class ToolConfig {
         AtRiskStudentAgentManager atRiskStudentAgentManager,
         AdvancedTutorAgentManager advancedTutorAgentManager,
         PeerReviewAgentManager peerReviewAgentManager,
-        AdmissionsFunnelManager admissionsFunnelManager
+        AdmissionsFunnelManager admissionsFunnelManager,
+        ExamLifecycleManager examLifecycleManager
         // DocumentServiceImpl documentService - removed as it has no @Tool methods
     ) {
         return MethodToolCallbackProvider.builder()
@@ -130,7 +132,8 @@ class ToolConfig {
                     atRiskStudentAgentManager,
                     advancedTutorAgentManager,
                     peerReviewAgentManager,
-                    admissionsFunnelManager
+                    admissionsFunnelManager,
+                    examLifecycleManager
                     // documentService - removed as it has no @Tool methods
                 )
                 .build();
