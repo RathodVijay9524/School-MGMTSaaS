@@ -5,6 +5,7 @@ import com.vijay.User_Master.service.manager.AdvancedTutorAgentManager;
 import com.vijay.User_Master.service.manager.PeerReviewAgentManager;
 import com.vijay.User_Master.service.manager.AdmissionsFunnelManager;
 import com.vijay.User_Master.service.manager.ExamLifecycleManager;
+import com.vijay.User_Master.service.manager.FeeRecoveryManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ public class ManagerAgentController {
     private final PeerReviewAgentManager peerReviewAgentManager;
     private final AdmissionsFunnelManager admissionsFunnelManager;
     private final ExamLifecycleManager examLifecycleManager;
+    private final FeeRecoveryManager feeRecoveryManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -169,5 +171,42 @@ public class ManagerAgentController {
     @GetMapping("/exams/state")
     public String examGetState(@RequestParam String runId) {
         return examLifecycleManager.getRunState(runId);
+    }
+
+    // ===================== FEE RECOVERY =====================
+
+    @PostMapping("/fees/recovery/start")
+    public String feesStart(@RequestParam(required = false) Long studentId) {
+        return feeRecoveryManager.startFeeRecovery(studentId);
+    }
+
+    @PostMapping("/fees/recovery/reminder")
+    public String feesSendReminder(@RequestParam String runId, @RequestParam String stage) {
+        return feeRecoveryManager.sendReminder(runId, stage);
+    }
+
+    @PostMapping("/fees/recovery/plan")
+    public String feesDecidePlan(
+            @RequestParam String runId,
+            @RequestParam(required = false) Boolean installmentPlan,
+            @RequestParam(required = false) Integer installmentCount,
+            @RequestParam(required = false) Double waiverAmount,
+            @RequestParam(required = false) String waiverReason) {
+        return feeRecoveryManager.decidePlan(runId, installmentPlan, installmentCount, waiverAmount, waiverReason);
+    }
+
+    @PostMapping("/fees/recovery/mark-payment")
+    public String feesMarkPayment(
+            @RequestParam String runId,
+            @RequestParam Long feeId,
+            @RequestParam Double amount,
+            @RequestParam String method,
+            @RequestParam(required = false) String transactionId) {
+        return feeRecoveryManager.markPayment(runId, feeId, amount, method, transactionId);
+    }
+
+    @GetMapping("/fees/recovery/state")
+    public String feesGetState(@RequestParam String runId) {
+        return feeRecoveryManager.getRunState(runId);
     }
 }
