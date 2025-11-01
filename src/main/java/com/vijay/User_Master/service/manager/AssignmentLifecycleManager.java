@@ -118,7 +118,7 @@ public class AssignmentLifecycleManager {
             req.setRandomAssignment(state.getRandomAssignment());
             req.setAllowSelfReview(state.getAllowSelfReview());
             req.setAnonymousReview(state.getAnonymousReview());
-            PeerReviewAssignmentResponse resp = peerReviewService.assignPeerReviews(req);
+            PeerReviewAssignmentResponse resp = peerReviewService.assignPeerReviews(req, ownerId);
             persistState(run, state, "peer_review_round", "RUNNING");
             saveStep(run, "peer_review_round", req, resp, "OK", null);
         } catch (Exception e) {
@@ -127,7 +127,7 @@ public class AssignmentLifecycleManager {
         return runId;
     }
 
-    @Tool(description = "Collect submissions for assignment. Inputs: runId, submissionIdsCsv. Returns total count.")
+    @Tool(name = "assignmentsCollectSubmissions", description = "Collect submissions for assignment. Inputs: runId, submissionIdsCsv. Returns total count.")
     public String collectSubmissions(String runId, String submissionIdsCsv) {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
@@ -143,7 +143,7 @@ public class AssignmentLifecycleManager {
         return "Collected submissions: " + state.getSubmissionIds().size();
     }
 
-    @Tool(description = "AI grade submissions (includes cheating/plagiarism checks handled inside service). Inputs: runId. Returns graded count.")
+    @Tool(name = "assignmentsAiGradeBatch", description = "AI grade submissions (includes cheating/plagiarism checks handled inside service). Inputs: runId. Returns graded count.")
     public String aiGradeBatch(String runId) {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
