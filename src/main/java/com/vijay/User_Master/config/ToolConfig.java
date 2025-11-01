@@ -31,6 +31,7 @@ import com.vijay.User_Master.service.manager.PeerReviewAgentManager;
 import com.vijay.User_Master.service.manager.AdmissionsFunnelManager;
 import com.vijay.User_Master.service.manager.ExamLifecycleManager;
 import com.vijay.User_Master.service.manager.FeeRecoveryManager;
+import com.vijay.User_Master.service.manager.AssignmentLifecycleManager;
 // import com.vijay.User_Master.service.impl.DocumentServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
@@ -103,7 +104,8 @@ class ToolConfig {
         PeerReviewAgentManager peerReviewAgentManager,
         AdmissionsFunnelManager admissionsFunnelManager,
         ExamLifecycleManager examLifecycleManager,
-        FeeRecoveryManager feeRecoveryManager
+        FeeRecoveryManager feeRecoveryManager,
+        AssignmentLifecycleManager assignmentLifecycleManager
         // DocumentServiceImpl documentService - removed as it has no @Tool methods
     ) {
         return MethodToolCallbackProvider.builder()
@@ -136,7 +138,8 @@ class ToolConfig {
                     peerReviewAgentManager,
                     admissionsFunnelManager,
                     examLifecycleManager,
-                    feeRecoveryManager
+                    feeRecoveryManager,
+                    assignmentLifecycleManager
                     // documentService - removed as it has no @Tool methods
                 )
                 .build();

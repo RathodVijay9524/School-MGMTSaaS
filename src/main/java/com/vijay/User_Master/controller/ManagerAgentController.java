@@ -6,6 +6,7 @@ import com.vijay.User_Master.service.manager.PeerReviewAgentManager;
 import com.vijay.User_Master.service.manager.AdmissionsFunnelManager;
 import com.vijay.User_Master.service.manager.ExamLifecycleManager;
 import com.vijay.User_Master.service.manager.FeeRecoveryManager;
+import com.vijay.User_Master.service.manager.AssignmentLifecycleManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class ManagerAgentController {
     private final AdmissionsFunnelManager admissionsFunnelManager;
     private final ExamLifecycleManager examLifecycleManager;
     private final FeeRecoveryManager feeRecoveryManager;
+    private final AssignmentLifecycleManager assignmentLifecycleManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -208,5 +210,43 @@ public class ManagerAgentController {
     @GetMapping("/fees/recovery/state")
     public String feesGetState(@RequestParam String runId) {
         return feeRecoveryManager.getRunState(runId);
+    }
+
+    // ===================== ASSIGNMENT LIFECYCLE + CHEATING REVIEW =====================
+
+    @PostMapping("/assignments/start")
+    public String assignmentStart(
+            @RequestParam Long assignmentId,
+            @RequestParam(defaultValue = "3") Integer reviewsPerSubmission,
+            @RequestParam(required = false) Long rubricId,
+            @RequestParam(required = false, defaultValue = "true") Boolean randomAssignment,
+            @RequestParam(required = false, defaultValue = "false") Boolean allowSelfReview,
+            @RequestParam(required = false, defaultValue = "true") Boolean anonymousReview) {
+        return assignmentLifecycleManager.startAssignmentLifecycle(assignmentId, reviewsPerSubmission, rubricId, randomAssignment, allowSelfReview, anonymousReview);
+    }
+
+    @PostMapping("/assignments/collect-submissions")
+    public String assignmentCollectSubmissions(@RequestParam String runId, @RequestParam String submissionIdsCsv) {
+        return assignmentLifecycleManager.collectSubmissions(runId, submissionIdsCsv);
+    }
+
+    @PostMapping("/assignments/grade-batch")
+    public String assignmentGradeBatch(@RequestParam String runId) {
+        return assignmentLifecycleManager.aiGradeBatch(runId);
+    }
+
+    @PostMapping("/assignments/teacher-gate")
+    public String assignmentTeacherGate(@RequestParam String runId) {
+        return assignmentLifecycleManager.teacherReviewGate(runId);
+    }
+
+    @PostMapping("/assignments/publish")
+    public String assignmentPublish(@RequestParam String runId) {
+        return assignmentLifecycleManager.publishGrades(runId);
+    }
+
+    @GetMapping("/assignments/state")
+    public String assignmentGetState(@RequestParam String runId) {
+        return assignmentLifecycleManager.getRunState(runId);
     }
 }
