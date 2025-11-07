@@ -8,6 +8,7 @@ import com.vijay.User_Master.service.manager.ExamLifecycleManager;
 import com.vijay.User_Master.service.manager.FeeRecoveryManager;
 import com.vijay.User_Master.service.manager.AssignmentLifecycleManager;
 import com.vijay.User_Master.service.manager.LibraryOverdueManager;
+import com.vijay.User_Master.service.manager.EventTripOrchestrationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,7 @@ public class ManagerAgentController {
     private final FeeRecoveryManager feeRecoveryManager;
     private final AssignmentLifecycleManager assignmentLifecycleManager;
     private final LibraryOverdueManager libraryOverdueManager;
+    private final EventTripOrchestrationManager eventTripOrchestrationManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -286,5 +288,37 @@ public class ManagerAgentController {
     @GetMapping("/library/overdue/state")
     public String libraryOverdueState(@RequestParam String runId) {
         return libraryOverdueManager.getRunState(runId);
+    }
+
+    // ===================== EVENT/TRIP ORCHESTRATION =====================
+
+    @PostMapping("/events/orch/start")
+    public String eventsStart(@RequestParam Long eventId) {
+        return eventTripOrchestrationManager.startOrchestration(eventId);
+    }
+
+    @PostMapping("/events/orch/open-registration")
+    public String eventsOpenRegistration(@RequestParam String runId) {
+        return eventTripOrchestrationManager.openRegistration(runId);
+    }
+
+    @PostMapping("/events/orch/build-roster")
+    public String eventsBuildRoster(@RequestParam String runId, @RequestParam(required = false) Integer targetCount) {
+        return eventTripOrchestrationManager.buildRoster(runId, targetCount);
+    }
+
+    @PostMapping("/events/orch/dispatch")
+    public String eventsDispatch(@RequestParam String runId) {
+        return eventTripOrchestrationManager.dispatch(runId);
+    }
+
+    @PostMapping("/events/orch/post-report")
+    public String eventsPostReport(@RequestParam String runId) {
+        return eventTripOrchestrationManager.postReport(runId);
+    }
+
+    @GetMapping("/events/orch/state")
+    public String eventsGetState(@RequestParam String runId) {
+        return eventTripOrchestrationManager.getRunState(runId);
     }
 }

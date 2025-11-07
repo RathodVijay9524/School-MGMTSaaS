@@ -33,6 +33,7 @@ import com.vijay.User_Master.service.manager.ExamLifecycleManager;
 import com.vijay.User_Master.service.manager.FeeRecoveryManager;
 import com.vijay.User_Master.service.manager.AssignmentLifecycleManager;
 import com.vijay.User_Master.service.manager.LibraryOverdueManager;
+import com.vijay.User_Master.service.manager.EventTripOrchestrationManager;
 // import com.vijay.User_Master.service.impl.DocumentServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
@@ -107,7 +108,8 @@ class ToolConfig {
         ExamLifecycleManager examLifecycleManager,
         FeeRecoveryManager feeRecoveryManager,
         AssignmentLifecycleManager assignmentLifecycleManager,
-        LibraryOverdueManager libraryOverdueManager
+        LibraryOverdueManager libraryOverdueManager,
+        EventTripOrchestrationManager eventTripOrchestrationManager
         // DocumentServiceImpl documentService - removed as it has no @Tool methods
     ) {
         return MethodToolCallbackProvider.builder()
@@ -142,7 +144,8 @@ class ToolConfig {
                     examLifecycleManager,
                     feeRecoveryManager,
                     assignmentLifecycleManager,
-                    libraryOverdueManager
+                    libraryOverdueManager,
+                    eventTripOrchestrationManager
                     // documentService - removed as it has no @Tool methods
                 )
                 .build();
