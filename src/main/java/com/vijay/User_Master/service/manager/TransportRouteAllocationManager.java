@@ -148,7 +148,8 @@ public class TransportRouteAllocationManager {
 
         int assigned = 0;
         List<Long> unassigned = new ArrayList<>();
-        for (Long sid : state.getCandidateStudentIds() != null ? state.getCandidateStudentIds() : List.of()) {
+        List<Long> candidates = state.getCandidateStudentIds() != null ? state.getCandidateStudentIds() : Collections.emptyList();
+        for (Long sid : candidates) {
             boolean placed = false;
             for (Map.Entry<Long, Integer> en : avail.entrySet()) {
                 if (en.getValue() != null && en.getValue() > 0) {
