@@ -13,6 +13,7 @@ import com.vijay.User_Master.service.manager.TransportRouteAllocationManager;
 import com.vijay.User_Master.service.manager.TransferCertificateOrchestrationManager;
 import com.vijay.User_Master.service.manager.TimetableOrchestrationManager;
 import com.vijay.User_Master.service.manager.AttendanceReconciliationManager;
+import com.vijay.User_Master.service.manager.NotificationCampaignManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,7 @@ public class ManagerAgentController {
     private final TransferCertificateOrchestrationManager transferCertificateOrchestrationManager;
     private final TimetableOrchestrationManager timetableOrchestrationManager;
     private final AttendanceReconciliationManager attendanceReconciliationManager;
+    private final NotificationCampaignManager notificationCampaignManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -472,5 +474,42 @@ public class ManagerAgentController {
     @GetMapping("/attendance-recon/state")
     public String attendanceReconState(@RequestParam String runId) {
         return attendanceReconciliationManager.getRunState(runId);
+    }
+
+    // ===================== NOTIFICATION CAMPAIGNS =====================
+
+    @PostMapping("/notifications/campaign/start")
+    public String notifStart(@RequestParam String campaignName,
+                             @RequestParam String channel,
+                             @RequestParam String audienceType) {
+        return notificationCampaignManager.start(campaignName, channel, audienceType);
+    }
+
+    @PostMapping("/notifications/campaign/select-audience")
+    public String notifSelectAudience(@RequestParam String runId,
+                                      @RequestParam(required = false) String classIdsCsv,
+                                      @RequestParam(required = false) String studentIdsCsv) {
+        return notificationCampaignManager.selectAudience(runId, classIdsCsv, studentIdsCsv);
+    }
+
+    @PostMapping("/notifications/campaign/schedule")
+    public String notifSchedule(@RequestParam String runId,
+                                @RequestParam(required = false) String scheduledAt) {
+        return notificationCampaignManager.schedule(runId, scheduledAt);
+    }
+
+    @PostMapping("/notifications/campaign/send")
+    public String notifSend(@RequestParam String runId) {
+        return notificationCampaignManager.send(runId);
+    }
+
+    @GetMapping("/notifications/campaign/stats")
+    public String notifStats(@RequestParam String runId) {
+        return notificationCampaignManager.stats(runId);
+    }
+
+    @GetMapping("/notifications/campaign/state")
+    public String notifState(@RequestParam String runId) {
+        return notificationCampaignManager.getRunState(runId);
     }
 }

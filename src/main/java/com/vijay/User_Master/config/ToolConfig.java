@@ -38,6 +38,7 @@ import com.vijay.User_Master.service.manager.TransportRouteAllocationManager;
 import com.vijay.User_Master.service.manager.TransferCertificateOrchestrationManager;
 import com.vijay.User_Master.service.manager.TimetableOrchestrationManager;
 import com.vijay.User_Master.service.manager.AttendanceReconciliationManager;
+import com.vijay.User_Master.service.manager.NotificationCampaignManager;
 // import com.vijay.User_Master.service.impl.DocumentServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
@@ -118,6 +119,7 @@ class ToolConfig {
         TransferCertificateOrchestrationManager transferCertificateOrchestrationManager,
         TimetableOrchestrationManager timetableOrchestrationManager
         , AttendanceReconciliationManager attendanceReconciliationManager
+        , NotificationCampaignManager notificationCampaignManager
         // DocumentServiceImpl documentService - removed as it has no @Tool methods
     ) {
         return MethodToolCallbackProvider.builder()
@@ -157,7 +159,8 @@ class ToolConfig {
                     transportRouteAllocationManager,
                     transferCertificateOrchestrationManager,
                     timetableOrchestrationManager,
-                    attendanceReconciliationManager
+                    attendanceReconciliationManager,
+                    notificationCampaignManager
                 )
                 .build();
     }
