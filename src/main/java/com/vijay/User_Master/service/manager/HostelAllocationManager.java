@@ -74,6 +74,7 @@ public class HostelAllocationManager {
 
     @Tool(name = "hostelStartAllocation", description = "Start hostel allocation. Inputs: hostelIdsCsv, capacitiesCsv(opt, comma-separated capacities matching hostelIds). Returns runId.")
     public String startAllocation(String hostelIdsCsv, String capacitiesCsv) {
+        if (hostelIdsCsv == null || hostelIdsCsv.isBlank()) return "hostelIdsCsv is required";
         Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
@@ -91,6 +92,7 @@ public class HostelAllocationManager {
                 try { hostelIds.add(Long.parseLong(s.trim())); } catch (NumberFormatException ignored) {}
             }
         }
+        if (hostelIds.isEmpty()) return "No valid hostel IDs provided";
         Map<Long, Integer> caps = new LinkedHashMap<>();
         if (capacitiesCsv != null && !capacitiesCsv.isBlank()) {
             String[] capArr = capacitiesCsv.split(",");
@@ -121,6 +123,7 @@ public class HostelAllocationManager {
     public String ingestStudents(String runId, String studentIdsCsv) {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
+        if (studentIdsCsv == null || studentIdsCsv.isBlank()) return "studentIdsCsv is required";
         HostelState state = readState(run);
         List<Long> ids = state.getCandidateStudentIds() != null ? state.getCandidateStudentIds() : new ArrayList<>();
         if (studentIdsCsv != null && !studentIdsCsv.isBlank()) {
@@ -139,12 +142,17 @@ public class HostelAllocationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         HostelState state = readState(run);
+        if (Boolean.TRUE.equals(state.getCompleted())) return "Already completed";
         Map<Long, Integer> avail = state.getHostelCapacity() != null ? new LinkedHashMap<>(state.getHostelCapacity()) : new LinkedHashMap<>();
         if (state.getStudentToHostel() == null) state.setStudentToHostel(new LinkedHashMap<>());
         int assigned = 0;
         List<Long> unassigned = new ArrayList<>();
         List<Long> candidates = state.getCandidateStudentIds() != null ? state.getCandidateStudentIds() : Collections.emptyList();
+        if (candidates.isEmpty()) return "No candidates to assign";
         for (Long sid : candidates) {
+            if (state.getStudentToHostel().containsKey(sid)) {
+                continue; // already assigned
+            }
             boolean placed = false;
             for (Map.Entry<Long, Integer> en : avail.entrySet()) {
                 if (en.getValue() != null && en.getValue() > 0) {
@@ -170,6 +178,7 @@ public class HostelAllocationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         HostelState state = readState(run);
+        if (Boolean.TRUE.equals(state.getCompleted())) return "Already completed";
         state.setCompleted(true);
         persistState(run, state, "finish", "COMPLETED");
         saveStep(run, "finish", Map.of(), Map.of("completed", true, "unassigned", state.getUnassigned() != null ? state.getUnassigned().size() : 0), "OK", null);
