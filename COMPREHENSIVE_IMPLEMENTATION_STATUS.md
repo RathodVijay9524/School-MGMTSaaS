@@ -64,6 +64,7 @@ After analyzing all 38 controllers in your system, here's the reality:
 | Timetable Orchestration | `/api/manager-agents/timetable/*` | ✅ Live |
 | Attendance Reconciliation | `/api/manager-agents/attendance-recon/*` | ✅ Live |
 | Notification Campaigns | `/api/manager-agents/notifications/campaign/*` | ✅ Live |
+| Maintenance Work Orders | `/api/manager-agents/maintenance/*` | ✅ Live |
 **Status:** **100% COMPLETE** - Industry-leading automation!
 
 **Your Implementation (`ManagerAgentController.java`):**
@@ -238,6 +239,22 @@ After analyzing all 38 controllers in your system, here's the reality:
   - Assign by capacity: `POST /api/manager-agents/hostel/allocation/assign-by-capacity?runId=...`
   - Finish: `POST /api/manager-agents/hostel/allocation/finish?runId=...`
   - State: `GET /api/manager-agents/hostel/allocation/state?runId=...`
+
+- **Maintenance Work Orders**
+  - Start: `POST /api/manager-agents/maintenance/start?title=Projector%20Fix&description=Lamp%20issue&costEstimate=1500`
+  - Approve: `POST /api/manager-agents/maintenance/approve?runId=...&approverUserId=7`
+  - Assign: `POST /api/manager-agents/maintenance/assign?runId=...&assigneeUserId=22`
+  - Complete: `POST /api/manager-agents/maintenance/complete?runId=...`
+  - State: `GET /api/manager-agents/maintenance/state?runId=...`
+
+#### Changelog (recent manager updates)
+
+- Transfer Certificate Orchestration added — commit e465365; enum mapping fix — 4de946c
+- Timetable Orchestration added — 310ae04
+- Attendance Reconciliation added — 1621ac3
+- Notification Campaigns added — 296e786
+- ID Card Issuance added — 7792ee9
+- Hostel/Room Allocation added — f1aa4f0
 ---
 
 ### **3. 🤝 PEER LEARNING & COLLABORATION SYSTEM** ✅ FULLY IMPLEMENTED
