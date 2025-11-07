@@ -1,3 +1,15 @@
+ - ✅ **Peer Review Agent Manager**
+   - Distributes peer reviews (random/manual), collects and analyzes reviews
+   - Detects low-effort reviews, auto-grades essays via AI when enabled
+   - Produces synthesis report
+
+ - ✅ **Advanced Tutor Agent Manager**
+   - Runs adaptive tutoring loops for a student and skill/grade
+   - Integrates AI-generated explanations, practice, and progress loops
+
+ - ✅ **At-Risk Student Agent Manager**
+   - Flags at-risk students by attendance/performance thresholds
+   - Produces actionable list for intervention
 # 🎉 COMPREHENSIVE IMPLEMENTATION STATUS ANALYSIS
 ## School Management System - Complete Feature Audit
 
@@ -56,6 +68,9 @@ After analyzing all 38 controllers in your system, here's the reality:
 | Library Overdue + Auto-Extend | `/api/manager-agents/library/overdue/*` | ✅ Live |
 | Event/Trip Orchestration | `/api/manager-agents/events/orch/*` | ✅ Live |
 | Transport Allocation | `/api/manager-agents/transport/allocation/*` | ✅ Live |
+| Peer Review Orchestrator | `/api/manager-agents/run/peer-review` | ✅ Live |
+| Advanced Tutor | `/api/manager-agents/run/adaptive-tutor` | ✅ Live |
+| At-Risk Student Analysis | `/api/manager-agents/run/at-risk-student-analysis` | ✅ Live |
 **Status:** **100% COMPLETE** - Industry-leading automation!
 
 **Your Implementation (`ManagerAgentController.java`):**
