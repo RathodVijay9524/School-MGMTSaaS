@@ -75,6 +75,7 @@ public class IDCardIssuanceManager {
 
     @Tool(name = "idcardsStartBatch", description = "Start ID card issuance batch. Inputs: batchName. Returns runId.")
     public String start(String batchName) {
+        if (batchName == null || batchName.isBlank()) return "batchName is required";
         Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
@@ -105,6 +106,7 @@ public class IDCardIssuanceManager {
     public String ingestStudents(String runId, String studentIdsCsv) {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
+        if (studentIdsCsv == null || studentIdsCsv.isBlank()) return "studentIdsCsv is required";
         IDState state = readState(run);
         List<Long> ids = state.getStudentIds() != null ? state.getStudentIds() : new ArrayList<>();
         if (studentIdsCsv != null && !studentIdsCsv.isBlank()) {
@@ -123,6 +125,7 @@ public class IDCardIssuanceManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         IDState state = readState(run);
+        if (state.getRendered() != null && state.getRendered() > 0) return "Already rendered: " + state.getRendered();
         int count = state.getStudentIds() != null ? state.getStudentIds().size() : 0;
         state.setRendered(count);
         persistState(run, state, "render", "RUNNING");
@@ -135,6 +138,8 @@ public class IDCardIssuanceManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         IDState state = readState(run);
+        if (state.getRendered() == null || state.getRendered() == 0) return "Nothing to print: not rendered";
+        if (state.getPrinted() != null && state.getPrinted() > 0) return "Already printed: " + state.getPrinted();
         int total = state.getRendered() != null ? state.getRendered() : (state.getStudentIds() != null ? state.getStudentIds().size() : 0);
         int size = batchSize != null && batchSize > 0 ? batchSize : 50;
         int printed = Math.min(total, total); // simulate fully printed
@@ -149,6 +154,8 @@ public class IDCardIssuanceManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         IDState state = readState(run);
+        if (state.getDistributed() != null && state.getDistributed() > 0) return "Already distributed: " + state.getDistributed();
+        if (state.getPrinted() == null || state.getPrinted() == 0) return "Nothing to distribute: not printed";
         int distributed = state.getPrinted() != null ? state.getPrinted() : 0;
         state.setDistributed(distributed);
         state.setCompleted(true);
