@@ -148,6 +148,15 @@ After analyzing all 38 controllers in your system, here's the reality:
   - Assign: `POST /api/manager-agents/transport/allocation/assign-by-capacity?runId=...`
   - State: `GET /api/manager-agents/transport/allocation/state?runId=...`
 
+- **Peer Review Orchestrator**
+  - Run workflow: `POST /api/manager-agents/run/peer-review?assignmentId=123&reviewsPerSubmission=3&waitDays=2&lazyThreshold=0.2&autoGrade=true&rubricId=5`
+
+- **Advanced Tutor**
+  - Start: `POST /api/manager-agents/run/adaptive-tutor?studentId=1001&skillKey=fractions&gradeLevel=Grade-5&maxLoops=3`
+
+- **At-Risk Student Analysis**
+  - Analyze: `POST /api/manager-agents/run/at-risk-student-analysis?classId=10&attendanceThreshold=80&subjectId=22`
+
 ---
 
 ### **3. 🤝 PEER LEARNING & COLLABORATION SYSTEM** ✅ FULLY IMPLEMENTED
