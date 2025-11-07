@@ -22,9 +22,25 @@ public class ManagerAgentMetricsController {
     private final AgentStepRepository agentStepRepository;
 
     @GetMapping("/summary")
-    public ResponseEntity<?> summary() {
+    public ResponseEntity<?> summary(@RequestParam(required = false) String manager,
+                                     @RequestParam(required = false, defaultValue = "PT24H") String sinceDuration) {
+        Duration window = Duration.parse(sinceDuration);
+        LocalDateTime cutoff = LocalDateTime.now().minus(window);
+
         List<AgentRun> runs = agentRunRepository.findAll();
-        List<AgentStep> steps = agentStepRepository.findAll();
+        if (manager != null && !manager.isBlank()) {
+            runs = runs.stream()
+                    .filter(r -> r.getAgentName() != null && r.getAgentName().toLowerCase().contains(manager.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        List<AgentStep> allSteps = agentStepRepository.findAll();
+        // Steps filtered by time window and belonging to the filtered runs
+        Set<String> runIds = runs.stream().map(AgentRun::getRunId).filter(Objects::nonNull).collect(Collectors.toSet());
+        List<AgentStep> steps = allSteps.stream()
+                .filter(s -> s.getFinishedAt() != null && !s.getFinishedAt().isBefore(cutoff))
+                .filter(s -> s.getAgentRun() != null && runIds.contains(s.getAgentRun().getRunId()))
+                .collect(Collectors.toList());
 
         long totalRuns = runs.size();
         long completedRuns = runs.stream().filter(r -> "COMPLETED".equalsIgnoreCase(r.getStatus())).count();
@@ -46,6 +62,7 @@ public class ManagerAgentMetricsController {
         double avgDurationMs = durationsMs.isEmpty() ? 0 : durationsMs.stream().mapToLong(Long::longValue).average().orElse(0);
 
         Map<String, Object> body = new LinkedHashMap<>();
+        body.put("filters", Map.of("manager", manager, "sinceDuration", sinceDuration));
         body.put("totalRuns", totalRuns);
         body.put("completedRuns", completedRuns);
         body.put("runningRuns", runningRuns);
