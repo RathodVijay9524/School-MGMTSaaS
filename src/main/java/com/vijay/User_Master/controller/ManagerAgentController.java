@@ -14,6 +14,7 @@ import com.vijay.User_Master.service.manager.TransferCertificateOrchestrationMan
 import com.vijay.User_Master.service.manager.TimetableOrchestrationManager;
 import com.vijay.User_Master.service.manager.AttendanceReconciliationManager;
 import com.vijay.User_Master.service.manager.NotificationCampaignManager;
+import com.vijay.User_Master.service.manager.IDCardIssuanceManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +41,7 @@ public class ManagerAgentController {
     private final TimetableOrchestrationManager timetableOrchestrationManager;
     private final AttendanceReconciliationManager attendanceReconciliationManager;
     private final NotificationCampaignManager notificationCampaignManager;
+    private final IDCardIssuanceManager idCardIssuanceManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -511,5 +513,37 @@ public class ManagerAgentController {
     @GetMapping("/notifications/campaign/state")
     public String notifState(@RequestParam String runId) {
         return notificationCampaignManager.getRunState(runId);
+    }
+
+    // ===================== ID CARD BATCH ISSUANCE =====================
+
+    @PostMapping("/idcards/start")
+    public String idcStart(@RequestParam String batchName) {
+        return idCardIssuanceManager.start(batchName);
+    }
+
+    @PostMapping("/idcards/ingest-students")
+    public String idcIngest(@RequestParam String runId, @RequestParam String studentIdsCsv) {
+        return idCardIssuanceManager.ingestStudents(runId, studentIdsCsv);
+    }
+
+    @PostMapping("/idcards/render")
+    public String idcRender(@RequestParam String runId) {
+        return idCardIssuanceManager.render(runId);
+    }
+
+    @PostMapping("/idcards/print")
+    public String idcPrint(@RequestParam String runId, @RequestParam(required = false) Integer batchSize) {
+        return idCardIssuanceManager.print(runId, batchSize);
+    }
+
+    @PostMapping("/idcards/distribute")
+    public String idcDistribute(@RequestParam String runId) {
+        return idCardIssuanceManager.distribute(runId);
+    }
+
+    @GetMapping("/idcards/state")
+    public String idcState(@RequestParam String runId) {
+        return idCardIssuanceManager.getRunState(runId);
     }
 }
