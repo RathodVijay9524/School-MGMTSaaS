@@ -157,6 +157,41 @@ After analyzing all 38 controllers in your system, here's the reality:
 - **At-Risk Student Analysis**
   - Analyze: `POST /api/manager-agents/run/at-risk-student-analysis?classId=10&attendanceThreshold=80&subjectId=22`
 
+- **Admissions Funnel**
+  - Start: `POST /api/manager-agents/admissions/start?applicantName=John%20Doe&applicantEmail=john@example.com&gradeApplied=Grade-5&parentName=Jane%20Doe&parentEmail=jane@example.com`
+  - Documents: `POST /api/manager-agents/admissions/documents?runId=...&documentIdsCsv=doc1,doc2`
+  - Schedule interview: `POST /api/manager-agents/admissions/schedule-interview?runId=...&slot=2025-11-10T10:00:00Z`
+  - Submit interview: `POST /api/manager-agents/admissions/submit-interview?runId=...&score=8.5&notes=Strong%20candidate`
+  - Decision: `POST /api/manager-agents/admissions/decision?runId=...&approved=true`
+  - Initiate fee: `POST /api/manager-agents/admissions/initiate-fee?runId=...&amount=25000`
+  - Mark payment: `POST /api/manager-agents/admissions/mark-payment?runId=...&transactionId=TX123&method=ONLINE`
+  - Onboard: `POST /api/manager-agents/admissions/onboard?runId=...`
+  - Onboard with class: `POST /api/manager-agents/admissions/onboard-with-class?runId=...&classId=10`
+  - State: `GET /api/manager-agents/admissions/state?runId=...`
+
+- **Exam Lifecycle**
+  - Start: `POST /api/manager-agents/exams/start?examId=200&classId=10&subjectId=22&rubricId=5`
+  - Reminder: `POST /api/manager-agents/exams/reminder?runId=...`
+  - Collect submissions: `POST /api/manager-agents/exams/collect-submissions?runId=...&submissionIdsCsv=501,502`
+  - Grade batch: `POST /api/manager-agents/exams/grade-batch?runId=...`
+  - Publish: `POST /api/manager-agents/exams/publish?runId=...`
+  - Notify parents: `POST /api/manager-agents/exams/notify-parents?runId=...&studentIdsCsv=1001,1002`
+  - State: `GET /api/manager-agents/exams/state?runId=...`
+
+- **Fee Recovery**
+  - Start: `POST /api/manager-agents/fees/recovery/start?studentId=1001`
+  - Reminder: `POST /api/manager-agents/fees/recovery/reminder?runId=...&stage=FIRST_NOTICE`
+  - Plan: `POST /api/manager-agents/fees/recovery/plan?runId=...&installmentPlan=true&installmentCount=3&waiverAmount=500&waiverReason=Merit`
+  - Mark payment: `POST /api/manager-agents/fees/recovery/mark-payment?runId=...&feeId=9001&amount=2000&method=ONLINE&transactionId=TX999`
+  - State: `GET /api/manager-agents/fees/recovery/state?runId=...`
+
+- **Assignment Lifecycle**
+  - Start: `POST /api/manager-agents/assignments/start?assignmentId=300&reviewsPerSubmission=3&rubricId=5&randomAssignment=true&allowSelfReview=false&anonymousReview=true`
+  - Collect submissions: `POST /api/manager-agents/assignments/collect-submissions?runId=...&submissionIdsCsv=701,702`
+  - Grade batch: `POST /api/manager-agents/assignments/grade-batch?runId=...`
+  - Teacher gate: `POST /api/manager-agents/assignments/teacher-gate?runId=...`
+  - Publish: `POST /api/manager-agents/assignments/publish?runId=...`
+  - State: `GET /api/manager-agents/assignments/state?runId=...`
 ---
 
 ### **3. 🤝 PEER LEARNING & COLLABORATION SYSTEM** ✅ FULLY IMPLEMENTED
