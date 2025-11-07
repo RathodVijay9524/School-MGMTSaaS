@@ -93,9 +93,12 @@ public class AttendanceReconciliationManager {
                 try { classIds.add(Long.parseLong(s.trim())); } catch (NumberFormatException ignored) {}
             }
         }
+        LocalDate df = dateFrom != null ? LocalDate.parse(dateFrom) : LocalDate.now().minusDays(7);
+        LocalDate dt = dateTo != null ? LocalDate.parse(dateTo) : LocalDate.now();
+        if (dt.isBefore(df)) return "dateTo must be >= dateFrom";
         ReconState state = ReconState.builder()
-                .dateFrom(dateFrom != null ? LocalDate.parse(dateFrom) : LocalDate.now().minusDays(7))
-                .dateTo(dateTo != null ? LocalDate.parse(dateTo) : LocalDate.now())
+                .dateFrom(df)
+                .dateTo(dt)
                 .classIds(classIds)
                 .missingCount(0)
                 .correctedCount(0)
@@ -113,6 +116,7 @@ public class AttendanceReconciliationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         ReconState state = readState(run);
+        if (Boolean.TRUE.equals(state.getLocked())) return "Already locked";
         int missing = (state.getClassIds() != null ? state.getClassIds().size() : 2) * 5; // naive
         state.setMissingCount(missing);
         state.getTimestamps().put("DETECTED", LocalDateTime.now().toString());
@@ -150,6 +154,7 @@ public class AttendanceReconciliationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         ReconState state = readState(run);
+        if (Boolean.TRUE.equals(state.getLocked())) return "Already locked";
         state.setLocked(true);
         state.getTimestamps().put("LOCKED", LocalDateTime.now().toString());
         persistState(run, state, "lock", "COMPLETED");

@@ -79,6 +79,7 @@ public class EventTripOrchestrationManager {
 
     @Tool(name = "eventsStartOrchestration", description = "Start Event/Trip orchestration. Inputs: eventId. Returns runId.")
     public String startOrchestration(Long eventId) {
+        if (eventId == null || eventId <= 0) return "eventId is required";
         Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
@@ -137,6 +138,7 @@ public class EventTripOrchestrationManager {
         EventState state = readState(run);
         int expect = state.getExpectedParticipants() != null ? state.getExpectedParticipants() : 0;
         int registered = state.getRegisteredCount() != null ? state.getRegisteredCount() : 0;
+        if (targetCount != null && targetCount < 0) return "targetCount must be >= 0";
         int goal = targetCount != null ? targetCount : (registered > 0 ? registered : expect);
         state.setRosterCount(goal);
         persistState(run, state, "build_roster", "RUNNING");
@@ -149,6 +151,7 @@ public class EventTripOrchestrationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         EventState state = readState(run);
+        if (Boolean.TRUE.equals(state.getDispatched())) return "Already dispatched";
         state.setDispatched(true);
         persistState(run, state, "dispatch", "RUNNING");
         saveStep(run, "dispatch", Map.of(), Map.of("dispatched", true), "OK", null);
@@ -160,6 +163,7 @@ public class EventTripOrchestrationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         EventState state = readState(run);
+        if (Boolean.TRUE.equals(state.getCompleted())) return "Already completed";
         Map<String, Object> report = Map.of(
                 "eventId", state.getEventId(),
                 "registered", state.getRegisteredCount(),

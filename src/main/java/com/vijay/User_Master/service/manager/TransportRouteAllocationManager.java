@@ -108,6 +108,7 @@ public class TransportRouteAllocationManager {
     public String ingestStudents(String runId, String studentIdsCsv) {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
+        if (studentIdsCsv == null || studentIdsCsv.isBlank()) return "studentIdsCsv is required";
         TransportState state = readState(run);
         List<Long> ids = csvToLongs(studentIdsCsv);
         if (state.getCandidateStudentIds() == null) state.setCandidateStudentIds(new ArrayList<>());
@@ -122,6 +123,7 @@ public class TransportRouteAllocationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         TransportState state = readState(run);
+        if (Boolean.TRUE.equals(state.getCompleted())) return "Already completed";
         Long ownerId = run.getOwnerId();
 
         // Fetch target routes
@@ -149,7 +151,11 @@ public class TransportRouteAllocationManager {
         int assigned = 0;
         List<Long> unassigned = new ArrayList<>();
         List<Long> candidates = state.getCandidateStudentIds() != null ? state.getCandidateStudentIds() : Collections.emptyList();
+        if (candidates.isEmpty()) return "No candidates to assign";
         for (Long sid : candidates) {
+            if (state.getStudentToRoute().containsKey(sid)) {
+                continue; // already assigned
+            }
             boolean placed = false;
             for (Map.Entry<Long, Integer> en : avail.entrySet()) {
                 if (en.getValue() != null && en.getValue() > 0) {
@@ -173,6 +179,7 @@ public class TransportRouteAllocationManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         TransportState state = readState(run);
+        if (Boolean.TRUE.equals(state.getCompleted())) return "Already completed";
         state.setCompleted(true);
         persistState(run, state, "completed", "COMPLETED");
         saveStep(run, "completed", Map.of(), Map.of("completed", true), "OK", null);
