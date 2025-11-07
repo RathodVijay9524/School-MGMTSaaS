@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -80,6 +79,8 @@ public class MaintenanceWorkOrderManager {
 
     @Tool(name = "maintenanceStart", description = "Start a maintenance work order. Inputs: title, description, costEstimate?. Returns runId.")
     public String start(String title, String description, Double costEstimate) {
+        if (title == null || title.isBlank()) return "Title is required";
+        if (description == null || description.isBlank()) return "Description is required";
         Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
@@ -112,6 +113,7 @@ public class MaintenanceWorkOrderManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         WOState state = readState(run);
+        if (Boolean.TRUE.equals(state.getApproved())) return "Already approved";
         state.setApproved(true);
         state.setStage("APPROVED");
         state.getTimestamps().put("APPROVED", LocalDateTime.now().toString());
@@ -126,6 +128,7 @@ public class MaintenanceWorkOrderManager {
         if (run == null) return "Invalid runId";
         WOState state = readState(run);
         if (!Boolean.TRUE.equals(state.getApproved())) return "Cannot assign: not approved";
+        if (state.getAssigneeUserId() != null) return "Already assigned";
         state.setAssigneeUserId(assigneeUserId);
         state.setStage("ASSIGNED");
         state.getTimestamps().put("ASSIGNED", LocalDateTime.now().toString());
@@ -139,6 +142,7 @@ public class MaintenanceWorkOrderManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         WOState state = readState(run);
+        if (Boolean.TRUE.equals(state.getCompleted())) return "Already completed";
         if (!"ASSIGNED".equalsIgnoreCase(state.getStage()) && !Boolean.TRUE.equals(state.getApproved())) {
             return "Cannot complete: not in progress";
         }
