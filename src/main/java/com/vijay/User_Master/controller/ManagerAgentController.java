@@ -16,6 +16,7 @@ import com.vijay.User_Master.service.manager.AttendanceReconciliationManager;
 import com.vijay.User_Master.service.manager.NotificationCampaignManager;
 import com.vijay.User_Master.service.manager.IDCardIssuanceManager;
 import com.vijay.User_Master.service.manager.HostelAllocationManager;
+import com.vijay.User_Master.service.manager.MaintenanceWorkOrderManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,7 @@ public class ManagerAgentController {
     private final NotificationCampaignManager notificationCampaignManager;
     private final IDCardIssuanceManager idCardIssuanceManager;
     private final HostelAllocationManager hostelAllocationManager;
+    private final MaintenanceWorkOrderManager maintenanceWorkOrderManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -576,5 +578,36 @@ public class ManagerAgentController {
     @GetMapping("/hostel/allocation/state")
     public String hostelState(@RequestParam String runId) {
         return hostelAllocationManager.getRunState(runId);
+    }
+
+    // ===================== MAINTENANCE WORK ORDERS =====================
+
+    @PostMapping("/maintenance/start")
+    public String maintenanceStart(@RequestParam String title,
+                                   @RequestParam String description,
+                                   @RequestParam(required = false) Double costEstimate) {
+        return maintenanceWorkOrderManager.start(title, description, costEstimate);
+    }
+
+    @PostMapping("/maintenance/approve")
+    public String maintenanceApprove(@RequestParam String runId,
+                                     @RequestParam Long approverUserId) {
+        return maintenanceWorkOrderManager.approve(runId, approverUserId);
+    }
+
+    @PostMapping("/maintenance/assign")
+    public String maintenanceAssign(@RequestParam String runId,
+                                    @RequestParam Long assigneeUserId) {
+        return maintenanceWorkOrderManager.assign(runId, assigneeUserId);
+    }
+
+    @PostMapping("/maintenance/complete")
+    public String maintenanceComplete(@RequestParam String runId) {
+        return maintenanceWorkOrderManager.complete(runId);
+    }
+
+    @GetMapping("/maintenance/state")
+    public String maintenanceState(@RequestParam String runId) {
+        return maintenanceWorkOrderManager.getRunState(runId);
     }
 }

@@ -6,7 +6,6 @@ import com.vijay.User_Master.entity.AgentRun;
 import com.vijay.User_Master.entity.AgentStep;
 import com.vijay.User_Master.repository.AgentRunRepository;
 import com.vijay.User_Master.repository.AgentStepRepository;
-import com.vijay.User_Master.service.TimetableService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +23,6 @@ public class TimetableOrchestrationManager {
 
     private final AgentRunRepository agentRunRepository;
     private final AgentStepRepository agentStepRepository;
-    private final TimetableService timetableService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 

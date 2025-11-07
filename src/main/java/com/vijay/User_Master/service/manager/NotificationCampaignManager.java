@@ -113,6 +113,9 @@ public class NotificationCampaignManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         CampaignState state = readState(run);
+        if ((classIdsCsv == null || classIdsCsv.isBlank()) && (studentIdsCsv == null || studentIdsCsv.isBlank())) {
+            return "No change: target=" + (state.getTargetCount() != null ? state.getTargetCount() : 0);
+        }
         List<Long> classIds = state.getClassIds() != null ? state.getClassIds() : new ArrayList<>();
         List<Long> studentIds = state.getStudentIds() != null ? state.getStudentIds() : new ArrayList<>();
         if (classIdsCsv != null && !classIdsCsv.isBlank()) {
@@ -139,6 +142,9 @@ public class NotificationCampaignManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         CampaignState state = readState(run);
+        if (state.getScheduledAt() != null && !state.getScheduledAt().isBlank()) {
+            return "Already scheduled at: " + state.getScheduledAt();
+        }
         state.setScheduledAt(scheduledAt != null ? scheduledAt : LocalDateTime.now().plusMinutes(10).toString());
         state.getTimestamps().put("SCHEDULED", LocalDateTime.now().toString());
         persistState(run, state, "schedule", "RUNNING");
@@ -151,6 +157,9 @@ public class NotificationCampaignManager {
         AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
         if (run == null) return "Invalid runId";
         CampaignState state = readState(run);
+        if (Boolean.TRUE.equals(state.getCompleted())) {
+            return "Already sent: sent=" + (state.getSentCount() != null ? state.getSentCount() : 0);
+        }
         int target = state.getTargetCount() != null ? state.getTargetCount() : 0;
         int sent = (int) Math.round(target * 0.95); // assume 95% success
         int failed = Math.max(0, target - sent);
