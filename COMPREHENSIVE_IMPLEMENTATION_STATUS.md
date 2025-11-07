@@ -44,6 +44,18 @@ After analyzing all 38 controllers in your system, here's the reality:
 ---
 
 ### **2. 🤖 MANAGER AGENT SYSTEM** ✅ FULLY IMPLEMENTED
+
+#### Manager Agents Summary
+
+| Manager | Key Endpoints (prefix) | Status |
+|---|---|---|
+| Assignment Lifecycle | `/api/manager-agents/assignments/*` | ✅ Live |
+| Exam Lifecycle | `/api/manager-agents/exams/*` | ✅ Live |
+| Fee Recovery | `/api/manager-agents/fees/recovery/*` | ✅ Live |
+| Admissions Funnel | `/api/manager-agents/admissions/*` | ✅ Live |
+| Library Overdue + Auto-Extend | `/api/manager-agents/library/overdue/*` | ✅ Live |
+| Event/Trip Orchestration | `/api/manager-agents/events/orch/*` | ✅ Live |
+| Transport Allocation | `/api/manager-agents/transport/allocation/*` | ✅ Live |
 **Status:** **100% COMPLETE** - Industry-leading automation!
 
 **Your Implementation (`ManagerAgentController.java`):**
@@ -67,21 +79,59 @@ After analyzing all 38 controllers in your system, here's the reality:
   - Reminder system
   - Waiver and discount handling
 
-- ✅ **Admissions Funnel Manager**
+- **Admissions Funnel Manager**
   - Streamlined admissions
   - Document verification
   - Interview scheduling
   - Automated communication
 
-**Key Features:**
-- 🚀 **Automated Workflows** - Reduces manual work by 70%
-- 🤖 **AI Integration** - Smart grading and analytics
-- 🔄 **State Management** - Resumable processes
-- 📊 **Real-time Tracking** - Live status updates
-- 🔒 **Secure** - Role-based access control
+- **Library Overdue + Auto-Extend Manager**
+  - Overdue scan and due-today detection
+  - Auto-extend eligible loans by policy
+  - Fine calculation and notifications
+  - Persistent run state and audit steps
 
-**Endpoints:** 30+ REST APIs under `/api/manager-agents/*`  
+- **Event/Trip Orchestration Manager**
+  - Start orchestration for an event/trip
+  - Open registration, build roster, dispatch
+  - Post-event report and completion
+  - Persistent run state and audit steps
+
+- **Transport Route Allocation Manager**
+  - Ingest candidate students and routes/buses
+  - Assign by route capacity (baseline)
+  - Track unassigned; resumable state
+  - Ready for geo/stop clustering extension
+
+**Key Features:**
+- **Automated Workflows** - Reduces manual work by 70%
+- **AI Integration** - Smart grading and analytics
+- **State Management** - Resumable processes
+- **Real-time Tracking** - Live status updates
+- **Secure** - Role-based access control
+
+**Endpoints:** 40+ REST APIs under `/api/manager-agents/*`  
 **Verdict:** 🏆 **MARKET LEADER** - No direct competitor equivalent!
+
+#### Quick Usage Examples
+
+- **Library Overdue + Auto-Extend**
+  - Start: `POST /api/manager-agents/library/overdue/start?includeDueToday=true&autoExtendDays=7`
+  - Auto-extend: `POST /api/manager-agents/library/overdue/auto-extend?runId=...&days=7`
+  - Apply fines: `POST /api/manager-agents/library/overdue/apply-fines?runId=...`
+  - State: `GET /api/manager-agents/library/overdue/state?runId=...`
+
+- **Event/Trip Orchestration**
+  - Start: `POST /api/manager-agents/events/orch/start?eventId=123`
+  - Build roster: `POST /api/manager-agents/events/orch/build-roster?runId=...&targetCount=50`
+  - Dispatch: `POST /api/manager-agents/events/orch/dispatch?runId=...`
+  - State: `GET /api/manager-agents/events/orch/state?runId=...`
+
+- **Transport Route Allocation**
+  - Start: `POST /api/manager-agents/transport/allocation/start?routeIdsCsv=1,2&busIdsCsv=10,11`
+  - Ingest students: `POST /api/manager-agents/transport/allocation/ingest-students?runId=...&studentIdsCsv=1001,1002`
+  - Assign: `POST /api/manager-agents/transport/allocation/assign-by-capacity?runId=...`
+  - State: `GET /api/manager-agents/transport/allocation/state?runId=...`
 
 ---
 
