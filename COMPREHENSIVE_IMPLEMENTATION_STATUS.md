@@ -60,6 +60,10 @@ After analyzing all 38 controllers in your system, here's the reality:
 | Peer Review Orchestrator | `/api/manager-agents/run/peer-review` | ✅ Live |
 | Advanced Tutor | `/api/manager-agents/run/adaptive-tutor` | ✅ Live |
 | At-Risk Student Analysis | `/api/manager-agents/run/at-risk-student-analysis` | ✅ Live |
+| Transfer Certificate Orchestration | `/api/manager-agents/tc/*` | ✅ Live |
+| Timetable Orchestration | `/api/manager-agents/timetable/*` | ✅ Live |
+| Attendance Reconciliation | `/api/manager-agents/attendance-recon/*` | ✅ Live |
+| Notification Campaigns | `/api/manager-agents/notifications/campaign/*` | 🟡 Planned |
 **Status:** **100% COMPLETE** - Industry-leading automation!
 
 **Your Implementation (`ManagerAgentController.java`):**
@@ -195,6 +199,22 @@ After analyzing all 38 controllers in your system, here's the reality:
   - Teacher gate: `POST /api/manager-agents/assignments/teacher-gate?runId=...`
   - Publish: `POST /api/manager-agents/assignments/publish?runId=...`
   - State: `GET /api/manager-agents/assignments/state?runId=...`
+
+- **Timetable Orchestration**
+  - Start: `POST /api/manager-agents/timetable/start?academicYear=2025-2026&semester=SEM-1&classIdsCsv=1,2,3`
+  - Generate draft: `POST /api/manager-agents/timetable/generate-draft?runId=...`
+  - Resolve conflicts: `POST /api/manager-agents/timetable/resolve-conflicts?runId=...&iterations=3`
+  - Finalize: `POST /api/manager-agents/timetable/finalize?runId=...`
+  - Publish: `POST /api/manager-agents/timetable/publish?runId=...`
+  - State: `GET /api/manager-agents/timetable/state?runId=...`
+
+- **Attendance Reconciliation**
+  - Start: `POST /api/manager-agents/attendance-recon/start?dateFrom=2025-11-01&dateTo=2025-11-07&classIdsCsv=10,11`
+  - Detect: `POST /api/manager-agents/attendance-recon/detect?runId=...`
+  - Notify: `POST /api/manager-agents/attendance-recon/notify?runId=...`
+  - Ingest corrections: `POST /api/manager-agents/attendance-recon/ingest-corrections?runId=...&correctedCount=25`
+  - Lock: `POST /api/manager-agents/attendance-recon/lock?runId=...`
+  - State: `GET /api/manager-agents/attendance-recon/state?runId=...`
 ---
 
 ### **3. 🤝 PEER LEARNING & COLLABORATION SYSTEM** ✅ FULLY IMPLEMENTED
