@@ -7,6 +7,7 @@ import com.vijay.User_Master.service.manager.AdmissionsFunnelManager;
 import com.vijay.User_Master.service.manager.ExamLifecycleManager;
 import com.vijay.User_Master.service.manager.FeeRecoveryManager;
 import com.vijay.User_Master.service.manager.AssignmentLifecycleManager;
+import com.vijay.User_Master.service.manager.LibraryOverdueManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,7 @@ public class ManagerAgentController {
     private final ExamLifecycleManager examLifecycleManager;
     private final FeeRecoveryManager feeRecoveryManager;
     private final AssignmentLifecycleManager assignmentLifecycleManager;
+    private final LibraryOverdueManager libraryOverdueManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -248,5 +250,41 @@ public class ManagerAgentController {
     @GetMapping("/assignments/state")
     public String assignmentGetState(@RequestParam String runId) {
         return assignmentLifecycleManager.getRunState(runId);
+    }
+
+    // ===================== LIBRARY OVERDUE + AUTO-EXTEND =====================
+
+    @PostMapping("/library/overdue/start")
+    public String libraryOverdueStart(
+            @RequestParam(required = false, defaultValue = "true") Boolean includeDueToday,
+            @RequestParam(required = false) Integer autoExtendDays) {
+        return libraryOverdueManager.startOverdueRun(includeDueToday, autoExtendDays);
+    }
+
+    @PostMapping("/library/overdue/auto-extend")
+    public String libraryOverdueAutoExtend(
+            @RequestParam String runId,
+            @RequestParam(required = false) Integer days) {
+        return libraryOverdueManager.autoExtendDueToday(runId, days);
+    }
+
+    @PostMapping("/library/overdue/apply-fines")
+    public String libraryOverdueApplyFines(@RequestParam String runId) {
+        return libraryOverdueManager.applyFines(runId);
+    }
+
+    @PostMapping("/library/overdue/notify")
+    public String libraryOverdueNotify(@RequestParam String runId) {
+        return libraryOverdueManager.notifyBorrowers(runId);
+    }
+
+    @PostMapping("/library/overdue/finish")
+    public String libraryOverdueFinish(@RequestParam String runId) {
+        return libraryOverdueManager.finishRun(runId);
+    }
+
+    @GetMapping("/library/overdue/state")
+    public String libraryOverdueState(@RequestParam String runId) {
+        return libraryOverdueManager.getRunState(runId);
     }
 }
