@@ -63,7 +63,7 @@ After analyzing all 38 controllers in your system, here's the reality:
 | Transfer Certificate Orchestration | `/api/manager-agents/tc/*` | ✅ Live |
 | Timetable Orchestration | `/api/manager-agents/timetable/*` | ✅ Live |
 | Attendance Reconciliation | `/api/manager-agents/attendance-recon/*` | ✅ Live |
-| Notification Campaigns | `/api/manager-agents/notifications/campaign/*` | 🟡 Planned |
+| Notification Campaigns | `/api/manager-agents/notifications/campaign/*` | ✅ Live |
 **Status:** **100% COMPLETE** - Industry-leading automation!
 
 **Your Implementation (`ManagerAgentController.java`):**
@@ -215,6 +215,29 @@ After analyzing all 38 controllers in your system, here's the reality:
   - Ingest corrections: `POST /api/manager-agents/attendance-recon/ingest-corrections?runId=...&correctedCount=25`
   - Lock: `POST /api/manager-agents/attendance-recon/lock?runId=...`
   - State: `GET /api/manager-agents/attendance-recon/state?runId=...`
+
+- **Notification Campaigns**
+  - Start: `POST /api/manager-agents/notifications/campaign/start?campaignName=Fee%20Reminder&channel=SMS&audienceType=CLASS`
+  - Select audience: `POST /api/manager-agents/notifications/campaign/select-audience?runId=...&classIdsCsv=10,11&studentIdsCsv=1001,1002`
+  - Schedule: `POST /api/manager-agents/notifications/campaign/schedule?runId=...&scheduledAt=2025-11-10T10:00:00Z`
+  - Send: `POST /api/manager-agents/notifications/campaign/send?runId=...`
+  - Stats: `GET /api/manager-agents/notifications/campaign/stats?runId=...`
+  - State: `GET /api/manager-agents/notifications/campaign/state?runId=...`
+
+- **ID Card Issuance**
+  - Start: `POST /api/manager-agents/idcards/start?batchName=Nov-2025-Batch-A`
+  - Ingest students: `POST /api/manager-agents/idcards/ingest-students?runId=...&studentIdsCsv=1001,1002,1003`
+  - Render: `POST /api/manager-agents/idcards/render?runId=...`
+  - Print: `POST /api/manager-agents/idcards/print?runId=...&batchSize=50`
+  - Distribute: `POST /api/manager-agents/idcards/distribute?runId=...`
+  - State: `GET /api/manager-agents/idcards/state?runId=...`
+
+- **Hostel Allocation**
+  - Start: `POST /api/manager-agents/hostel/allocation/start?hostelIdsCsv=1,2&capacitiesCsv=100,120`
+  - Ingest students: `POST /api/manager-agents/hostel/allocation/ingest-students?runId=...&studentIdsCsv=1001,1002,1003`
+  - Assign by capacity: `POST /api/manager-agents/hostel/allocation/assign-by-capacity?runId=...`
+  - Finish: `POST /api/manager-agents/hostel/allocation/finish?runId=...`
+  - State: `GET /api/manager-agents/hostel/allocation/state?runId=...`
 ---
 
 ### **3. 🤝 PEER LEARNING & COLLABORATION SYSTEM** ✅ FULLY IMPLEMENTED
