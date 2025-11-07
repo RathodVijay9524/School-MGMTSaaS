@@ -15,6 +15,7 @@ import com.vijay.User_Master.service.manager.TimetableOrchestrationManager;
 import com.vijay.User_Master.service.manager.AttendanceReconciliationManager;
 import com.vijay.User_Master.service.manager.NotificationCampaignManager;
 import com.vijay.User_Master.service.manager.IDCardIssuanceManager;
+import com.vijay.User_Master.service.manager.HostelAllocationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +43,7 @@ public class ManagerAgentController {
     private final AttendanceReconciliationManager attendanceReconciliationManager;
     private final NotificationCampaignManager notificationCampaignManager;
     private final IDCardIssuanceManager idCardIssuanceManager;
+    private final HostelAllocationManager hostelAllocationManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -545,5 +547,34 @@ public class ManagerAgentController {
     @GetMapping("/idcards/state")
     public String idcState(@RequestParam String runId) {
         return idCardIssuanceManager.getRunState(runId);
+    }
+
+    // ===================== HOSTEL/ROOM ALLOCATION =====================
+
+    @PostMapping("/hostel/allocation/start")
+    public String hostelStart(
+            @RequestParam String hostelIdsCsv,
+            @RequestParam(required = false) String capacitiesCsv) {
+        return hostelAllocationManager.startAllocation(hostelIdsCsv, capacitiesCsv);
+    }
+
+    @PostMapping("/hostel/allocation/ingest-students")
+    public String hostelIngest(@RequestParam String runId, @RequestParam String studentIdsCsv) {
+        return hostelAllocationManager.ingestStudents(runId, studentIdsCsv);
+    }
+
+    @PostMapping("/hostel/allocation/assign-by-capacity")
+    public String hostelAssign(@RequestParam String runId) {
+        return hostelAllocationManager.assignByCapacity(runId);
+    }
+
+    @PostMapping("/hostel/allocation/finish")
+    public String hostelFinish(@RequestParam String runId) {
+        return hostelAllocationManager.finishAllocation(runId);
+    }
+
+    @GetMapping("/hostel/allocation/state")
+    public String hostelState(@RequestParam String runId) {
+        return hostelAllocationManager.getRunState(runId);
     }
 }
