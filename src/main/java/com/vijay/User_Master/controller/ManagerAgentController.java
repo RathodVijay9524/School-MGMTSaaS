@@ -9,6 +9,7 @@ import com.vijay.User_Master.service.manager.FeeRecoveryManager;
 import com.vijay.User_Master.service.manager.AssignmentLifecycleManager;
 import com.vijay.User_Master.service.manager.LibraryOverdueManager;
 import com.vijay.User_Master.service.manager.EventTripOrchestrationManager;
+import com.vijay.User_Master.service.manager.TransportRouteAllocationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,7 @@ public class ManagerAgentController {
     private final AssignmentLifecycleManager assignmentLifecycleManager;
     private final LibraryOverdueManager libraryOverdueManager;
     private final EventTripOrchestrationManager eventTripOrchestrationManager;
+    private final TransportRouteAllocationManager transportRouteAllocationManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -320,5 +322,34 @@ public class ManagerAgentController {
     @GetMapping("/events/orch/state")
     public String eventsGetState(@RequestParam String runId) {
         return eventTripOrchestrationManager.getRunState(runId);
+    }
+
+    // ===================== TRANSPORT ROUTE ALLOCATION =====================
+
+    @PostMapping("/transport/allocation/start")
+    public String transportStart(
+            @RequestParam(required = false) String routeIdsCsv,
+            @RequestParam(required = false) String busIdsCsv) {
+        return transportRouteAllocationManager.startAllocation(routeIdsCsv, busIdsCsv);
+    }
+
+    @PostMapping("/transport/allocation/ingest-students")
+    public String transportIngestStudents(@RequestParam String runId, @RequestParam String studentIdsCsv) {
+        return transportRouteAllocationManager.ingestStudents(runId, studentIdsCsv);
+    }
+
+    @PostMapping("/transport/allocation/assign-by-capacity")
+    public String transportAssignByCapacity(@RequestParam String runId) {
+        return transportRouteAllocationManager.assignByCapacity(runId);
+    }
+
+    @PostMapping("/transport/allocation/finish")
+    public String transportFinish(@RequestParam String runId) {
+        return transportRouteAllocationManager.finishAllocation(runId);
+    }
+
+    @GetMapping("/transport/allocation/state")
+    public String transportState(@RequestParam String runId) {
+        return transportRouteAllocationManager.getRunState(runId);
     }
 }
