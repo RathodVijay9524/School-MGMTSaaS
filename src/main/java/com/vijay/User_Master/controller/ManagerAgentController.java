@@ -11,6 +11,7 @@ import com.vijay.User_Master.service.manager.LibraryOverdueManager;
 import com.vijay.User_Master.service.manager.EventTripOrchestrationManager;
 import com.vijay.User_Master.service.manager.TransportRouteAllocationManager;
 import com.vijay.User_Master.service.manager.TransferCertificateOrchestrationManager;
+import com.vijay.User_Master.service.manager.TimetableOrchestrationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,7 @@ public class ManagerAgentController {
     private final EventTripOrchestrationManager eventTripOrchestrationManager;
     private final TransportRouteAllocationManager transportRouteAllocationManager;
     private final TransferCertificateOrchestrationManager transferCertificateOrchestrationManager;
+    private final TimetableOrchestrationManager timetableOrchestrationManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -396,5 +398,41 @@ public class ManagerAgentController {
     @GetMapping("/tc/state")
     public String tcState(@RequestParam String runId) {
         return transferCertificateOrchestrationManager.getRunState(runId);
+    }
+
+    // ===================== TIMETABLE ORCHESTRATION =====================
+
+    @PostMapping("/timetable/start")
+    public String timetableStart(
+            @RequestParam String academicYear,
+            @RequestParam String semester,
+            @RequestParam(required = false) String classIdsCsv
+    ) {
+        return timetableOrchestrationManager.start(academicYear, semester, classIdsCsv);
+    }
+
+    @PostMapping("/timetable/generate-draft")
+    public String timetableGenerateDraft(@RequestParam String runId) {
+        return timetableOrchestrationManager.generateDraft(runId);
+    }
+
+    @PostMapping("/timetable/resolve-conflicts")
+    public String timetableResolveConflicts(@RequestParam String runId, @RequestParam(required = false) Integer iterations) {
+        return timetableOrchestrationManager.resolveConflicts(runId, iterations);
+    }
+
+    @PostMapping("/timetable/finalize")
+    public String timetableFinalize(@RequestParam String runId) {
+        return timetableOrchestrationManager.finalizeTimetable(runId);
+    }
+
+    @PostMapping("/timetable/publish")
+    public String timetablePublish(@RequestParam String runId) {
+        return timetableOrchestrationManager.publish(runId);
+    }
+
+    @GetMapping("/timetable/state")
+    public String timetableState(@RequestParam String runId) {
+        return timetableOrchestrationManager.getRunState(runId);
     }
 }

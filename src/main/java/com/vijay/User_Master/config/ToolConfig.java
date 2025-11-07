@@ -36,6 +36,7 @@ import com.vijay.User_Master.service.manager.LibraryOverdueManager;
 import com.vijay.User_Master.service.manager.EventTripOrchestrationManager;
 import com.vijay.User_Master.service.manager.TransportRouteAllocationManager;
 import com.vijay.User_Master.service.manager.TransferCertificateOrchestrationManager;
+import com.vijay.User_Master.service.manager.TimetableOrchestrationManager;
 // import com.vijay.User_Master.service.impl.DocumentServiceImpl;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
@@ -113,7 +114,8 @@ class ToolConfig {
         LibraryOverdueManager libraryOverdueManager,
         EventTripOrchestrationManager eventTripOrchestrationManager,
         TransportRouteAllocationManager transportRouteAllocationManager,
-        TransferCertificateOrchestrationManager transferCertificateOrchestrationManager
+        TransferCertificateOrchestrationManager transferCertificateOrchestrationManager,
+        TimetableOrchestrationManager timetableOrchestrationManager
         // DocumentServiceImpl documentService - removed as it has no @Tool methods
     ) {
         return MethodToolCallbackProvider.builder()
@@ -151,7 +153,8 @@ class ToolConfig {
                     libraryOverdueManager,
                     eventTripOrchestrationManager,
                     transportRouteAllocationManager,
-                    transferCertificateOrchestrationManager
+                    transferCertificateOrchestrationManager,
+                    timetableOrchestrationManager
                 )
                 .build();
     }
