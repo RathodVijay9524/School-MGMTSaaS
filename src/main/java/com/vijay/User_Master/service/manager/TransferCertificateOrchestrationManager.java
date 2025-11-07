@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vijay.User_Master.Helper.CommonUtils;
 import com.vijay.User_Master.dto.TransferCertificateRequest;
 import com.vijay.User_Master.dto.TransferCertificateResponse;
+import com.vijay.User_Master.entity.TransferCertificate;
 import com.vijay.User_Master.entity.AgentRun;
 import com.vijay.User_Master.entity.AgentStep;
 import com.vijay.User_Master.repository.AgentRunRepository;
@@ -112,11 +113,24 @@ public class TransferCertificateOrchestrationManager {
             TransferCertificateRequest req = new TransferCertificateRequest();
             req.setStudentId(studentId);
             req.setIssuedByUserId(issuedByUserId);
-            req.setReasonForLeaving(reasonForLeaving);
+            // Map string to enum with safe defaults
+            TransferCertificate.ReasonForLeaving rfl = null;
+            if (reasonForLeaving != null && !reasonForLeaving.isBlank()) {
+                try { rfl = TransferCertificate.ReasonForLeaving.valueOf(reasonForLeaving.trim().toUpperCase()); } catch (IllegalArgumentException ignored) { rfl = TransferCertificate.ReasonForLeaving.OTHER; }
+            } else {
+                rfl = TransferCertificate.ReasonForLeaving.OTHER;
+            }
+            req.setReasonForLeaving(rfl);
             req.setReasonDetails(reasonDetails);
-            req.setLastAttendanceDate(lastAttendanceDate != null ? LocalDate.parse(lastAttendanceDate) : null);
+            req.setLastAttendanceDate(lastAttendanceDate != null ? LocalDate.parse(lastAttendanceDate) : LocalDate.now());
             req.setAcademicYearOfLeaving(academicYearOfLeaving);
-            req.setConduct(conduct);
+            TransferCertificate.ConductRating cr = null;
+            if (conduct != null && !conduct.isBlank()) {
+                try { cr = TransferCertificate.ConductRating.valueOf(conduct.trim().toUpperCase()); } catch (IllegalArgumentException ignored) { cr = TransferCertificate.ConductRating.GOOD; }
+            } else {
+                cr = TransferCertificate.ConductRating.GOOD;
+            }
+            req.setConduct(cr);
             req.setGeneralRemarks(generalRemarks);
 
             TransferCertificateResponse resp = tcService.generateTC(req);
