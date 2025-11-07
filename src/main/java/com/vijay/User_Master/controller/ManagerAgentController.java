@@ -12,6 +12,7 @@ import com.vijay.User_Master.service.manager.EventTripOrchestrationManager;
 import com.vijay.User_Master.service.manager.TransportRouteAllocationManager;
 import com.vijay.User_Master.service.manager.TransferCertificateOrchestrationManager;
 import com.vijay.User_Master.service.manager.TimetableOrchestrationManager;
+import com.vijay.User_Master.service.manager.AttendanceReconciliationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +37,7 @@ public class ManagerAgentController {
     private final TransportRouteAllocationManager transportRouteAllocationManager;
     private final TransferCertificateOrchestrationManager transferCertificateOrchestrationManager;
     private final TimetableOrchestrationManager timetableOrchestrationManager;
+    private final AttendanceReconciliationManager attendanceReconciliationManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -434,5 +436,41 @@ public class ManagerAgentController {
     @GetMapping("/timetable/state")
     public String timetableState(@RequestParam String runId) {
         return timetableOrchestrationManager.getRunState(runId);
+    }
+
+    // ===================== ATTENDANCE RECONCILIATION =====================
+
+    @PostMapping("/attendance-recon/start")
+    public String attendanceReconStart(
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
+            @RequestParam(required = false) String classIdsCsv
+    ) {
+        return attendanceReconciliationManager.start(dateFrom, dateTo, classIdsCsv);
+    }
+
+    @PostMapping("/attendance-recon/detect")
+    public String attendanceReconDetect(@RequestParam String runId) {
+        return attendanceReconciliationManager.detect(runId);
+    }
+
+    @PostMapping("/attendance-recon/notify")
+    public String attendanceReconNotify(@RequestParam String runId) {
+        return attendanceReconciliationManager.notifyActors(runId);
+    }
+
+    @PostMapping("/attendance-recon/ingest-corrections")
+    public String attendanceReconIngestCorrections(@RequestParam String runId, @RequestParam(required = false) Integer correctedCount) {
+        return attendanceReconciliationManager.ingestCorrections(runId, correctedCount);
+    }
+
+    @PostMapping("/attendance-recon/lock")
+    public String attendanceReconLock(@RequestParam String runId) {
+        return attendanceReconciliationManager.lock(runId);
+    }
+
+    @GetMapping("/attendance-recon/state")
+    public String attendanceReconState(@RequestParam String runId) {
+        return attendanceReconciliationManager.getRunState(runId);
     }
 }
