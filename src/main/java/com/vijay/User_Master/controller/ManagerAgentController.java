@@ -10,6 +10,7 @@ import com.vijay.User_Master.service.manager.AssignmentLifecycleManager;
 import com.vijay.User_Master.service.manager.LibraryOverdueManager;
 import com.vijay.User_Master.service.manager.EventTripOrchestrationManager;
 import com.vijay.User_Master.service.manager.TransportRouteAllocationManager;
+import com.vijay.User_Master.service.manager.TransferCertificateOrchestrationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,7 @@ public class ManagerAgentController {
     private final LibraryOverdueManager libraryOverdueManager;
     private final EventTripOrchestrationManager eventTripOrchestrationManager;
     private final TransportRouteAllocationManager transportRouteAllocationManager;
+    private final TransferCertificateOrchestrationManager transferCertificateOrchestrationManager;
 
     @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
@@ -351,5 +353,48 @@ public class ManagerAgentController {
     @GetMapping("/transport/allocation/state")
     public String transportState(@RequestParam String runId) {
         return transportRouteAllocationManager.getRunState(runId);
+    }
+
+    // ===================== TRANSFER CERTIFICATE ORCHESTRATION =====================
+
+    @PostMapping("/tc/start")
+    public String tcStart(
+            @RequestParam Long studentId,
+            @RequestParam(required = false) Long issuedByUserId,
+            @RequestParam(required = false) String reasonForLeaving,
+            @RequestParam(required = false) String reasonDetails,
+            @RequestParam(required = false) String lastAttendanceDate,
+            @RequestParam(required = false) String academicYearOfLeaving,
+            @RequestParam(required = false) String conduct,
+            @RequestParam(required = false) String generalRemarks
+    ) {
+        return transferCertificateOrchestrationManager.start(
+                studentId, issuedByUserId, reasonForLeaving, reasonDetails,
+                lastAttendanceDate, academicYearOfLeaving, conduct, generalRemarks);
+    }
+
+    @PostMapping("/tc/approve")
+    public String tcApprove(@RequestParam String runId, @RequestParam Long approvedByUserId) {
+        return transferCertificateOrchestrationManager.approve(runId, approvedByUserId);
+    }
+
+    @PostMapping("/tc/issue")
+    public String tcIssue(@RequestParam String runId) {
+        return transferCertificateOrchestrationManager.issue(runId);
+    }
+
+    @PostMapping("/tc/generate-pdf")
+    public String tcGeneratePdf(@RequestParam String runId) {
+        return transferCertificateOrchestrationManager.generatePdf(runId);
+    }
+
+    @PostMapping("/tc/finish")
+    public String tcFinish(@RequestParam String runId) {
+        return transferCertificateOrchestrationManager.finish(runId);
+    }
+
+    @GetMapping("/tc/state")
+    public String tcState(@RequestParam String runId) {
+        return transferCertificateOrchestrationManager.getRunState(runId);
     }
 }
