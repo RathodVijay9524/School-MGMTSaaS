@@ -112,11 +112,20 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
+        logger.error("Runtime error: {}", ex.getMessage(), ex);
+        return ExceptionUtil.createErrorResponseMessage(
+                ex.getMessage() != null ? ex.getMessage() : "An error occurred",
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobalException(Exception ex) {
         logger.error("System error: {}", ex.getMessage(), ex);
         return ExceptionUtil.createErrorResponseMessage(
-                "An unexpected error occurred",
+                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred",
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }

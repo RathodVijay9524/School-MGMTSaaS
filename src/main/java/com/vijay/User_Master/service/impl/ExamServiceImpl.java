@@ -349,6 +349,11 @@ public class ExamServiceImpl implements ExamService {
         Exam exam = examRepository.findByIdAndOwner_IdAndIsDeletedFalse(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Exam not found"));
         
+        // Soft delete all associated examiners
+        if (exam.getExaminers() != null && !exam.getExaminers().isEmpty()) {
+            exam.getExaminers().forEach(examiner -> examiner.setDeleted(true));
+        }
+        
         exam.setDeleted(true);
         examRepository.save(exam);
         

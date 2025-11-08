@@ -71,7 +71,7 @@ public class ExamController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<?> createExam(@Valid @RequestBody ExamRequest request) {
         log.info("Creating exam: {} for subject: {}", request.getExamName(), request.getSubjectId());
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         ExamResponse response = examService.createExam(request, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.CREATED);
     }
@@ -83,7 +83,7 @@ public class ExamController {
             @Parameter(description = "Exam ID") @PathVariable Long id,
             @Valid @RequestBody ExamRequest request) {
         log.info("Updating exam: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         ExamResponse response = examService.updateExam(id, request, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -93,7 +93,7 @@ public class ExamController {
     public ResponseEntity<?> getExamById(
             @Parameter(description = "Exam ID") @PathVariable Long id) {
         log.info("Getting exam: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         ExamResponse response = examService.getExamById(id, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -139,7 +139,7 @@ public class ExamController {
     public ResponseEntity<?> getExamsBySubject(
             @Parameter(description = "Subject ID") @PathVariable Long subjectId) {
         log.info("Getting exams for subject: {}", subjectId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamsBySubject(subjectId, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -149,7 +149,7 @@ public class ExamController {
     public ResponseEntity<?> getExamsByType(
             @Parameter(description = "Exam type") @PathVariable Exam.ExamType examType) {
         log.info("Getting exams for type: {}", examType);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamsByType(examType, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -161,7 +161,7 @@ public class ExamController {
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
         log.info("Getting exams for status: {}", status);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("examDate").ascending());
         Page<ExamResponse> response = examService.getExamsByStatus(status, ownerId, pageable);
@@ -174,7 +174,7 @@ public class ExamController {
             @Parameter(description = "Start date (yyyy-MM-dd)") @RequestParam LocalDate startDate,
             @Parameter(description = "End date (yyyy-MM-dd)") @RequestParam LocalDate endDate) {
         log.info("Getting exams for date range: {} to {}", startDate, endDate);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamsByDateRange(startDate, endDate, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -183,7 +183,7 @@ public class ExamController {
     @Operation(summary = "Get upcoming exams", description = "Retrieve all upcoming scheduled examinations")
     public ResponseEntity<?> getUpcomingExams() {
         log.info("Getting upcoming exams");
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getUpcomingExams(ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -192,7 +192,7 @@ public class ExamController {
     @Operation(summary = "Get overdue exams", description = "Retrieve all overdue scheduled examinations")
     public ResponseEntity<?> getOverdueExams() {
         log.info("Getting overdue exams");
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getOverdueExams(ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -202,7 +202,7 @@ public class ExamController {
     public ResponseEntity<?> getExamsBySemester(
             @Parameter(description = "Semester") @PathVariable String semester) {
         log.info("Getting exams for semester: {}", semester);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamsBySemester(semester, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -212,7 +212,7 @@ public class ExamController {
     public ResponseEntity<?> getExamsByAcademicYear(
             @Parameter(description = "Academic year") @PathVariable String academicYear) {
         log.info("Getting exams for academic year: {}", academicYear);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamsByAcademicYear(academicYear, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -222,7 +222,7 @@ public class ExamController {
     public ResponseEntity<?> getExamsBySupervisor(
             @Parameter(description = "Supervisor ID") @PathVariable Long supervisorId) {
         log.info("Getting exams for supervisor: {}", supervisorId);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamsBySupervisor(supervisorId, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -232,7 +232,7 @@ public class ExamController {
     public ResponseEntity<?> getExamsByDate(
             @Parameter(description = "Exam date (yyyy-MM-dd)") @PathVariable LocalDate examDate) {
         log.info("Getting exams for date: {}", examDate);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamsByDate(examDate, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -244,7 +244,7 @@ public class ExamController {
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
         log.info("Searching exams with keyword: {}", keyword);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("examDate").ascending());
         Page<ExamResponse> response = examService.searchExams(keyword, ownerId, pageable);
@@ -256,7 +256,7 @@ public class ExamController {
     public ResponseEntity<?> getExamCalendar(
             @Parameter(description = "Month (yyyy-MM-dd)") @PathVariable LocalDate month) {
         log.info("Getting exam calendar for month: {}", month);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         List<ExamResponse> response = examService.getExamCalendar(month, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -265,7 +265,7 @@ public class ExamController {
     @Operation(summary = "Get exam statistics", description = "Get comprehensive statistics about examinations")
     public ResponseEntity<?> getExamStatistics() {
         log.info("Getting exam statistics");
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         ExamStatistics response = examService.getExamStatistics(ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -276,7 +276,7 @@ public class ExamController {
     public ResponseEntity<?> publishExamResults(
             @Parameter(description = "Exam ID") @PathVariable Long id) {
         log.info("Publishing results for exam: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         ExamResponse response = examService.publishExamResults(id, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -288,7 +288,7 @@ public class ExamController {
             @Parameter(description = "Exam ID") @PathVariable Long id,
             @Parameter(description = "Cancellation reason") @RequestParam String reason) {
         log.info("Cancelling exam: {} with reason: {}", id, reason);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         ExamResponse response = examService.cancelExam(id, reason, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -300,7 +300,7 @@ public class ExamController {
             @Parameter(description = "Exam ID") @PathVariable Long id,
             @Parameter(description = "New exam date (yyyy-MM-dd)") @RequestParam LocalDate newDate) {
         log.info("Rescheduling exam: {} to date: {}", id, newDate);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         ExamResponse response = examService.rescheduleExam(id, newDate, ownerId);
         return ExceptionUtil.createBuildResponse(response, HttpStatus.OK);
     }
@@ -311,7 +311,7 @@ public class ExamController {
     public ResponseEntity<?> deleteExam(
             @Parameter(description = "Exam ID") @PathVariable Long id) {
         log.info("Deleting exam: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         examService.deleteExam(id, ownerId);
         return ExceptionUtil.createBuildResponse("Exam deleted successfully", HttpStatus.OK);
     }
@@ -322,7 +322,7 @@ public class ExamController {
     public ResponseEntity<?> restoreExam(
             @Parameter(description = "Exam ID") @PathVariable Long id) {
         log.info("Restoring exam: {}", id);
-        Long ownerId = CommonUtils.getLoggedInUser().getId();
+        Long ownerId = getCorrectOwnerId();
         examService.restoreExam(id, ownerId);
         return ExceptionUtil.createBuildResponse("Exam restored successfully", HttpStatus.OK);
     }
