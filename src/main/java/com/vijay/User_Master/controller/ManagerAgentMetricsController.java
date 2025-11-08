@@ -39,12 +39,28 @@ public class ManagerAgentMetricsController {
     @Value("${metrics.summary.ttl-ms:30000}")
     private long SUMMARY_TTL_MS; // configurable TTL
 
+    private static Duration parseDurationOrDefault(String value, String defaultIso) {
+        String v = (value == null || value.isBlank()) ? defaultIso : value;
+        try {
+            return Duration.parse(v);
+        } catch (Exception e) {
+            // Common mistake: use PT30D for days (invalid). Try converting PTxxD -> PxxD
+            try {
+                if (v.startsWith("PT") && v.endsWith("D")) {
+                    String mid = v.substring(2, v.length()-1);
+                    return Duration.parse("P" + mid + "D");
+                }
+            } catch (Exception ignored) {}
+            return Duration.parse(defaultIso);
+        }
+    }
+
     @GetMapping("/summary")
     public ResponseEntity<?> summary(@RequestParam(required = false) String manager,
                                      @RequestParam(required = false, defaultValue = "PT24H") String sinceDuration,
                                      @RequestParam(required = false) Long ownerId,
                                      @RequestParam(required = false) String status) {
-        Duration window = Duration.parse(sinceDuration);
+        Duration window = parseDurationOrDefault(sinceDuration, "PT24H");
         LocalDateTime cutoff = LocalDateTime.now().minus(window);
 
         Long scopedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
@@ -104,7 +120,12 @@ public class ManagerAgentMetricsController {
         double avgDurationMs = durationsMs.isEmpty() ? 0 : durationsMs.stream().mapToLong(Long::longValue).average().orElse(0);
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("filters", Map.of("manager", manager, "sinceDuration", sinceDuration, "ownerId", scopedOwnerId, "status", status));
+        Map<String,Object> filters = new LinkedHashMap<>();
+        if (manager != null) filters.put("manager", manager);
+        filters.put("sinceDuration", sinceDuration);
+        filters.put("ownerId", scopedOwnerId);
+        if (status != null) filters.put("status", status);
+        body.put("filters", filters);
         body.put("totalRuns", totalRuns);
         body.put("completedRuns", completedRuns);
         body.put("runningRuns", runningRuns);
@@ -145,7 +166,7 @@ public class ManagerAgentMetricsController {
     public ResponseEntity<?> alerts(@RequestParam(defaultValue = "PT24H") String sinceDuration, @RequestParam(defaultValue = "10") int limit,
                                     @RequestParam(required = false) Long ownerId,
                                     @RequestParam(required = false, defaultValue = "ERROR") String status) {
-        Duration window = Duration.parse(sinceDuration);
+        Duration window = parseDurationOrDefault(sinceDuration, "PT24H");
         LocalDateTime cutoff = LocalDateTime.now().minus(window);
         Long scopedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         if (scopedOwnerId == null) return ResponseEntity.status(401).body("ownerId required");
@@ -194,7 +215,7 @@ public class ManagerAgentMetricsController {
                                    @RequestParam(required = false) Long ownerId,
                                    @RequestParam(required = false, defaultValue = "ERROR") String status) {
         SseEmitter emitter = new SseEmitter(timeoutMs);
-        Duration window = Duration.parse(sinceDuration);
+        Duration window = parseDurationOrDefault(sinceDuration, "PT1H");
         Long scopedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         if (scopedOwnerId == null) {
             emitter.completeWithError(new RuntimeException("ownerId required"));
@@ -256,9 +277,9 @@ public class ManagerAgentMetricsController {
                                   @RequestParam(defaultValue = "10") int size,
                                   @RequestParam(required = false) String manager,
                                   @RequestParam(required = false) String status,
-                                  @RequestParam(required = false, defaultValue = "PT30D") String sinceDuration,
+                                  @RequestParam(required = false, defaultValue = "P30D") String sinceDuration,
                                   @RequestParam(required = false) Long ownerId) {
-        Duration window = Duration.parse(sinceDuration);
+        Duration window = parseDurationOrDefault(sinceDuration, "P30D");
         LocalDateTime cutoff = LocalDateTime.now().minus(window);
         Long scopedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         if (scopedOwnerId == null) return ResponseEntity.status(401).body("ownerId required");
@@ -294,9 +315,9 @@ public class ManagerAgentMetricsController {
                                    @RequestParam(defaultValue = "10") int size,
                                    @RequestParam(required = false) String runId,
                                    @RequestParam(required = false) String status,
-                                   @RequestParam(required = false, defaultValue = "PT7D") String sinceDuration,
+                                   @RequestParam(required = false, defaultValue = "P7D") String sinceDuration,
                                    @RequestParam(required = false) Long ownerId) {
-        Duration window = Duration.parse(sinceDuration);
+        Duration window = parseDurationOrDefault(sinceDuration, "P7D");
         LocalDateTime cutoff = LocalDateTime.now().minus(window);
         Long scopedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         if (scopedOwnerId == null) return ResponseEntity.status(401).body("ownerId required");
@@ -388,7 +409,7 @@ public class ManagerAgentMetricsController {
     @PostMapping("/alerts/rules/{id}/mute")
     public ResponseEntity<?> muteRule(@PathVariable Long id, @RequestParam(defaultValue = "PT1H") String untilDuration,
                                       @RequestParam(required = false) Long ownerId) {
-        Duration d = Duration.parse(untilDuration);
+        Duration d = parseDurationOrDefault(untilDuration, "PT1H");
         AlertRule rule = alertRuleRepository.findById(id).orElse(null);
         if (rule == null) return ResponseEntity.badRequest().body("Invalid id");
         Long scopedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
@@ -413,7 +434,7 @@ public class ManagerAgentMetricsController {
     public ResponseEntity<?> dispatchAlerts(@RequestParam(defaultValue = "PT1H") String sinceDuration,
                                             @RequestParam(required = false) Long ownerId,
                                             @RequestParam(required = false, defaultValue = "ERROR") String status) {
-        Duration window = Duration.parse(sinceDuration);
+        Duration window = parseDurationOrDefault(sinceDuration, "PT1H");
         LocalDateTime cutoff = LocalDateTime.now().minus(window);
         Long scopedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         if (scopedOwnerId == null) return ResponseEntity.status(401).body("ownerId required");

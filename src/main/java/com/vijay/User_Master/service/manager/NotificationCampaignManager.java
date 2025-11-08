@@ -77,14 +77,14 @@ public class NotificationCampaignManager {
         } catch (Exception e) { return CampaignState.builder().build(); }
     }
 
-    @Tool(name = "notifStartCampaign", description = "Start a notification campaign. Inputs: campaignName, channel(SMS|WHATSAPP|EMAIL), audienceType(ALL|CLASS|STUDENT_IDS). Returns runId.")
-    public String start(String campaignName, String channel, String audienceType) {
-        Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
+    @Tool(name = "notifStartCampaign", description = "Start a notification campaign. Inputs: campaignName, channel(SMS|WHATSAPP|EMAIL), audienceType(ALL|CLASS|STUDENT_IDS), ownerId(optional). Returns runId.")
+    public String start(String campaignName, String channel, String audienceType, Long ownerId) {
+        Long resolvedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
                 .runId(runId)
                 .agentName("NotificationCampaign")
-                .ownerId(ownerId)
+                .ownerId(resolvedOwnerId)
                 .status("RUNNING")
                 .currentNode("start_campaign")
                 .build();
@@ -106,6 +106,11 @@ public class NotificationCampaignManager {
         persistState(run, state, "start_campaign", "RUNNING");
         saveStep(run, "start_campaign", Map.of("name", campaignName, "channel", channel, "audience", audienceType), Map.of("ok", true), "OK", null);
         return runId;
+    }
+
+    // Backward-compatible overload to keep existing callers working
+    public String start(String campaignName, String channel, String audienceType) {
+        return start(campaignName, channel, audienceType, null);
     }
 
     @Tool(name = "notifSelectAudience", description = "Select campaign audience. Inputs: runId, classIdsCsv?, studentIdsCsv?. Returns target count.")

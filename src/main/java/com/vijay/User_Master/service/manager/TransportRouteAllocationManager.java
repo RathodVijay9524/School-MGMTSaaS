@@ -78,14 +78,14 @@ public class TransportRouteAllocationManager {
         } catch (Exception e) { return TransportState.builder().build(); }
     }
 
-    @Tool(name = "transportStartAllocation", description = "Start transport route allocation. Inputs: routeIdsCsv?, busIdsCsv?. Returns runId.")
-    public String startAllocation(String routeIdsCsv, String busIdsCsv) {
-        Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
+    @Tool(name = "transportStartAllocation", description = "Start transport route allocation. Inputs: routeIdsCsv?, busIdsCsv?, ownerId(optional). Returns runId.")
+    public String startAllocation(String routeIdsCsv, String busIdsCsv, Long ownerId) {
+        Long resolvedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
                 .runId(runId)
                 .agentName("TransportRouteAllocation")
-                .ownerId(ownerId)
+                .ownerId(resolvedOwnerId)
                 .status("RUNNING")
                 .currentNode("ingest")
                 .build();
@@ -102,6 +102,11 @@ public class TransportRouteAllocationManager {
         persistState(run, state, "ingest", "RUNNING");
         saveStep(run, "start_allocation", Map.of("routes", state.getRouteIds(), "buses", state.getBusIds()), Map.of(), "OK", null);
         return runId;
+    }
+
+    // Backward-compatible overload used by controllers calling with two arguments
+    public String startAllocation(String routeIdsCsv, String busIdsCsv) {
+        return startAllocation(routeIdsCsv, busIdsCsv, (Long) null);
     }
 
     @Tool(name = "transportIngestStudents", description = "Add candidate students. Inputs: runId, studentIdsCsv. Returns total candidates.")

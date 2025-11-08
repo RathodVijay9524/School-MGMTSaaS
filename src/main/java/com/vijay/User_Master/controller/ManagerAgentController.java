@@ -344,7 +344,7 @@ public class ManagerAgentController {
     public String transportStart(
             @RequestParam(required = false) String routeIdsCsv,
             @RequestParam(required = false) String busIdsCsv) {
-        return transportRouteAllocationManager.startAllocation(routeIdsCsv, busIdsCsv);
+        return transportRouteAllocationManager.startAllocation(routeIdsCsv, busIdsCsv, null);
     }
 
     @PostMapping("/transport/allocation/ingest-students")

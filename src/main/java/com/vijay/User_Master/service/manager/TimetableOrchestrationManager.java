@@ -74,14 +74,14 @@ public class TimetableOrchestrationManager {
         } catch (Exception e) { return TTState.builder().build(); }
     }
 
-    @Tool(name = "timetableStart", description = "Start timetable orchestration. Inputs: academicYear, semester, classIdsCsv. Returns runId.")
-    public String start(String academicYear, String semester, String classIdsCsv) {
-        Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
+    @Tool(name = "timetableStart", description = "Start timetable orchestration. Inputs: academicYear, semester, classIdsCsv, ownerId(optional). Returns runId.")
+    public String start(String academicYear, String semester, String classIdsCsv, Long ownerId) {
+        Long resolvedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
                 .runId(runId)
                 .agentName("TimetableOrchestration")
-                .ownerId(ownerId)
+                .ownerId(resolvedOwnerId)
                 .status("RUNNING")
                 .currentNode("collect_constraints")
                 .build();
@@ -107,6 +107,11 @@ public class TimetableOrchestrationManager {
         persistState(run, state, "collect_constraints", "RUNNING");
         saveStep(run, "collect_constraints", Map.of("classIds", classIds, "year", academicYear, "sem", semester), Map.of("ok", true), "OK", null);
         return runId;
+    }
+
+    // Backward-compatible overload
+    public String start(String academicYear, String semester, String classIdsCsv) {
+        return start(academicYear, semester, classIdsCsv, null);
     }
 
     @Tool(name = "timetableGenerateDraft", description = "Generate a draft timetable. Inputs: runId. Returns draft slots count.")

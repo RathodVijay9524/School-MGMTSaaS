@@ -85,14 +85,14 @@ public class FeeRecoveryManager {
         } catch (Exception e) { return FeeRecoveryState.builder().build(); }
     }
 
-    @Tool(description = "Start Fee Recovery. Inputs: studentId (optional). Returns runId.")
-    public String startFeeRecovery(Long studentId) {
-        Long ownerId = CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null;
+    @Tool(description = "Start Fee Recovery. Inputs: studentId(optional), ownerId(optional). Returns runId.")
+    public String startFeeRecovery(Long studentId, Long ownerId) {
+        Long resolvedOwnerId = ownerId != null ? ownerId : (CommonUtils.getLoggedInUser() != null ? CommonUtils.getLoggedInUser().getId() : null);
         String runId = newRunId();
         AgentRun run = AgentRun.builder()
                 .runId(runId)
                 .agentName("FeeRecovery")
-                .ownerId(ownerId)
+                .ownerId(resolvedOwnerId)
                 .status("RUNNING")
                 .currentNode("detect_overdue")
                 .build();
@@ -125,6 +125,11 @@ public class FeeRecoveryManager {
         persistState(run, state, "detect_overdue", "RUNNING");
         saveStep(run, "detect_overdue", Map.of("studentId", studentId), Map.of("feeCount", ids.size()), "OK", null);
         return runId;
+    }
+
+    // Backward-compatible overload to keep existing callers working
+    public String startFeeRecovery(Long studentId) {
+        return startFeeRecovery(studentId, null);
     }
 
     @Tool(description = "Send reminder. Inputs: runId, stage (T1|T2|FINAL). Returns status.")
