@@ -2,6 +2,7 @@ package com.vijay.User_Master.service.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.chat.AiToolProvider;
 import com.vijay.User_Master.dto.RouteResponse;
 import com.vijay.User_Master.entity.AgentRun;
 import com.vijay.User_Master.entity.AgentStep;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class TransportRouteAllocationManager {
+public class TransportRouteAllocationManager implements AiToolProvider {
 
     private final AgentRunRepository agentRunRepository;
     private final AgentStepRepository agentStepRepository;

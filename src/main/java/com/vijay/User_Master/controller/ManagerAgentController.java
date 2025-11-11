@@ -47,13 +47,13 @@ public class ManagerAgentController {
     private final HostelAllocationManager hostelAllocationManager;
     private final MaintenanceWorkOrderManager maintenanceWorkOrderManager;
 
-    @PostMapping("/run/at-risk-student-analysis")
+   /* @PostMapping("/run/at-risk-student-analysis")
     public String runAtRiskAnalysis(
             @RequestParam Long classId,
             @RequestParam(defaultValue = "80") int attendanceThreshold,
             @RequestParam Long subjectId) {
         return atRiskStudentAgentManager.runAtRiskAnalysis(classId, attendanceThreshold, subjectId);
-    }
+    }*/
 
     @PostMapping("/run/adaptive-tutor")
     public String runAdaptiveTutor(

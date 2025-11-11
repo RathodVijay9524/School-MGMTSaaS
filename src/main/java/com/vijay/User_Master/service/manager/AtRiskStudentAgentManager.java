@@ -9,7 +9,6 @@ import com.vijay.User_Master.entity.Worker;
 import com.vijay.User_Master.repository.SchoolClassRepository;
 import com.vijay.User_Master.repository.WorkerRepository;
 import com.vijay.User_Master.service.AttendanceService;
-import com.vijay.User_Master.service.ChatIntegrationService;
 import com.vijay.User_Master.service.GradeService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,11 +35,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AtRiskStudentAgentManager {
 
-    private final AttendanceService attendanceService;
+    /*private final AttendanceService attendanceService;
     private final GradeService gradeService;
     private final WorkerRepository workerRepository;
     private final SchoolClassRepository schoolClassRepository;
-    private final ChatIntegrationService chatIntegrationService;
+    private final hatIntegrationService chatIntegrationService;
 
     @Data
     @Builder
@@ -152,13 +151,13 @@ public class AtRiskStudentAgentManager {
         return report;
     }
 
-    /**
+    *//**
      * MCP Tool entrypoint so the LLM agent can invoke this workflow directly.
      * Parameters are nullable-friendly for tool invocation; applies a default threshold of 80 when not provided.
-     */
+     *//*
     @Tool(description = "Run At-Risk Student analysis for a class. Inputs: classId (Long), attendanceThreshold (Integer, optional, default 80), subjectId (Long). Returns a summary report string.")
     public String atRiskAnalysisTool(Long classId, Integer attendanceThreshold, Long subjectId) {
         int threshold = attendanceThreshold != null ? attendanceThreshold : 80;
         return runAtRiskAnalysis(classId, threshold, subjectId);
-    }
+    }*/
 }

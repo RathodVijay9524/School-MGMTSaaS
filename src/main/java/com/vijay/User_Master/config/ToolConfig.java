@@ -55,7 +55,7 @@ import java.util.List;
 @Configuration
 class ToolConfig {
 
-    static record Note(String title, String body, LocalDateTime createdAt) {}
+   /* static record Note(String title, String body, LocalDateTime createdAt) {}
 
     static class NotesService {
         @Tool(description = "Create a note with a title and body; returns the created note")
@@ -80,10 +80,10 @@ class ToolConfig {
                 .build();
     }
 
-    /**
+    *//**
      * Single bean containing all school management tools
      * Combines all service implementations with @Tool annotations
-     */
+     *//*
     @Bean
     ToolCallbackProvider allSchoolManagementTools(
         DashboardServiceImpl dashboardService,
@@ -109,7 +109,7 @@ class ToolConfig {
         FileServiceImpl fileService,
         HomeServiceImpl homeService,
         RagEnhancedServiceImpl ragEnhancedService,
-        AtRiskStudentAgentManager atRiskStudentAgentManager,
+
         AdvancedTutorAgentManager advancedTutorAgentManager,
         PeerReviewAgentManager peerReviewAgentManager,
         AdmissionsFunnelManager admissionsFunnelManager,
@@ -153,7 +153,7 @@ class ToolConfig {
                     fileService,
                     homeService,
                     ragEnhancedService,
-                    atRiskStudentAgentManager,
+
                     advancedTutorAgentManager,
                     peerReviewAgentManager,
                     admissionsFunnelManager,
@@ -172,5 +172,5 @@ class ToolConfig {
                     maintenanceWorkOrderManager
                 )
                 .build();
-    }
+    }*/
 }

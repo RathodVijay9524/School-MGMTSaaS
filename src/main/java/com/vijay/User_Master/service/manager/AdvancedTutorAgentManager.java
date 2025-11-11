@@ -1,6 +1,7 @@
 package com.vijay.User_Master.service.manager;
 
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.chat.AiToolProvider;
 import com.vijay.User_Master.dto.LearningInteractionRequest;
 import com.vijay.User_Master.service.AcademicTutoringService;
 import com.vijay.User_Master.service.AdaptiveLearningService;
@@ -23,7 +24,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class AdvancedTutorAgentManager {
+public class AdvancedTutorAgentManager implements AiToolProvider {
 
     private final AcademicTutoringService academicTutoringService;
     private final AdaptiveLearningService adaptiveLearningService;

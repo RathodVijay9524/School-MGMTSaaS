@@ -3,6 +3,7 @@ package com.vijay.User_Master.service.manager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.chat.AiToolProvider;
 import com.vijay.User_Master.entity.AgentRun;
 import com.vijay.User_Master.entity.AgentStep;
 import com.vijay.User_Master.entity.Fee;
@@ -42,7 +43,7 @@ public class AdmissionsFunnelManager {
 
     @Data
     @Builder
-    public static class AdmissionsState {
+    public static class AdmissionsState implements AiToolProvider {
         private String applicantName;
         private String applicantEmail;
         private String gradeApplied;

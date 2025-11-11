@@ -2,6 +2,7 @@ package com.vijay.User_Master.service.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.chat.AiToolProvider;
 import com.vijay.User_Master.entity.AgentRun;
 import com.vijay.User_Master.entity.AgentStep;
 import com.vijay.User_Master.repository.AgentRunRepository;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class MaintenanceWorkOrderManager {
+public class MaintenanceWorkOrderManager implements AiToolProvider {
 
     private final AgentRunRepository agentRunRepository;
     private final AgentStepRepository agentStepRepository;

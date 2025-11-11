@@ -3,6 +3,7 @@ package com.vijay.User_Master.service.manager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.chat.AiToolProvider;
 import com.vijay.User_Master.dto.PeerReviewAssignmentRequest;
 import com.vijay.User_Master.dto.PeerReviewAssignmentResponse;
 import com.vijay.User_Master.dto.AIGradingResponse;
@@ -25,7 +26,7 @@ import java.util.*;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class AssignmentLifecycleManager {
+public class AssignmentLifecycleManager implements AiToolProvider {
 
     private final AgentRunRepository agentRunRepository;
     private final AgentStepRepository agentStepRepository;

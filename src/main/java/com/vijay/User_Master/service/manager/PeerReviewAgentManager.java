@@ -1,6 +1,7 @@
 package com.vijay.User_Master.service.manager;
 
 import com.vijay.User_Master.Helper.CommonUtils;
+import com.vijay.User_Master.config.chat.AiToolProvider;
 import com.vijay.User_Master.dto.AIGradingRequest;
 import com.vijay.User_Master.dto.PeerReviewAssignmentRequest;
 import com.vijay.User_Master.dto.PeerReviewAssignmentResponse;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class PeerReviewAgentManager {
+public class PeerReviewAgentManager implements AiToolProvider {
 
     private final PeerReviewService peerReviewService;
     private final AIGradingService aiGradingService;
