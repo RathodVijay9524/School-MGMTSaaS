@@ -22,6 +22,8 @@ public class ToolFinderService {
     }
 
     public List<String> findToolsFor(String prompt) {
+        logger.info("ToolFinder: Searching for tools matching prompt: {}", prompt);
+        
         SearchRequest request = SearchRequest.builder()
                 .query(prompt)
                 .topK(3)
@@ -29,12 +31,20 @@ public class ToolFinderService {
                 .build();
 
         List<Document> similarDocuments = vectorStore.similaritySearch(request);
+        logger.info("ToolFinder: Found {} similar documents", similarDocuments.size());
 
         List<String> toolNames = similarDocuments.stream()
-                .map(doc -> (String) doc.getMetadata().get("toolName"))
+                .map(doc -> {
+                    Object toolNameObj = doc.getMetadata().get("toolName");
+                    String toolName = toolNameObj != null ? toolNameObj.toString() : null;
+                    logger.info("ToolFinder: Metadata: {}, Extracted tool: {}", 
+                            doc.getMetadata(), toolName);
+                    return toolName;
+                })
+                .filter(toolName -> toolName != null && !toolName.isEmpty())
                 .collect(Collectors.toList());
 
-        logger.info("SmartFinder: Found tools {} for prompt: {}", toolNames, prompt);
+        logger.info("ToolFinder: Final tools for prompt '{}': {}", prompt, toolNames);
         return toolNames;
     }
 }

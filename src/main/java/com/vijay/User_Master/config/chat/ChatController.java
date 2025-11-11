@@ -3,11 +3,14 @@ package com.vijay.User_Master.config.chat;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The main chat controller that uses the "Smart Finder" (RAG) architecture.
@@ -29,7 +32,7 @@ public class ChatController {
 
     @Autowired
     public ChatController(ToolFinderService toolFinder,
-                          AIAgentToolService aiAgentToolService,
+                          List<AiToolProvider> allToolProviders,
                           ChatClient.Builder openAiChatClientBuilder) {
 
         this.toolFinder = toolFinder;
@@ -39,11 +42,16 @@ public class ChatController {
         // 2. Give it ALL your tools (e.g., all 200) just one time.
         //    The .toolNames() call later will filter them for each request.
 
-        // --- THIS IS THE FIX ---
-        // The method is .defaultTools() not .tools() on the builder.
-        this.chatClient = openAiChatClientBuilder
-                .defaultTools(aiAgentToolService) // Registers all @Tool methods from your service
-                .build();
+        // --- REGISTER ALL TOOL PROVIDERS ---
+        // Register all AiToolProvider implementations (AIAgentToolService + all managers)
+        ChatClient.Builder builder = openAiChatClientBuilder;
+        for (AiToolProvider provider : allToolProviders) {
+            logger.info("Registering tool provider: {}", provider.getClass().getSimpleName());
+            builder = builder.defaultTools(provider);
+        }
+        
+        this.chatClient = builder.build();
+        logger.info("ChatClient built with {} tool providers", allToolProviders.size());
     }
 
     /**
@@ -81,5 +89,60 @@ public class ChatController {
 
         logger.info("Final AI response: {}", content);
         return content;
+    }
+
+    /**
+     * POST endpoint with JWT authentication for chat with ToolFinder.
+     * Tests if ToolFinderService correctly identifies tools from user queries.
+     * @param requestBody JSON with "message" field
+     * @return Response with AI answer and tools used
+     */
+    @PostMapping("/api/chat/with-tools")
+    public Map<String, Object> chatWithTools(@RequestBody Map<String, String> requestBody) {
+        String prompt = requestBody.get("message");
+        logger.info("Chat POST request received: {}", prompt);
+
+        try {
+            // 1. SMART FINDER (RAG) STEP:
+            // Find the *names* of the tools needed
+            List<String> requiredToolNames = toolFinder.findToolsFor(prompt);
+            logger.info("ToolFinder: Found {} tools for prompt: {}", requiredToolNames.size(), prompt);
+            logger.info("ToolFinder: Tools identified: {}", requiredToolNames);
+
+            // If no tools found, use all tools (fallback)
+            String[] toolNamesArray;
+            if (requiredToolNames == null || requiredToolNames.isEmpty()) {
+                logger.warn("ToolFinder: No tools found, using all available tools");
+                toolNamesArray = new String[0]; // Empty array means use all tools
+            } else {
+                toolNamesArray = requiredToolNames.toArray(new String[0]);
+            }
+
+            // 2. "AGENTIC" CALL:
+            // Use the single, pre-built chatClient with filtered tools
+            String content = this.chatClient.prompt()
+                    .user(prompt)
+                    .toolNames(toolNamesArray)
+                    .call()
+                    .content();
+
+            logger.info("Final AI response: {}", content);
+
+            // Return response with tools used
+            return Map.of(
+                    "status", "SUCCESS",
+                    "message", prompt,
+                    "toolsIdentified", requiredToolNames != null ? requiredToolNames : List.of(),
+                    "toolCount", requiredToolNames != null ? requiredToolNames.size() : 0,
+                    "response", content
+            );
+        } catch (Exception e) {
+            logger.error("Error in chat endpoint: {}", e.getMessage(), e);
+            return Map.of(
+                    "status", "ERROR",
+                    "message", prompt,
+                    "error", e.getMessage()
+            );
+        }
     }
 }
