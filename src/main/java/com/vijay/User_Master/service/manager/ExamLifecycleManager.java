@@ -50,6 +50,7 @@ public class ExamLifecycleManager implements AiToolProvider {
         private Boolean scheduleNotified;
         private Boolean reminderSent;
         private Boolean parentsNotified;
+        private Map<String, String> timestamps;
     }
 
     private String newRunId() { return UUID.randomUUID().toString().replace("-", ""); }
@@ -111,6 +112,7 @@ public class ExamLifecycleManager implements AiToolProvider {
                 .scheduleNotified(false)
                 .reminderSent(false)
                 .parentsNotified(false)
+                .timestamps(new HashMap<>())
                 .build();
         agentRunRepository.save(run);
         persistState(run, state, "plan_schedule", "RUNNING");

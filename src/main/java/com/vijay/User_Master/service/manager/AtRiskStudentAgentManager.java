@@ -1,7 +1,6 @@
 package com.vijay.User_Master.service.manager;
 
-import com.vijay.User_Master.dto.ChatRequest;
-import com.vijay.User_Master.dto.ChatResponse;
+import com.vijay.User_Master.config.chat.AiToolProvider;
 import com.vijay.User_Master.entity.Grade;
 import com.vijay.User_Master.entity.Role;
 import com.vijay.User_Master.entity.SchoolClass;
@@ -14,8 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -25,21 +24,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Orchestrator that identifies at-risk students by combining Attendance and Grades,
- * then drafts intervention email texts using the existing ChatIntegrationService.
- *
- * Note: This implementation avoids adding LangGraph4j for now and uses plain Spring services.
+ * Orchestrates querying attendance and grade services to surface at-risk students
+ * without delegating to any external chat integration. Generates deterministic
+ * email drafts using a simple template so MCP tooling can consume the outputs.
  */
 @Service
 @AllArgsConstructor
 @Slf4j
-public class AtRiskStudentAgentManager {
+public class AtRiskStudentAgentManager implements AiToolProvider {
 
-    /*private final AttendanceService attendanceService;
+    private final AttendanceService attendanceService;
     private final GradeService gradeService;
     private final WorkerRepository workerRepository;
     private final SchoolClassRepository schoolClassRepository;
-    private final hatIntegrationService chatIntegrationService;
 
     @Data
     @Builder
@@ -53,15 +50,23 @@ public class AtRiskStudentAgentManager {
         private String finalReport;
     }
 
-    public String runAtRiskAnalysis(Long classId, int attendanceThreshold, Long subjectId) {
+    public Result runAtRiskAnalysis(Long classId, int attendanceThreshold, Long subjectId) {
         log.info("Running At-Risk Student analysis for classId={}, threshold={}, subjectId={}",
                 classId, attendanceThreshold, subjectId);
 
-        // 1) Resolve class and list students in the class (ROLE_STUDENT)
         SchoolClass schoolClass = schoolClassRepository.findById(classId).orElse(null);
         if (schoolClass == null) {
-            return "Class not found";
+            return Result.builder()
+                    .classId(classId)
+                    .attendanceThreshold(attendanceThreshold)
+                    .subjectId(subjectId)
+                    .finalReport("Class not found")
+                    .lowAttendanceStudentIds(List.of())
+                    .atRiskStudentIds(List.of())
+                    .emailDrafts(List.of())
+                    .build();
         }
+
         Long ownerId = schoolClass.getOwner() != null ? schoolClass.getOwner().getId() : null;
         List<Worker> ownerWorkers = ownerId != null
                 ? workerRepository.findByOwner_IdAndIsDeletedFalse(ownerId)
@@ -74,10 +79,17 @@ public class AtRiskStudentAgentManager {
                 .collect(Collectors.toList());
 
         if (classStudents.isEmpty()) {
-            return "Project Complete: No students found in the selected class.";
+            return Result.builder()
+                    .classId(classId)
+                    .attendanceThreshold(attendanceThreshold)
+                    .subjectId(subjectId)
+                    .finalReport("Project Complete: No students found in the selected class.")
+                    .lowAttendanceStudentIds(List.of())
+                    .atRiskStudentIds(List.of())
+                    .emailDrafts(List.of())
+                    .build();
         }
 
-        // 2) Find students below attendance threshold
         List<Worker> lowAttendance = classStudents.stream()
                 .filter(w -> {
                     Double pct = attendanceService.calculateAttendancePercentage(w.getId());
@@ -86,12 +98,20 @@ public class AtRiskStudentAgentManager {
                 .collect(Collectors.toList());
 
         if (lowAttendance.isEmpty()) {
-            return String.format(
+            String report = String.format(
                     "Project Complete:\n- Found %d students in class %s-%s.\n- None below %d%% attendance.",
                     classStudents.size(), schoolClass.getClassName(), schoolClass.getSection(), attendanceThreshold);
+            return Result.builder()
+                    .classId(classId)
+                    .attendanceThreshold(attendanceThreshold)
+                    .subjectId(subjectId)
+                    .finalReport(report)
+                    .lowAttendanceStudentIds(List.of())
+                    .atRiskStudentIds(List.of())
+                    .emailDrafts(List.of())
+                    .build();
         }
 
-        // 3) Filter by failing grades in the subject
         List<Worker> atRisk = lowAttendance.stream()
                 .filter(w -> {
                     try {
@@ -104,38 +124,13 @@ public class AtRiskStudentAgentManager {
                 })
                 .collect(Collectors.toList());
 
-        // 4) Draft emails via ChatIntegrationService (no sending here)
         List<String> drafts = new ArrayList<>();
-        for (Worker s : atRisk) {
-            Double pct = attendanceService.calculateAttendancePercentage(s.getId());
-            String studentName = (s.getFirstName() != null ? s.getFirstName() : "Student") +
-                    (s.getLastName() != null ? (" " + s.getLastName()) : "");
-            String parentName = s.getFatherName() != null ? ("Mr./Ms. " + s.getFatherName()) : "Parent";
-
-            String prompt = String.format(
-                    "Draft a supportive email to %s regarding %s's performance. " +
-                    "Attendance is approximately %.0f%% and they are currently failing the target subject. " +
-                    "Use a concerned but respectful tone and propose a parent-teacher meeting next week.",
-                    parentName, studentName, pct != null ? pct : 0.0);
-
-            ChatRequest req = ChatRequest.builder()
-                    .message(prompt)
-                    .provider(null) // Use default provider in chat service
-                    .model(null)
-                    .temperature(0.4)
-                    .maxTokens(600)
-                    .userId("system-manager")
-                    .build();
-            ChatResponse resp = chatIntegrationService.sendMessage(req);
-            String body = (resp != null && resp.getError() == null) ? resp.getResponse() :
-                    ("Dear " + parentName + ",\n\n" +
-                            "We are concerned about " + studentName + "'s recent attendance and academic performance. " +
-                            "We would like to schedule a meeting to discuss a supportive plan.\n\nRegards,\nSchool");
-            drafts.add(body);
+        for (Worker student : atRisk) {
+            Double pct = attendanceService.calculateAttendancePercentage(student.getId());
+            drafts.add(buildParentEmail(student, pct));
         }
-
-        // 5) Build final report
         drafts.sort(Comparator.comparingInt(String::length));
+
         String report;
         if (atRisk.isEmpty()) {
             report = String.format(
@@ -143,21 +138,40 @@ public class AtRiskStudentAgentManager {
                     lowAttendance.size(), attendanceThreshold);
         } else {
             report = String.format(
-                    "Project Complete:\n- Found %d students with low attendance (< %d%%).\n- Identified %d at-risk students (also failing the subject).\n- Drafted %d parent emails (not yet sent).",
+                    "Project Complete:\n- Found %d students with low attendance (< %d%%).\n- Identified %d at-risk students (also failing the subject).\n- Prepared %d parent email drafts.",
                     lowAttendance.size(), attendanceThreshold, atRisk.size(), drafts.size());
         }
 
         log.info("At-Risk analysis completed: {} at-risk students", atRisk.size());
-        return report;
+        return Result.builder()
+                .classId(classId)
+                .attendanceThreshold(attendanceThreshold)
+                .subjectId(subjectId)
+                .lowAttendanceStudentIds(lowAttendance.stream().map(Worker::getId).toList())
+                .atRiskStudentIds(atRisk.stream().map(Worker::getId).toList())
+                .emailDrafts(drafts)
+                .finalReport(report)
+                .build();
     }
 
-    *//**
-     * MCP Tool entrypoint so the LLM agent can invoke this workflow directly.
-     * Parameters are nullable-friendly for tool invocation; applies a default threshold of 80 when not provided.
-     *//*
     @Tool(description = "Run At-Risk Student analysis for a class. Inputs: classId (Long), attendanceThreshold (Integer, optional, default 80), subjectId (Long). Returns a summary report string.")
     public String atRiskAnalysisTool(Long classId, Integer attendanceThreshold, Long subjectId) {
         int threshold = attendanceThreshold != null ? attendanceThreshold : 80;
-        return runAtRiskAnalysis(classId, threshold, subjectId);
-    }*/
+        Result result = runAtRiskAnalysis(classId, threshold, subjectId);
+        return result.getFinalReport();
+    }
+
+    private String buildParentEmail(Worker student, Double attendancePct) {
+        String studentName = (student.getFirstName() != null ? student.getFirstName() : "Student") +
+                (student.getLastName() != null ? " " + student.getLastName() : "");
+        String parentName = student.getFatherName() != null ? "Mr./Ms. " + student.getFatherName() : "Parent";
+        double pct = attendancePct != null ? attendancePct : 0.0;
+        return String.format(
+                "Dear %s,\n\n" +
+                        "We are reaching out regarding %s's attendance, currently around %.0f%%, " +
+                        "and recent academic performance in the selected subject. We recommend scheduling a meeting " +
+                        "with the class teacher next week to discuss additional support.\n\n" +
+                        "Regards,\nSchool Administration",
+                parentName, studentName, pct);
+    }
 }

@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class AdmissionsFunnelManager {
+public class AdmissionsFunnelManager implements AiToolProvider {
 
     private final AgentRunRepository agentRunRepository;
     private final AgentStepRepository agentStepRepository;
@@ -58,6 +58,7 @@ public class AdmissionsFunnelManager {
         private Boolean feePaid;
         private Long createdStudentId;
         private Long feeId;
+        private Map<String, String> timestamps;
     }
 
     private String newRunId() {
@@ -124,6 +125,7 @@ public class AdmissionsFunnelManager {
                 .docsVerified(false)
                 .decision("PENDING")
                 .feePaid(false)
+                .timestamps(new HashMap<>())
                 .build();
         agentRunRepository.save(run);
         persistState(run, state, "collect_application", "RUNNING");
