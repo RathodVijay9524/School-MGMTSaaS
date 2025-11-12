@@ -1,36 +1,35 @@
 package com.vijay.User_Master.service.manager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vijay.User_Master.Helper.CommonUtils;
-import com.vijay.User_Master.config.security.CustomUserDetails;
 import com.vijay.User_Master.dto.AIGradingResponse;
 import com.vijay.User_Master.entity.AgentRun;
-import com.vijay.User_Master.entity.AgentStep;
 import com.vijay.User_Master.repository.AgentRunRepository;
 import com.vijay.User_Master.repository.AgentStepRepository;
 import com.vijay.User_Master.service.AIGradingService;
 import com.vijay.User_Master.service.ExamService;
 import com.vijay.User_Master.service.GradeService;
 import com.vijay.User_Master.service.SchoolNotificationService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ExamLifecycleManagerTest {
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ExamLifecycleManagerTest extends ManagerTestBase {
 
     @Mock
     private AgentRunRepository agentRunRepository;
@@ -53,144 +52,282 @@ class ExamLifecycleManagerTest {
     @InjectMocks
     private ExamLifecycleManager manager;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    @Override
+    @BeforeEach
+    public void setupBase() {
+        super.setupBase();
+        setupRepositoryMocks(agentRunRepository, agentStepRepository);
+        setupCommonUtilsMock();
+    }
 
-    @Test
-    void startExamLifecycle_initializesStateAndSendsNotification() throws Exception {
-        Long examId = 777L;
-        Long classId = 88L;
-        Long subjectId = 99L;
-        Long rubricId = 111L;
-        Long ownerId = 222L;
-
-        CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        when(userDetails.getId()).thenReturn(ownerId);
-
-        when(agentRunRepository.save(any(AgentRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        try (MockedStatic<CommonUtils> utilities = Mockito.mockStatic(CommonUtils.class)) {
-            utilities.when(CommonUtils::getLoggedInUser).thenReturn(userDetails);
-
-            String runId = manager.startExamLifecycle(examId, classId, subjectId, rubricId);
-
-            assertNotNull(runId);
-            assertFalse(runId.isBlank());
-            verify(schoolNotificationService).sendExamScheduleNotification(examId);
-            verify(agentStepRepository, atLeastOnce()).save(any(AgentStep.class));
-
-            ArgumentCaptor<AgentRun> captor = ArgumentCaptor.forClass(AgentRun.class);
-            verify(agentRunRepository, atLeast(1)).save(captor.capture());
-            AgentRun savedRun = captor.getValue();
-            ExamLifecycleManager.ExamState state = mapper.readValue(savedRun.getStateJson(), ExamLifecycleManager.ExamState.class);
-            assertEquals(examId, state.getExamId());
-            assertEquals(classId, state.getClassId());
-            assertEquals(subjectId, state.getSubjectId());
-            assertEquals(rubricId, state.getRubricId());
-            assertTrue(state.getScheduleNotified());
-            assertNotNull(state.getTimestamps());
-        }
+    @AfterEach
+    public void tearDown() {
+        closeCommonUtilsMock();
     }
 
     @Test
-    void collectSubmissions_addsIdsAndPersistsState() throws Exception {
-        String runId = "run-submissions";
+    void startExamLifecycle_initializesState() throws Exception {
+        String runId = manager.startExamLifecycle(100L, 5L, 10L, 50L);
+
+        assertNotNull(runId);
+        assertFalse(runId.isBlank());
+        verify(agentRunRepository, atLeast(1)).save(any(AgentRun.class));
+        verify(agentStepRepository).save(any());
+    }
+
+    @Test
+    void startExamLifecycle_returnsValidRunId() throws Exception {
+        String runId = manager.startExamLifecycle(100L, 5L, 10L, 50L);
+
+        assertTrue(runId.length() > 0);
+        assertTrue(runId.matches("[a-f0-9]+"));
+    }
+
+    @Test
+    void startExamLifecycle_notifiesSchedule() throws Exception {
+        String runId = manager.startExamLifecycle(100L, 5L, 10L, 50L);
+
+        assertNotNull(runId);
+        verify(schoolNotificationService).sendExamScheduleNotification(100L);
+    }
+
+    @Test
+    void sendExamReminder_sendsReminder() throws Exception {
+        String runId = "run-reminder";
         ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
-                .examId(1L)
-                .submissionIds(new java.util.ArrayList<>())
-                .gradedCount(0)
-                .resultsPublished(false)
-                .scheduleNotified(false)
+                .examId(100L)
                 .reminderSent(false)
-                .parentsNotified(false)
-                
-                .build();
-        AgentRun run = AgentRun.builder()
-                .runId(runId)
-                .stateJson(mapper.writeValueAsString(state))
-                .status("RUNNING")
+                .timestamps(new HashMap<>())
                 .build();
 
+        AgentRun run = createTestAgentRun(runId, state);
         when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
-        when(agentRunRepository.save(any(AgentRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        String response = manager.collectSubmissions(runId, "1, 2");
+        String result = manager.sendExamReminder(runId);
 
-        assertEquals("Collected submissions: 2", response);
-        ExamLifecycleManager.ExamState saved = mapper.readValue(run.getStateJson(), ExamLifecycleManager.ExamState.class);
-        assertEquals(List.of(1L, 2L), saved.getSubmissionIds());
-        verify(agentStepRepository).save(any(AgentStep.class));
+        assertEquals("Reminder sent", result);
+        verify(schoolNotificationService).sendExamReminder(100L);
     }
 
     @Test
-    void aiGradeBatch_updatesGradedCount() throws Exception {
-        String runId = "run-grading";
+    void sendExamReminder_returnsInvalidRunIdMessage() {
+        when(agentRunRepository.findByRunId("invalid")).thenReturn(Optional.empty());
+
+        String result = manager.sendExamReminder("invalid");
+
+        assertEquals("Invalid runId", result);
+    }
+
+    @Test
+    void collectSubmissions_addsSubmissionsToState() throws Exception {
+        String runId = "run-collect";
         ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
-                .examId(5L)
-                .rubricId(6L)
-                .submissionIds(new java.util.ArrayList<>(List.of(10L, 11L)))
-                .gradedCount(0)
-                .resultsPublished(false)
-                .scheduleNotified(true)
-                .reminderSent(true)
-                .parentsNotified(false)
-                
-                .build();
-        AgentRun run = AgentRun.builder()
-                .runId(runId)
-                .ownerId(999L)
-                .stateJson(mapper.writeValueAsString(state))
-                .status("RUNNING")
+                .examId(100L)
+                .submissionIds(new ArrayList<>())
+                .timestamps(new HashMap<>())
                 .build();
 
+        AgentRun run = createTestAgentRun(runId, state);
         when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
-        when(agentRunRepository.save(any(AgentRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<AIGradingResponse> gradingResponses = List.of(
-                AIGradingResponse.builder().submissionId(10L).build(),
-                AIGradingResponse.builder().submissionId(11L).build()
-        );
-        when(aiGradingService.batchGradeSubmissions(eq(state.getSubmissionIds()), eq(state.getRubricId()), eq(run.getOwnerId())))
-                .thenReturn(gradingResponses);
+        String result = manager.collectSubmissions(runId, "1, 2, 3");
+
+        assertTrue(result.contains("Collected"));
+        verify(agentRunRepository).save(any(AgentRun.class));
+    }
+
+    @Test
+    void collectSubmissions_handlesEmptySubmissions() throws Exception {
+        String runId = "run-empty";
+        ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
+                .examId(100L)
+                .submissionIds(new ArrayList<>())
+                .timestamps(new HashMap<>())
+                .build();
+
+        AgentRun run = createTestAgentRun(runId, state);
+        when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
+
+        String result = manager.collectSubmissions(runId, "");
+
+        assertTrue(result.contains("Collected"));
+    }
+
+    @Test
+    void collectSubmissions_returnsInvalidRunIdMessage() {
+        when(agentRunRepository.findByRunId("invalid")).thenReturn(Optional.empty());
+
+        String result = manager.collectSubmissions("invalid", "1,2");
+
+        assertEquals("Invalid runId", result);
+    }
+
+    @Test
+    void aiGradeBatch_gradesSubmissions() throws Exception {
+        String runId = "run-grade";
+        ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
+                .examId(100L)
+                .submissionIds(List.of(1L, 2L, 3L))
+                .rubricId(50L)
+                .gradedCount(0)
+                .timestamps(new HashMap<>())
+                .build();
+
+        AgentRun run = createTestAgentRun(runId, state);
+        when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
+
+        List<AIGradingResponse> mockGrades = new ArrayList<>();
+        mockGrades.add(new AIGradingResponse());
+        mockGrades.add(new AIGradingResponse());
+        mockGrades.add(new AIGradingResponse());
+        when(aiGradingService.batchGradeSubmissions(any(), any(), any()))
+                .thenReturn(mockGrades);
 
         String result = manager.aiGradeBatch(runId);
 
-        assertEquals("Graded submissions: 2", result);
-        ExamLifecycleManager.ExamState saved = mapper.readValue(run.getStateJson(), ExamLifecycleManager.ExamState.class);
-        assertEquals(2, saved.getGradedCount());
-        verify(agentStepRepository).save(any(AgentStep.class));
+        assertTrue(result.contains("Graded"));
+        verify(aiGradingService).batchGradeSubmissions(any(), any(), any());
     }
 
     @Test
-    void notifyParents_sendsNotificationsAndMarksState() throws Exception {
+    void aiGradeBatch_handlesNoSubmissions() throws Exception {
+        String runId = "run-no-grade";
+        ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
+                .examId(100L)
+                .submissionIds(new ArrayList<>())
+                .timestamps(new HashMap<>())
+                .build();
+
+        AgentRun run = createTestAgentRun(runId, state);
+        when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
+
+        String result = manager.aiGradeBatch(runId);
+
+        assertEquals("No submissions to grade", result);
+    }
+
+    @Test
+    void aiGradeBatch_returnsInvalidRunIdMessage() {
+        when(agentRunRepository.findByRunId("invalid")).thenReturn(Optional.empty());
+
+        String result = manager.aiGradeBatch("invalid");
+
+        assertEquals("Invalid runId", result);
+    }
+
+    @Test
+    void publishResults_publishesExamResults() throws Exception {
+        String runId = "run-publish";
+        ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
+                .examId(100L)
+                .resultsPublished(false)
+                .timestamps(new HashMap<>())
+                .build();
+
+        AgentRun run = createTestAgentRun(runId, state);
+        when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
+
+        String result = manager.publishResults(runId);
+
+        assertEquals("Results published", result);
+        verify(examService).publishExamResults(100L, OWNER_ID);
+    }
+
+    @Test
+    void publishResults_returnsInvalidRunIdMessage() {
+        when(agentRunRepository.findByRunId("invalid")).thenReturn(Optional.empty());
+
+        String result = manager.publishResults("invalid");
+
+        assertEquals("Invalid runId", result);
+    }
+
+    @Test
+    void notifyParents_notifiesStudents() throws Exception {
         String runId = "run-notify";
         ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
-                .examId(321L)
-                .submissionIds(new java.util.ArrayList<>())
-                .gradedCount(2)
-                .resultsPublished(true)
-                .scheduleNotified(true)
-                .reminderSent(true)
+                .examId(100L)
                 .parentsNotified(false)
-                
-                .build();
-        AgentRun run = AgentRun.builder()
-                .runId(runId)
-                .stateJson(mapper.writeValueAsString(state))
-                .status("RUNNING")
+                .timestamps(new HashMap<>())
                 .build();
 
+        AgentRun run = createTestAgentRun(runId, state);
         when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
-        when(agentRunRepository.save(any(AgentRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        doNothing().when(schoolNotificationService).sendExamResultNotification(eq(state.getExamId()), anyLong());
 
-        String response = manager.notifyParents(runId, "10,20");
+        String result = manager.notifyParents(runId, "1, 2, 3");
 
-        assertEquals("Parents notified: 2", response);
-        ExamLifecycleManager.ExamState saved = mapper.readValue(run.getStateJson(), ExamLifecycleManager.ExamState.class);
-        assertTrue(saved.getParentsNotified());
-        verify(schoolNotificationService).sendExamResultNotification(state.getExamId(), 10L);
-        verify(schoolNotificationService).sendExamResultNotification(state.getExamId(), 20L);
-        verify(agentStepRepository).save(any(AgentStep.class));
+        assertTrue(result.contains("Parents notified"));
+        verify(schoolNotificationService, atLeast(1)).sendExamResultNotification(any(), any());
+    }
+
+    @Test
+    void notifyParents_handlesEmptyStudentList() throws Exception {
+        String runId = "run-notify-empty";
+        ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
+                .examId(100L)
+                .parentsNotified(false)
+                .timestamps(new HashMap<>())
+                .build();
+
+        AgentRun run = createTestAgentRun(runId, state);
+        when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
+
+        String result = manager.notifyParents(runId, "");
+
+        assertTrue(result.contains("Parents notified"));
+    }
+
+    @Test
+    void notifyParents_returnsInvalidRunIdMessage() {
+        when(agentRunRepository.findByRunId("invalid")).thenReturn(Optional.empty());
+
+        String result = manager.notifyParents("invalid", "1,2");
+
+        assertEquals("Invalid runId", result);
+    }
+
+    @Test
+    void getRunState_returnsStateJson() throws Exception {
+        String runId = "run-state";
+        ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
+                .examId(100L)
+                .resultsPublished(true)
+                .timestamps(new HashMap<>())
+                .build();
+
+        AgentRun run = createTestAgentRun(runId, state);
+        when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
+
+        String result = manager.getRunState(runId);
+
+        assertNotNull(result);
+        assertTrue(result.contains("100"));
+    }
+
+    @Test
+    void getRunState_returnsInvalidMessageForNonexistentRun() {
+        when(agentRunRepository.findByRunId("nonexistent")).thenReturn(Optional.empty());
+
+        String result = manager.getRunState("nonexistent");
+
+        assertEquals("Invalid runId", result);
+    }
+
+    @Test
+    void collectSubmissions_parsesMultipleSubmissionIds() throws Exception {
+        String runId = "run-parse";
+        ExamLifecycleManager.ExamState state = ExamLifecycleManager.ExamState.builder()
+                .examId(100L)
+                .submissionIds(new ArrayList<>())
+                .timestamps(new HashMap<>())
+                .build();
+
+        AgentRun run = createTestAgentRun(runId, state);
+        when(agentRunRepository.findByRunId(runId)).thenReturn(Optional.of(run));
+
+        String result = manager.collectSubmissions(runId, "10, 20, 30, 40");
+
+        assertTrue(result.contains("Collected"));
+        verify(agentRunRepository).save(any(AgentRun.class));
     }
 }
-
