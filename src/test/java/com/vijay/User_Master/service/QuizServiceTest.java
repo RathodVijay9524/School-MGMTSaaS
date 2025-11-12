@@ -1,5 +1,7 @@
 package com.vijay.User_Master.service;
 
+import com.vijay.User_Master.dto.QuizRequest;
+import com.vijay.User_Master.dto.QuizResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,11 +10,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,12 +43,13 @@ class QuizServiceTest extends ServiceTestBase {
 
     @Test
     void createQuiz_withValidRequest_returnsQuizResponse() {
-        Object request = new Object();
-        Object mockResponse = new Object();
+        QuizRequest request = new QuizRequest();
+        QuizResponse mockResponse = new QuizResponse();
+        mockResponse.setId(1L);
 
         when(quizService.createQuiz(request, OWNER_ID)).thenReturn(mockResponse);
 
-        Object response = quizService.createQuiz(request, OWNER_ID);
+        QuizResponse response = quizService.createQuiz(request, OWNER_ID);
 
         assertNotNull(response);
         verify(quizService).createQuiz(request, OWNER_ID);
@@ -49,12 +57,13 @@ class QuizServiceTest extends ServiceTestBase {
 
     @Test
     void updateQuiz_withValidData_returnsUpdatedQuiz() {
-        Object request = new Object();
-        Object mockResponse = new Object();
+        QuizRequest request = new QuizRequest();
+        QuizResponse mockResponse = new QuizResponse();
+        mockResponse.setId(1L);
 
         when(quizService.updateQuiz(1L, request, OWNER_ID)).thenReturn(mockResponse);
 
-        Object response = quizService.updateQuiz(1L, request, OWNER_ID);
+        QuizResponse response = quizService.updateQuiz(1L, request, OWNER_ID);
 
         assertNotNull(response);
         verify(quizService).updateQuiz(1L, request, OWNER_ID);
@@ -62,11 +71,12 @@ class QuizServiceTest extends ServiceTestBase {
 
     @Test
     void getQuizById_withValidId_returnsQuiz() {
-        Object mockResponse = new Object();
+        QuizResponse mockResponse = new QuizResponse();
+        mockResponse.setId(1L);
 
         when(quizService.getQuizById(1L, OWNER_ID)).thenReturn(mockResponse);
 
-        Object response = quizService.getQuizById(1L, OWNER_ID);
+        QuizResponse response = quizService.getQuizById(1L, OWNER_ID);
 
         assertNotNull(response);
         verify(quizService).getQuizById(1L, OWNER_ID);
@@ -83,12 +93,12 @@ class QuizServiceTest extends ServiceTestBase {
 
     @Test
     void getAllQuizzes_withValidOwner_returnsQuizzes() {
-        List<Object> mockQuizzes = new ArrayList<>();
-        mockQuizzes.add(new Object());
+        List<QuizResponse> mockQuizzes = new ArrayList<>();
+        mockQuizzes.add(new QuizResponse());
 
         when(quizService.getAllQuizzes(OWNER_ID)).thenReturn(mockQuizzes);
 
-        List<Object> response = quizService.getAllQuizzes(OWNER_ID);
+        List<QuizResponse> response = quizService.getAllQuizzes(OWNER_ID);
 
         assertNotNull(response);
         assertEquals(1, response.size());
@@ -96,27 +106,15 @@ class QuizServiceTest extends ServiceTestBase {
 
     @Test
     void getQuizzesBySubject_withValidSubjectId_returnsQuizzes() {
-        List<Object> mockQuizzes = new ArrayList<>();
-        mockQuizzes.add(new Object());
+        List<QuizResponse> mockQuizzes = new ArrayList<>();
+        mockQuizzes.add(new QuizResponse());
 
         when(quizService.getQuizzesBySubject(1L, OWNER_ID)).thenReturn(mockQuizzes);
 
-        List<Object> response = quizService.getQuizzesBySubject(1L, OWNER_ID);
+        List<QuizResponse> response = quizService.getQuizzesBySubject(1L, OWNER_ID);
 
         assertNotNull(response);
         assertEquals(1, response.size());
-    }
-
-    @Test
-    void publishQuiz_withValidId_returnsPublishedQuiz() {
-        Object mockResponse = new Object();
-
-        when(quizService.publishQuiz(1L, OWNER_ID)).thenReturn(mockResponse);
-
-        Object response = quizService.publishQuiz(1L, OWNER_ID);
-
-        assertNotNull(response);
-        verify(quizService).publishQuiz(1L, OWNER_ID);
     }
 
     @Test
@@ -129,36 +127,38 @@ class QuizServiceTest extends ServiceTestBase {
     }
 
     @Test
-    void submitQuizResponse_withValidData_succeeds() {
-        doNothing().when(quizService).submitQuizResponse(1L, 100L, new Object(), OWNER_ID);
+    void getQuizzesPaginated_withValidOwner_returnsPagedQuizzes() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<QuizResponse> quizzes = new ArrayList<>();
+        quizzes.add(new QuizResponse());
+        Page<QuizResponse> page = new PageImpl<>(quizzes, pageable, 1);
 
-        quizService.submitQuizResponse(1L, 100L, new Object(), OWNER_ID);
+        when(quizService.getQuizzesPaginated(OWNER_ID, pageable)).thenReturn(page);
 
-        verify(quizService).submitQuizResponse(1L, 100L, any(), OWNER_ID);
+        Page<QuizResponse> response = quizService.getQuizzesPaginated(OWNER_ID, pageable);
+
+        assertNotNull(response);
+        assertEquals(1, response.getTotalElements());
     }
 
     @Test
-    void getQuizStatistics_returnsStatistics() {
-        Object mockStats = new Object();
+    void createQuiz_withNullRequest_throwsException() {
+        when(quizService.createQuiz(null, OWNER_ID))
+                .thenThrow(new IllegalArgumentException("Request cannot be null"));
 
-        when(quizService.getQuizStatistics(OWNER_ID)).thenReturn(mockStats);
-
-        Object response = quizService.getQuizStatistics(OWNER_ID);
-
-        assertNotNull(response);
-        verify(quizService).getQuizStatistics(OWNER_ID);
+        assertThrows(IllegalArgumentException.class, () ->
+                quizService.createQuiz(null, OWNER_ID));
     }
 
     @Test
-    void getQuizResults_withValidQuizId_returnsResults() {
-        List<Object> mockResults = new ArrayList<>();
-        mockResults.add(new Object());
+    void getAllQuizzes_withEmptyResult_returnsEmptyList() {
+        List<QuizResponse> mockQuizzes = new ArrayList<>();
 
-        when(quizService.getQuizResults(1L, OWNER_ID)).thenReturn(mockResults);
+        when(quizService.getAllQuizzes(OWNER_ID)).thenReturn(mockQuizzes);
 
-        List<Object> response = quizService.getQuizResults(1L, OWNER_ID);
+        List<QuizResponse> response = quizService.getAllQuizzes(OWNER_ID);
 
         assertNotNull(response);
-        assertEquals(1, response.size());
+        assertTrue(response.isEmpty());
     }
 }

@@ -1,6 +1,5 @@
 package com.vijay.User_Master.service.manager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vijay.User_Master.dto.WorkerResponse;
 import com.vijay.User_Master.entity.AgentRun;
 import com.vijay.User_Master.entity.Fee;
@@ -21,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class AdmissionsFunnelManagerTestImproved extends ManagerTestBase {
+class AdmissionsFunnelManagerTest extends ManagerTestBase {
 
     @Mock
     private AgentRunRepository agentRunRepository;

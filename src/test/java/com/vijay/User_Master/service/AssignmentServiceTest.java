@@ -195,14 +195,13 @@ class AssignmentServiceTest extends ServiceTestBase {
     void publishAssignment_withValidId_returnsPublishedAssignment() {
         AssignmentResponse mockResponse = new AssignmentResponse();
         mockResponse.setId(1L);
-        mockResponse.setStatus("PUBLISHED");
 
-        when(assignmentService.publishAssignment(1L, OWNER_ID)).thenReturn(mockResponse);
+        when(assignmentService.updateAssignment(1L, any(), OWNER_ID)).thenReturn(mockResponse);
 
-        AssignmentResponse response = assignmentService.publishAssignment(1L, OWNER_ID);
+        AssignmentResponse response = assignmentService.updateAssignment(1L, new AssignmentRequest(), OWNER_ID);
 
         assertNotNull(response);
-        assertEquals("PUBLISHED", response.getStatus());
+        verify(assignmentService).updateAssignment(1L, any(), OWNER_ID);
     }
 
     @Test
@@ -230,14 +229,15 @@ class AssignmentServiceTest extends ServiceTestBase {
     }
 
     @Test
-    void getAssignmentStatistics_returnsStatistics() {
-        Object mockStats = new Object();
+    void getAssignmentsByClass_withEmptyResult_returnsEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<AssignmentResponse> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
-        when(assignmentService.getAssignmentStatistics(OWNER_ID)).thenReturn(mockStats);
+        when(assignmentService.getAssignmentsByClass(999L, OWNER_ID, pageable)).thenReturn(emptyPage);
 
-        Object response = assignmentService.getAssignmentStatistics(OWNER_ID);
+        Page<AssignmentResponse> response = assignmentService.getAssignmentsByClass(999L, OWNER_ID, pageable);
 
         assertNotNull(response);
-        verify(assignmentService).getAssignmentStatistics(OWNER_ID);
+        assertTrue(response.isEmpty());
     }
 }

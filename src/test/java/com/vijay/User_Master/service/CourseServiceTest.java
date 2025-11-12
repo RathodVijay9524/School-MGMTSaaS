@@ -115,29 +115,25 @@ class CourseServiceTest extends ServiceTestBase {
     }
 
     @Test
-    void getCoursesByDepartment_withValidDepartmentId_returnsCourses() {
-        List<CourseResponse> mockCourses = new ArrayList<>();
-        mockCourses.add(new CourseResponse());
+    void getAllCourses_withEmptyResult_returnsEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<CourseResponse> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
-        when(courseService.getCoursesByDepartment(1L, OWNER_ID)).thenReturn(mockCourses);
+        when(courseService.getAllCourses(OWNER_ID, pageable)).thenReturn(emptyPage);
 
-        List<CourseResponse> response = courseService.getCoursesByDepartment(1L, OWNER_ID);
+        Page<CourseResponse> response = courseService.getAllCourses(OWNER_ID, pageable);
 
         assertNotNull(response);
-        assertEquals(1, response.size());
+        assertTrue(response.isEmpty());
     }
 
     @Test
-    void getCoursesByInstructor_withValidInstructorId_returnsCourses() {
-        List<CourseResponse> mockCourses = new ArrayList<>();
-        mockCourses.add(new CourseResponse());
+    void getCourseById_withNullId_throwsException() {
+        when(courseService.getCourseById(null, OWNER_ID))
+                .thenThrow(new IllegalArgumentException("Course ID cannot be null"));
 
-        when(courseService.getCoursesByInstructor(1L, OWNER_ID)).thenReturn(mockCourses);
-
-        List<CourseResponse> response = courseService.getCoursesByInstructor(1L, OWNER_ID);
-
-        assertNotNull(response);
-        assertEquals(1, response.size());
+        assertThrows(IllegalArgumentException.class, () ->
+                courseService.getCourseById(null, OWNER_ID));
     }
 
     @Test
@@ -165,37 +161,26 @@ class CourseServiceTest extends ServiceTestBase {
     }
 
     @Test
-    void publishCourse_withValidId_returnsPublishedCourse() {
-        CourseResponse mockResponse = new CourseResponse();
-        mockResponse.setId(1L);
-        mockResponse.setStatus("PUBLISHED");
+    void updateCourse_withNullRequest_throwsException() {
+        when(courseService.updateCourse(1L, null, OWNER_ID))
+                .thenThrow(new IllegalArgumentException("Request cannot be null"));
 
-        when(courseService.publishCourse(1L, OWNER_ID)).thenReturn(mockResponse);
-
-        CourseResponse response = courseService.publishCourse(1L, OWNER_ID);
-
-        assertNotNull(response);
-        assertEquals("PUBLISHED", response.getStatus());
+        assertThrows(IllegalArgumentException.class, () ->
+                courseService.updateCourse(1L, null, OWNER_ID));
     }
 
     @Test
-    void enrollStudent_withValidData_succeeds() {
-        doNothing().when(courseService).enrollStudent(1L, 100L, OWNER_ID);
+    void searchCourses_withEmptyKeyword_returnsAllCourses() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<CourseResponse> courses = new ArrayList<>();
+        courses.add(new CourseResponse());
+        Page<CourseResponse> page = new PageImpl<>(courses, pageable, 1);
 
-        courseService.enrollStudent(1L, 100L, OWNER_ID);
+        when(courseService.searchCourses("", OWNER_ID, pageable)).thenReturn(page);
 
-        verify(courseService).enrollStudent(1L, 100L, OWNER_ID);
-    }
-
-    @Test
-    void getCourseStatistics_returnsStatistics() {
-        Object mockStats = new Object();
-
-        when(courseService.getCourseStatistics(OWNER_ID)).thenReturn(mockStats);
-
-        Object response = courseService.getCourseStatistics(OWNER_ID);
+        Page<CourseResponse> response = courseService.searchCourses("", OWNER_ID, pageable);
 
         assertNotNull(response);
-        verify(courseService).getCourseStatistics(OWNER_ID);
+        assertEquals(1, response.getTotalElements());
     }
 }

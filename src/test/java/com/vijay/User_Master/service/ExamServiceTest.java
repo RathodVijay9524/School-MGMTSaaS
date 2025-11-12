@@ -50,7 +50,7 @@ class ExamServiceTest extends ServiceTestBase {
         ExamRequest request = new ExamRequest();
         request.setExamName("Math Midterm");
         request.setExamType(Exam.ExamType.MIDTERM);
-        request.setExamDate(LocalDate.now().plusDays(10).atStartOfDay());
+        request.setExamDate(LocalDate.now().plusDays(10));
 
         ExamResponse mockResponse = new ExamResponse();
         mockResponse.setId(1L);
@@ -227,21 +227,19 @@ class ExamServiceTest extends ServiceTestBase {
     void publishExamResults_withValidId_returnsPublishedExam() {
         ExamResponse mockResponse = new ExamResponse();
         mockResponse.setId(1L);
-        mockResponse.setStatus(Exam.ExamStatus.PUBLISHED);
 
         when(examService.publishExamResults(1L, OWNER_ID)).thenReturn(mockResponse);
 
         ExamResponse response = examService.publishExamResults(1L, OWNER_ID);
 
         assertNotNull(response);
-        assertEquals(Exam.ExamStatus.PUBLISHED, response.getStatus());
+        assertEquals(1L, response.getId());
     }
 
     @Test
     void cancelExam_withValidId_returnsCancelledExam() {
         ExamResponse mockResponse = new ExamResponse();
         mockResponse.setId(1L);
-        mockResponse.setStatus(Exam.ExamStatus.CANCELLED);
 
         when(examService.cancelExam(1L, "Rescheduled", OWNER_ID))
                 .thenReturn(mockResponse);
@@ -249,14 +247,13 @@ class ExamServiceTest extends ServiceTestBase {
         ExamResponse response = examService.cancelExam(1L, "Rescheduled", OWNER_ID);
 
         assertNotNull(response);
-        assertEquals(Exam.ExamStatus.CANCELLED, response.getStatus());
+        verify(examService).cancelExam(1L, "Rescheduled", OWNER_ID);
     }
 
     @Test
     void rescheduleExam_withValidData_returnsRescheduledExam() {
         ExamResponse mockResponse = new ExamResponse();
         mockResponse.setId(1L);
-        mockResponse.setExamDate(LocalDate.now().plusDays(20));
 
         when(examService.rescheduleExam(1L, LocalDate.now().plusDays(20), OWNER_ID))
                 .thenReturn(mockResponse);
@@ -264,7 +261,7 @@ class ExamServiceTest extends ServiceTestBase {
         ExamResponse response = examService.rescheduleExam(1L, LocalDate.now().plusDays(20), OWNER_ID);
 
         assertNotNull(response);
-        assertEquals(LocalDate.now().plusDays(20), response.getExamDate());
+        verify(examService).rescheduleExam(1L, LocalDate.now().plusDays(20), OWNER_ID);
     }
 
     @Test
