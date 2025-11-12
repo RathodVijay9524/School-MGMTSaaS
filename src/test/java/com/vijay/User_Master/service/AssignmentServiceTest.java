@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +46,7 @@ class AssignmentServiceTest extends ServiceTestBase {
     void createAssignment_withValidRequest_returnsAssignmentResponse() {
         AssignmentRequest request = new AssignmentRequest();
         request.setTitle("Math Assignment");
-        request.setDueDate(LocalDate.now().plusDays(7));
+        request.setDueDate(LocalDateTime.now().plusDays(7));
 
         AssignmentResponse mockResponse = new AssignmentResponse();
         mockResponse.setId(1L);

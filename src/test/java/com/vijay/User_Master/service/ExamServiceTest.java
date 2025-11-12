@@ -50,7 +50,7 @@ class ExamServiceTest extends ServiceTestBase {
         ExamRequest request = new ExamRequest();
         request.setExamName("Math Midterm");
         request.setExamType(Exam.ExamType.MIDTERM);
-        request.setExamDate(LocalDate.now().plusDays(10));
+        request.setExamDate(LocalDate.now().plusDays(10).atStartOfDay());
 
         ExamResponse mockResponse = new ExamResponse();
         mockResponse.setId(1L);
